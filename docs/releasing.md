@@ -1,6 +1,6 @@
 # 发布到自己的仓库
 
-本项目通过 `TaoCultivator/LocationSpoofer` 的 GitHub Actions 构建 Release，应用也从该仓库检查更新。
+本项目通过 `amahteru/location-spoofer` 的 GitHub Actions 构建 Release，应用也从该仓库检查更新。
 
 ## 持久发布签名
 
