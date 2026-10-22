@@ -42,7 +42,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.exportEnvironmentData
 import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 private val REQUIRED_PERMISSIONS: List<String>
     get() = buildList {
@@ -119,7 +119,7 @@ fun DataCollectionAssistScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // 说明卡：视觉呼应 BlockingScreen，同时说明依然能帮忙采集数据
-            MiuixCard(
+            AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)
@@ -165,7 +165,7 @@ fun DataCollectionAssistScreen(
 
             // 权限缺失提示
             if (missingPermissions.isNotEmpty()) {
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(16.dp)
@@ -199,7 +199,7 @@ fun DataCollectionAssistScreen(
                         },
                         modifier = Modifier.fillMaxWidth().height(44.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange)
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange, contentColor = Color.White)
                     ) {
                         Text(stringResource(R.string.go_to_settings), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
@@ -207,7 +207,7 @@ fun DataCollectionAssistScreen(
             }
 
             // 采集状态与操作卡
-            MiuixCard(
+            AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)
@@ -278,7 +278,8 @@ fun DataCollectionAssistScreen(
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen
+                        containerColor = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen,
+                        contentColor = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.onError else Color.White
                     )
                 ) {
                     Icon(Icons.Rounded.Radar, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -298,7 +299,7 @@ fun DataCollectionAssistScreen(
             }
 
             // 导出卡
-            MiuixCard(
+            AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)

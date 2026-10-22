@@ -39,12 +39,13 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setVendorScheme
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun VendorSchemeScreen(
@@ -142,7 +143,7 @@ fun VendorSchemeScreen(
                 DeviceAdaptationCard(document.markdown)
 
                 // 厂商适配只作用于系统级 Hook，仅全局方案可选
-                if (BuildConfig.GLOBAL_SCHEME) MiuixCard(
+                if (BuildConfig.GLOBAL_SCHEME) AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(16.dp)
@@ -210,7 +211,7 @@ fun VendorSchemeScreen(
                                     ) {
                                         Text(
                                             text = label,
-                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                            color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
                                             fontSize = 11.5.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                             maxLines = 1,
@@ -290,7 +291,7 @@ private fun NavigationRowCard(
     chipColor: Color = Color.Unspecified,
     onClick: () -> Unit
 ) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable(onClick = onClick),

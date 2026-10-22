@@ -15,6 +15,8 @@ import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -22,15 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
 import com.vincenthzr.locationspoofer.ui.components.AppMapView
-import com.vincenthzr.locationspoofer.ui.liquid.AndroidFloatingBottomBar
-import com.vincenthzr.locationspoofer.ui.liquid.FloatingBottomBarItem
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -40,8 +39,6 @@ import com.vincenthzr.locationspoofer.viewmodel.handleSpoofingIntent
 import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 enum class BottomTab(val icon: ImageVector) {
     Location(Icons.Rounded.MyLocation),
@@ -90,8 +87,6 @@ fun MainScaffoldScreen(
     val currentSelectedTab by rememberUpdatedState(selectedTab)
     val isDark = isSystemInDarkTheme()
     val updateViewModel: UpdateViewModel = koinViewModel()
-
-    val backdrop = rememberLayerBackdrop()
 
     val updateUiState by updateViewModel.uiState.collectAsState()
     var hasAutoCheckedUpdates by remember { mutableStateOf(false) }
@@ -156,45 +151,15 @@ fun MainScaffoldScreen(
                     enter = fadeIn(tween(180)) + expandVertically(tween(180)),
                     exit = fadeOut(tween(140)) + shrinkVertically(tween(140))
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(bottom = 14.dp),
-                        contentAlignment = Alignment.BottomCenter
-                    ) {
-                        AndroidFloatingBottomBar(
-                            selectedIndex = { selectedTab },
-                            onSelected = selectPage,
-                            backdrop = backdrop,
-                            tabsCount = pageCount
-                        ) {
-                            BottomTab.values().forEachIndexed { index, tab ->
-                                val isSelected = selectedTab == index
-                                FloatingBottomBarItem(
-                                    modifier = Modifier.defaultMinSize(minWidth = 76.dp),
-                                    onClick = { selectPage(index) }
-                                ) {
-                                    val label = tab.getLabel()
-                                    Icon(
-                                        imageVector = tab.icon,
-                                        contentDescription = label,
-                                        tint = if (isSelected) AccentBlue else MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = if (isDark) 0.65f else 0.70f
-                                        ),
-                                        modifier = Modifier.size(22.dp)
-                                    )
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) AccentBlue else MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = if (isDark) 0.65f else 0.70f
-                                        ),
-                                        maxLines = 1
-                                    )
-                                }
-                            }
+                    NavigationBar {
+                        BottomTab.values().forEachIndexed { index, tab ->
+                            val label = tab.getLabel()
+                            NavigationBarItem(
+                                selected = selectedTab == index,
+                                onClick = { selectPage(index) },
+                                icon = { Icon(imageVector = tab.icon, contentDescription = label) },
+                                label = { Text(text = label, maxLines = 1) }
+                            )
                         }
                     }
                 }
@@ -203,7 +168,6 @@ fun MainScaffoldScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .layerBackdrop(backdrop)
             ) {
                 // 底层地图层（定位与路线 Tab 共享）
                 Box(modifier = Modifier.fillMaxSize()) {

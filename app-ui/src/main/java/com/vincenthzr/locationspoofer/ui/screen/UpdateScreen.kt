@@ -39,9 +39,7 @@ import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
 import com.vincenthzr.locationspoofer.viewmodel.UpdateViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setCheckBetaUpdates
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun UpdateScreen(
@@ -55,7 +53,6 @@ fun UpdateScreen(
     val appState by viewModel.uiState.collectAsState()
     val currentVersion = BuildConfig.VERSION_NAME
     val listState = rememberLazyListState()
-    val backdrop = rememberLayerBackdrop()
 
     BackHandler(onBack = onBack)
 
@@ -106,7 +103,6 @@ fun UpdateScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .layerBackdrop(backdrop)
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(top = 112.dp, bottom = 36.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -154,7 +150,7 @@ fun UpdateScreen(
 
             // Beta 测试版通道开关
             item {
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
@@ -182,7 +178,7 @@ fun UpdateScreen(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
-                        top.yukonga.miuix.kmp.basic.Switch(
+                        Switch(
                             checked = appState.checkBetaUpdates,
                             onCheckedChange = { viewModel.setCheckBetaUpdates(it) }
                         )
@@ -286,7 +282,7 @@ private fun CurrentVersionHeroCard(
     onCancelDownload: () -> Unit,
     onIgnore: (String) -> Unit
 ) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 18.dp,
         insideMargin = PaddingValues(horizontal = 20.dp, vertical = 18.dp)
@@ -425,7 +421,7 @@ private fun CurrentVersionHeroCard(
                     Button(
                         onClick = onInstall,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White),
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                         modifier = Modifier.height(40.dp)
                     ) {
@@ -544,7 +540,7 @@ private fun ReleaseItemCard(
     uiState: UpdateUiState,
     onDownload: (String, String) -> Unit
 ) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 18.dp,
         insideMargin = PaddingValues(16.dp)

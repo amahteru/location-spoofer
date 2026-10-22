@@ -129,7 +129,7 @@
 * **悬浮窗遥控摇杆**：提供悬浮窗虚拟摇杆，支持 0 ~ 10 m/s 速度无级调节与航向角阻尼转向。
 
 ### 8. 用户界面
-* 基于 Jetpack Compose 构建，采用现代毛玻璃质感、内阴影与阻尼手势拖拽设计，实现完全模块化与解耦的组件架构。
+* 基于 Jetpack Compose 构建，遵循 Material Design 3 设计规范并支持系统动态取色，实现完全模块化与解耦的组件架构。
 
 ---
 
@@ -140,7 +140,7 @@
 | 模块 | 类型 | 职责 |
 |---|---|---|
 | `app` | Android App | 宿主壳工程：`Application` / `MainActivity`、签名与打包配置、聚合各模块的 Koin DI；仅把 `xposed` 模块的产物（`LocationHooker` 类与 `META-INF/xposed/*` 元数据）打进最终 APK 供 LSPosed 扫描加载，自身**不直接调用**其代码 |
-| `app-ui` | Android Library | 全部 Jetpack Compose UI：页面、弹窗、自研“液态玻璃”组件（`ui/liquid`）与 ViewModel 层 |
+| `app-ui` | Android Library | 全部 Jetpack Compose UI：页面、弹窗、通用组件与 ViewModel 层 |
 | `service` | Android Library | 前台保活服务 `SpoofingService`、悬浮摇杆 `FloatingJoystickService`、开机自启广播等后台/服务层 |
 | `xposed` | Android Library | LSPosed / Xposed 注入模块本体：`LocationHooker` 入口 + `hooks/`、`hooks/network/` 下的各类 Hook 实现 |
 | `core-data` | Android Library | `app` / `app-ui` / `service` 三端共用的数据与业务层：Room 数据库、各类 Repository，以及 `ConfigManager`、`RootManager`、`EnvironmentScanner` 等核心工具类 |
@@ -258,7 +258,7 @@ git clone https://github.com/your-username/LocationSpoofer.git
 
 * **编程语言**：100% Kotlin
 * **模块划分**：`app` / `app-ui` / `service` / `xposed` / `core-data` / `core-geo` 六个 Gradle 模块（详见[系统架构](#系统架构)）
-* **UI 框架**：Jetpack Compose & Material Design 3，叠加第三方 [Miuix](https://github.com/miuix-kmp/miuix)（`top.yukonga.miuix.kmp`）提供的毛玻璃模糊底层能力，并在此之上自研 `ui/liquid` 组件包（改编自开源项目 AndroidLiquidGlass / ILoveWork，Apache-2.0）实现悬浮底栏、透镜折射与阻尼拖拽等 Liquid Glass 交互效果
+* **UI 框架**：Jetpack Compose & Material Design 3，Android 12 及以上跟随系统动态取色（Material You），低版本使用由品牌色生成的 MD3 配色
 * **依赖注入**：Koin，按模块拆分为 `coreDataModule` / `serviceModule` / `viewModelModule` 三个子模块，由 `app` 模块的 `appModules` 统一聚合注册
 * **持久化存储**：Room Database (SQLite) + 空间索引（`core-data` 模块）
 * **网络与序列化**：OkHttp 3 + Kotlinx Serialization

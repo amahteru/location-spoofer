@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
@@ -37,7 +38,7 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 /**
  * 具有细腻物理阻尼手感与弹簧回弹的向左滑动列表项
@@ -171,14 +172,14 @@ fun SwipeableDataListItem(
                     Icon(
                         Icons.Rounded.Edit,
                         contentDescription = stringResource(R.string.edit),
-                        tint = Color.White,
+                        tint = OnAccentBlue,
                         modifier = Modifier.size(19.dp)
                     )
                     Text(
                         text = stringResource(R.string.edit),
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = OnAccentBlue
                     )
                 }
             }
@@ -230,7 +231,7 @@ fun SwipeableDataListItem(
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
                 .fillMaxWidth()
         ) {
-            MiuixCard(
+            AppCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .noRippleClickable {

@@ -24,7 +24,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun SectionHeader(icon: ImageVector, title: String, isDark: Boolean) {
@@ -44,7 +44,7 @@ fun SectionHeader(icon: ImageVector, title: String, isDark: Boolean) {
 
 @Composable
 fun AppCoordinateConfigCard(isDark: Boolean, onClick: () -> Unit) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onClick() },
@@ -96,7 +96,7 @@ fun AppCoordinateConfigCard(isDark: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.AppState, isDark: Boolean, onClick: () -> Unit) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onClick() },
@@ -159,7 +159,7 @@ fun ScannerMapCard(
     uiState: AppState,
     onClick: () -> Unit
 ) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onClick() },
@@ -219,7 +219,7 @@ fun ScannerMapCard(
 
 @Composable
 fun ManageDataCard(isDark: Boolean, onClick: () -> Unit) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onClick() },
@@ -271,7 +271,7 @@ fun ManageDataCard(isDark: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun ImportExportDataCard(isDark: Boolean, onImportClick: () -> Unit, onExportClick: () -> Unit) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 16.dp,
         insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)

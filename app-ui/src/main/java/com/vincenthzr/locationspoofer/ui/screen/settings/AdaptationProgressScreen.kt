@@ -30,7 +30,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 /** 系统适配页的二级页面：完整的适配进度文档 */
 @Composable
@@ -86,7 +86,7 @@ fun AdaptationProgressScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(16.dp)
@@ -110,7 +110,7 @@ fun DeviceAdaptationCard(markdown: String) {
     val profile = VendorProfile.current
     val entry = remember(markdown) { AdaptationProgress.findGlobalSystem(markdown, profile.family.progressKeywords) }
 
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 18.dp,
         insideMargin = PaddingValues(16.dp)

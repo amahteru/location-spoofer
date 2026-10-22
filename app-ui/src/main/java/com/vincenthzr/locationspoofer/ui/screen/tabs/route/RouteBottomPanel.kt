@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.route
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -104,6 +105,7 @@ fun RouteBottomPanel(
                                     shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = AccentGreen,
+                                        contentColor = Color.White,
                                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
                                             alpha = 0.5f
                                         )

@@ -39,6 +39,7 @@ import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.ui.screen.ActionButtons
 import com.vincenthzr.locationspoofer.ui.screen.CoordinateInputCard
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import kotlin.math.roundToInt
@@ -244,7 +245,7 @@ fun LocationControlPanel(
                             if (uiState.isSavingConfig) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(18.dp),
-                                    color = Color.White,
+                                    color = OnAccentBlue,
                                     strokeWidth = 2.dp
                                 )
                                 Spacer(Modifier.width(6.dp))
@@ -252,13 +253,13 @@ fun LocationControlPanel(
                                     stringResource(R.string.starting_ellipsis),
                                     fontSize = 13.5.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = OnAccentBlue
                                 )
                             } else {
                                 Icon(
                                     Icons.Rounded.MyLocation,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = OnAccentBlue,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(Modifier.width(6.dp))
@@ -266,7 +267,7 @@ fun LocationControlPanel(
                                     stringResource(R.string.fixed_simulation),
                                     fontSize = 13.5.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = OnAccentBlue
                                 )
                             }
                         }

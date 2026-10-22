@@ -30,7 +30,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.util.Locale
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 // 动态可滑动高度的收藏地点卡片（支持无限数量坐标平滑滚动，并支持抽拉下沉）
 @Composable
@@ -47,7 +47,7 @@ fun SavedLocationsCard(
 ) {
     val textSecondary = AppColors.textSecondary(isDark)
 
-    MiuixCard(
+    AppCard(
         modifier = modifier.fillMaxWidth(),
         cornerRadius = 20.dp,
         insideMargin = PaddingValues(14.dp)

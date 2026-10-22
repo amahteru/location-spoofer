@@ -45,7 +45,7 @@ import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.viewmodel.setMapType
 import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun ScannerMapScreen(
@@ -201,7 +201,7 @@ fun ScannerMapScreen(
                 .statusBarsPadding()
                 .padding(top = 64.dp, end = 16.dp)
         ) {
-            MiuixCard(
+            AppCard(
                 cornerRadius = 14.dp,
                 insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
             ) {

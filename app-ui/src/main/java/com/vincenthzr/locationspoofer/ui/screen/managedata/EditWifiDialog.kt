@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.util.Locale
@@ -243,7 +244,7 @@ fun EditWifiDialog(
                                         text = lbl,
                                         fontSize = 10.5.sp,
                                         fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                        color = if (isChosen) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
                                     )
                                 }
                             }
@@ -286,7 +287,7 @@ fun EditWifiDialog(
                                         text = lbl,
                                         fontSize = 11.sp,
                                         fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                        color = if (isChosen) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
                                     )
                                 }
                             }
@@ -389,11 +390,7 @@ fun EditWifiDialog(
                             )
                             Switch(
                                 checked = isDesignated,
-                                onCheckedChange = { isDesignated = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = AccentBlue
-                                )
+                                onCheckedChange = { isDesignated = it }
                             )
                         }
                     }

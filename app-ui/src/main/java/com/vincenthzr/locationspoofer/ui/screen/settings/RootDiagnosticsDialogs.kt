@@ -318,7 +318,7 @@ fun RestartHookedAppsConfirmDialog(
 
                         Button(
                             onClick = onConfirm,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .weight(1.2f)

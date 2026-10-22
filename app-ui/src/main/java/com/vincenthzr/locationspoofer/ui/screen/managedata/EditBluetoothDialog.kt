@@ -341,7 +341,7 @@ fun EditBluetoothDialog(
                             )
                         },
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0), contentColor = Color.White),
                         modifier = Modifier
                             .weight(1.3f)
                             .height(42.dp)

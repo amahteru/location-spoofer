@@ -159,9 +159,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
-    implementation(libs.miuix.ui)
-    implementation(libs.miuix.blur)
-
     debugImplementation(libs.androidx.ui.tooling)
     androidTestImplementation(libs.room.runtime)
     androidTestImplementation(libs.room.ktx)

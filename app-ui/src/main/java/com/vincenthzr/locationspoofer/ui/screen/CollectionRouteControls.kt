@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -57,7 +58,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                     enabled = !state.isStoppingCollection,
                     onClick = viewModel::toggleContinuousScanning,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (state.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen)
+                    colors = ButtonDefaults.buttonColors(containerColor = if (state.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen, contentColor = if (state.isContinuousScanning) MaterialTheme.colorScheme.onError else Color.White)
                 ) {
                     Text(stringResource(when {
                         state.isStoppingCollection -> R.string.collection_stopping

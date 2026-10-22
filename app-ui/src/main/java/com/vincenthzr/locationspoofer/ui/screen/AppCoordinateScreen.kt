@@ -35,11 +35,12 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setAppCoordinateSystem
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 private enum class CoordinateFilterTab {
     All,
@@ -254,7 +255,7 @@ fun AppCoordinateScreen(
                             text = label,
                             fontSize = 12.5.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(
+                            color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(
                                 alpha = 0.7f
                             )
                         )
@@ -379,7 +380,7 @@ private fun AppItemCard(
     val isCustom = currentCoordinateSystem != null
     val displaySystem = currentCoordinateSystem ?: "AUTO"
 
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable(onClick = onClick),

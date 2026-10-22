@@ -32,7 +32,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 private val StateRed = Color(0xFFE5534B)
 private val StateGray = Color(0xFF8B949E)
@@ -106,7 +106,7 @@ fun HookStatusScreen(
             ) {
                 reports.forEach { (process, report) -> ProcessCard(process, report, boot) }
 
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
@@ -128,8 +128,7 @@ fun HookStatusScreen(
                         Spacer(Modifier.width(8.dp))
                         Switch(
                             checked = debugDump,
-                            onCheckedChange = onDebugDumpChange,
-                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AccentBlue)
+                            onCheckedChange = onDebugDumpChange
                         )
                     }
                 }
@@ -142,7 +141,7 @@ fun HookStatusScreen(
 
 @Composable
 private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Long) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 18.dp,
         insideMargin = PaddingValues(16.dp)

@@ -39,7 +39,7 @@ import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setOpencellidApiToken
 import com.vincenthzr.locationspoofer.viewmodel.setWigleApiToken
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun EnvTokensScreen(
@@ -121,7 +121,7 @@ fun EnvTokensScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    MiuixCard(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         cornerRadius = 18.dp,
                         insideMargin = PaddingValues(16.dp)

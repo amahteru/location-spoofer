@@ -74,7 +74,7 @@ fun ManageDeleteConfirmDialog(
                     Button(
                         onClick = onConfirm,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
                         modifier = Modifier
                             .weight(1.2f)
                             .height(40.dp)

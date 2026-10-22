@@ -55,7 +55,7 @@ import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun InfoTab(
@@ -218,7 +218,7 @@ fun InfoTab(
             // 2. 设置聚合卡片：原来的 6 个"软件配置"区块拆开后，各自独立成页，
             // 这里收进一个紧凑列表，避免变成 6 个各自占一屏高度的大卡片。
             item {
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 18.dp,
                     insideMargin = PaddingValues(horizontal = 12.dp, vertical = 4.dp)

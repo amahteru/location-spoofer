@@ -418,11 +418,7 @@ fun EditCellDialog(
                             )
                             Switch(
                                 checked = isDesignated,
-                                onCheckedChange = { isDesignated = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = AccentBlue
-                                )
+                                onCheckedChange = { isDesignated = it }
                             )
                         }
                     }
@@ -482,7 +478,7 @@ fun EditCellDialog(
                             )
                         },
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange, contentColor = Color.White),
                         modifier = Modifier
                             .weight(1.3f)
                             .height(42.dp)

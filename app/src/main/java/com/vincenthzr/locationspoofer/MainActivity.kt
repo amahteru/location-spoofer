@@ -26,8 +26,7 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.screen.BlockingScreen
 import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
-import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeDark
-import com.vincenthzr.locationspoofer.ui.theme.AppColorSchemeLight
+import com.vincenthzr.locationspoofer.ui.theme.appColorScheme
 import com.vincenthzr.locationspoofer.utils.LocaleUtils
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
@@ -73,7 +72,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 val uiState by viewModel.uiState.collectAsState()
                 val isDark = isSystemInDarkTheme()
-                val colorScheme = if (isDark) AppColorSchemeDark else AppColorSchemeLight
+                val colorScheme = appColorScheme(isDark)
                 val baseDensity = LocalDensity.current
                 val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
                     Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
@@ -97,23 +96,15 @@ class MainActivity : ComponentActivity() {
                     LocalDensity provides appDensity
                 ) {
                     MaterialTheme(colorScheme = colorScheme) {
-                        top.yukonga.miuix.kmp.theme.MiuixTheme(
-                            colors = if (isDark) {
-                                top.yukonga.miuix.kmp.theme.darkColorScheme()
-                            } else {
-                                top.yukonga.miuix.kmp.theme.lightColorScheme()
-                            }
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background
                         ) {
-                            Surface(
-                                modifier = Modifier.fillMaxSize(),
-                                color = MaterialTheme.colorScheme.background
-                            ) {
-                                MainScreen(
-                                    viewModel = viewModel,
-                                    uiState = uiState,
-                                    isDark = isDark
-                                )
-                            }
+                            MainScreen(
+                                viewModel = viewModel,
+                                uiState = uiState,
+                                isDark = isDark
+                            )
                         }
                     }
                 }

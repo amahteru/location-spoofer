@@ -21,7 +21,7 @@ import com.vincenthzr.locationspoofer.data.model.GithubRelease
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun StartupUpdateDialog(
@@ -35,7 +35,7 @@ fun StartupUpdateDialog(
     }
 
     Dialog(onDismissRequest = onDismiss) {
-        MiuixCard(
+        AppCard(
             modifier = Modifier.fillMaxWidth(),
             cornerRadius = 22.dp,
             insideMargin = PaddingValues(22.dp)

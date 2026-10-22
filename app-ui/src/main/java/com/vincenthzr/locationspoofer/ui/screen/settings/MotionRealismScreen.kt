@@ -32,6 +32,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.GaitRecordingState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
@@ -47,7 +48,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setSpeedFluctuationPct
 import com.vincenthzr.locationspoofer.viewmodel.setUseGaitTemplate
 import com.vincenthzr.locationspoofer.viewmodel.startGaitRecording
 import kotlin.math.roundToInt
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun MotionRealismScreen(
@@ -169,7 +170,7 @@ private fun CardHeader(icon: ImageVector, tint: Color, title: String, desc: Stri
 
 @Composable
 private fun RealismLevelCard(uiState: AppState, isDark: Boolean, onSelect: (Int) -> Unit) {
-    MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.Rounded.Shuffle,
             AccentBlue,
@@ -201,7 +202,7 @@ private fun RealismLevelCard(uiState: AppState, isDark: Boolean, onSelect: (Int)
                 ) {
                     Text(
                         text = label,
-                        color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                        color = if (selected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
                         fontSize = 12.5.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
                     )
@@ -213,7 +214,7 @@ private fun RealismLevelCard(uiState: AppState, isDark: Boolean, onSelect: (Int)
 
 @Composable
 private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
-    MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.Rounded.Speed,
             AccentOrange,
@@ -246,7 +247,7 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
 
 @Composable
 private fun GaitCard(viewModel: MainViewModel, uiState: AppState, isDark: Boolean) {
-    MiuixCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.AutoMirrored.Rounded.DirectionsWalk,
             AccentGreen,
@@ -292,7 +293,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState, isDark: Boolea
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
                         onClick = { viewModel.startGaitRecording() },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White)
                     ) { Text(stringResource(R.string.gait_retry)) }
                     OutlinedButton(onClick = { viewModel.dismissGaitRecordingResult() }) {
                         Text(stringResource(R.string.gait_cancel))
@@ -328,7 +329,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState, isDark: Boolea
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
                         onClick = { viewModel.startGaitRecording() },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White)
                     ) {
                         Text(stringResource(if (cadence != null) R.string.gait_rerecord else R.string.gait_record))
                     }

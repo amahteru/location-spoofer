@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -370,7 +369,7 @@ private fun LocalDataItem(
     val cellCount = item.cells.size
     val btCount = item.bluetooths.size
 
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable(onClick = onClick),

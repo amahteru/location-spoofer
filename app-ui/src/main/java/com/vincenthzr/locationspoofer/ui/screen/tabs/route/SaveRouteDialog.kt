@@ -35,7 +35,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.saveRoute
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun SaveRouteDialog(
@@ -57,7 +57,7 @@ fun SaveRouteDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        MiuixCard(
+        AppCard(
             modifier = Modifier
                 .fillMaxWidth(0.90f)
                 .padding(vertical = 20.dp)

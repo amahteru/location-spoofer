@@ -105,7 +105,7 @@ LocationSpoofer 基于 **MVVM + Clean Architecture** 构建，代码按职责拆
 | 模块 | 类型 | 职责 |
 |---|---|---|
 | `app` | Android App | 宿主壳工程：`Application` / `MainActivity`、签名打包配置、聚合各模块 Koin DI；仅打包 `xposed` 模块产物供 LSPosed 扫描，自身不直接调用其代码 |
-| `app-ui` | Android Library | 全部 Compose UI（页面/弹窗/`ui/liquid` 组件）与 ViewModel 层 |
+| `app-ui` | Android Library | 全部 Compose UI（页面/弹窗/通用组件）与 ViewModel 层 |
 | `service` | Android Library | 前台保活服务、悬浮摇杆服务、开机自启广播等 |
 | `xposed` | Android Library | LSPosed/Xposed 注入模块本体，`hooks/`、`hooks/network/` 下的各 Hook 实现 |
 | `core-data` | Android Library | `app`/`app-ui`/`service` 三端共用的数据与业务层：Room 数据库、Repository、`ConfigManager`/`RootManager`/`EnvironmentScanner` 等工具类 |
@@ -114,7 +114,7 @@ LocationSpoofer 基于 **MVVM + Clean Architecture** 构建，代码按职责拆
 新增代码前请先想清楚该放进哪个模块：**纯业务逻辑/持久化**放 `core-data`；**只和 Compose UI 相关**放 `app-ui`；**Hook 实现**只放 `xposed`（且只能依赖 `core-geo`，不能反向依赖 `app-ui`/`core-data`，否则会把 Room/Compose 等重量级依赖一起打进目标 App 进程）。
 
 * **语言**：100% Kotlin，使用 Coroutines 与 StateFlow 处理异步流。
-* **UI 交互**：Jetpack Compose、Material Design 3，叠加第三方 [Miuix](https://github.com/miuix-kmp/miuix)（`top.yukonga.miuix.kmp`）提供的模糊/毛玻璃底层能力；`app-ui/ui/liquid` 包在此基础上实现了"液态玻璃"悬浮底栏、透镜与阻尼拖拽效果。新增基础组件优先复用 Miuix 提供的控件，而不是重新造轮子。
+* **UI 交互**：Jetpack Compose、Material Design 3（Material3 组件 + Android 12 以上动态取色，低版本回退到由品牌种子色生成的 MD3 配色，定义在 `ui/theme/AppColors.kt`）。通用卡片使用 `ui/components/AppCard`。新增基础组件优先复用 Material3 自带控件与配色角色（`MaterialTheme.colorScheme`），不要写死颜色。
 * **依赖注入**：Koin。按模块拆分为 `coreDataModule`（`core-data`）、`serviceModule`（`service`）、`viewModelModule`（`app-ui`），由 `app` 模块的 `appModules`（`List<Module>`）统一聚合并在 `LocationApp.onCreate()` 中 `startKoin`。新增可注入类型时，在对应模块的 `di/XxxModule.kt` 里补充绑定，不要绕开 DI 手动 `new`。
 * **本地存储**：Room Database（SQLite，位于 `core-data`），涉及空间查询的部分需配备空间索引优化。
 * **Xposed Hook 核心层**：
@@ -130,7 +130,7 @@ LocationSpoofer 基于 **MVVM + Clean Architecture** 构建，代码按职责拆
 
 * **ViewModel 组织方式**：只有 `app-ui` 里的 `MainViewModel` 这个承载主界面全部状态的"大 ViewModel"才按功能拆成多个文件（`MainViewModel.kt` 只放字段与构造，行为全部以 `internal fun MainViewModel.xxx()` 扩展函数的形式分散在 `MainViewModelSpoofing.kt`/`MainViewModelDataIO.kt`/`MainViewModelLocation.kt`/`MainViewModelRoute.kt`/`MainViewModelSettings.kt` 里）。这是 `MainViewModel` 专属的组织方式，**不是**项目通用约定——像 `ManageDataViewModel`、`UpdateViewModel` 这种职责单一的 ViewModel 应该保持单文件、方法作为类成员，不要生搬硬套扩展函数拆分。往 `MainViewModel` 加新逻辑时，按"这属于模拟开关/数据导入导出/定位获取/路线规划/设置"里的哪一类，加进对应的 `MainViewModelXxx.kt`，而不是塞进 `MainViewModel.kt` 本体。
 * **注释风格**：项目里的注释绝大多数是中文，且以解释"为什么这么写"（隐藏约束、踩过的坑、看似多余实则必要的判断）为主，而不是复述代码在做什么。例如解释为什么用某个 SELinux 属性而不是逐个枚举、为什么某个判断顺序不能颠倒、为什么用高斯噪声而不是确定性正弦波。新增注释时按这个标准自问：如果删掉这行注释，读者会不会因为看不出背后的原因而在后续修改时踩坑？会才写，纯复述代码在做什么的注释不要加。
-* **`app-ui/ui/` 包结构**：`components/`（跨页面复用的弹窗与控件）、`components/map/`（各地图引擎适配器）、`liquid/`（自研液态玻璃组件）、`theme/`（配色与主题）、`screen/`（各个独立页面）；页面自身逻辑复杂时在 `screen/` 下按功能开子包（如 `screen/managedata/`、`screen/settings/`、`screen/tabs/`），把该页面专属的子组件、对话框、UI State 都收进对应子包，不要平铺在 `screen/` 根目录。
+* **`app-ui/ui/` 包结构**：`components/`（跨页面复用的弹窗与控件）、`components/map/`（各地图引擎适配器）、`theme/`（配色与主题）、`screen/`（各个独立页面）；页面自身逻辑复杂时在 `screen/` 下按功能开子包（如 `screen/managedata/`、`screen/settings/`、`screen/tabs/`），把该页面专属的子组件、对话框、UI State 都收进对应子包，不要平铺在 `screen/` 根目录。
 * **静态检查**：目前项目**没有配置** ktlint / detekt 等静态检查工具，代码风格仅靠人工 Review 把关，请提交前自行对照本文档与现有代码风格检查，而不是等 CI 报错。
 * **多语言资源**：`app-ui` 与 `service` 下的 `res/values`（默认）实际是**英文**字符串，`values-zh` 才是中文翻译，`values-ar` 是阿拉伯语翻译（目前落后于前两者，缺失的字符串会自动回退到默认英文）。新增界面文案时，请先在 `values/strings.xml` 加英文原文，再补 `values-zh/strings.xml` 的中文翻译；只改中文而漏改默认英文资源是常见疏漏，请特别注意。
 

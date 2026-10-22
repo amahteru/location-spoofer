@@ -29,7 +29,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 // 保存名称对话框 (MIUIX 风格)
 @Composable
@@ -51,7 +51,7 @@ fun SaveNameDialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        MiuixCard(
+        AppCard(
             modifier = Modifier
                 .fillMaxWidth(0.90f)
                 .padding(vertical = 20.dp)

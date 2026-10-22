@@ -180,7 +180,7 @@ fun RenderMarkdownContent(
                                 .background(AccentBlue)
                         )
                         Text(
-                            text = parseInlineMarkdownString(block.text),
+                            text = parseInlineMarkdownString(block.text, AccentBlue),
                             fontSize = 13.sp,
                             lineHeight = 19.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
@@ -190,7 +190,7 @@ fun RenderMarkdownContent(
 
                 is MarkdownBlock.Paragraph -> {
                     Text(
-                        text = parseInlineMarkdownString(block.text),
+                        text = parseInlineMarkdownString(block.text, AccentBlue),
                         fontSize = 13.sp,
                         lineHeight = 19.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
@@ -218,7 +218,7 @@ fun RenderMarkdownContent(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = parseInlineMarkdownString(block.text),
+                                text = parseInlineMarkdownString(block.text, AccentBlue),
                                 fontSize = 12.5.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
                             )
@@ -273,7 +273,7 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
                 ) {
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
-                            text = parseInlineMarkdownString(row.getOrElse(0) { "" }),
+                            text = parseInlineMarkdownString(row.getOrElse(0) { "" }, AccentBlue),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -288,7 +288,7 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
                         if (index == 0 || index == statusIndex || cell.isBlank() || cell == "—" || cell == "-") return@forEachIndexed
                         val label = table.header.getOrNull(index).orEmpty()
                         Text(
-                            text = parseInlineMarkdownString(if (label.isBlank()) cell else "$label：$cell"),
+                            text = parseInlineMarkdownString(if (label.isBlank()) cell else "$label：$cell", AccentBlue),
                             fontSize = 12.sp,
                             lineHeight = 17.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -300,7 +300,10 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
     }
 }
 
-fun parseInlineMarkdownString(text: String): androidx.compose.ui.text.AnnotatedString {
+fun parseInlineMarkdownString(
+    text: String,
+    accentColor: androidx.compose.ui.graphics.Color
+): androidx.compose.ui.text.AnnotatedString {
     return buildAnnotatedString {
         var i = 0
         while (i < text.length) {
@@ -371,7 +374,7 @@ fun parseInlineMarkdownString(text: String): androidx.compose.ui.text.AnnotatedS
                         withStyle(
                             SpanStyle(
                                 fontFamily = FontFamily.Monospace,
-                                color = AccentBlue
+                                color = accentColor
                             )
                         ) {
                             append(text.substring(i + 1, end))
@@ -390,7 +393,7 @@ fun parseInlineMarkdownString(text: String): androidx.compose.ui.text.AnnotatedS
                             val linkUrl = text.substring(closeBracket + 2, closeParen)
                             withStyle(
                                 SpanStyle(
-                                    color = AccentBlue,
+                                    color = accentColor,
                                     textDecoration = TextDecoration.Underline
                                 )
                             ) {
@@ -415,5 +418,5 @@ fun parseInlineMarkdownString(text: String): androidx.compose.ui.text.AnnotatedS
 
 @Composable
 fun parseMarkdown(text: String): androidx.compose.ui.text.AnnotatedString {
-    return parseInlineMarkdownString(text)
+    return parseInlineMarkdownString(text, AccentBlue)
 }

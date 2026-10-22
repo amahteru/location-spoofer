@@ -124,7 +124,7 @@ Real GPS receivers naturally output coordinates with Gaussian white noise caused
 * **Compose Floating Joystick**: Overlay joystick with speed controls (0 ~ 10 m/s) and steering damping adjustments for live manual navigation.
 
 ### 8. User Interface
-* Built with Jetpack Compose, featuring frosted glass translucency, inner shadows, and damped drag interactions with a decoupled modular architecture.
+* Built with Jetpack Compose, following Material Design 3 with system dynamic color support and a decoupled modular architecture.
 
 ---
 
@@ -135,7 +135,7 @@ Built on modern **MVVM + Clean Architecture**, split into 6 Gradle modules by re
 | Module | Type | Responsibility |
 |---|---|---|
 | `app` | Android App | The host shell: `Application` / `MainActivity`, signing & packaging config, aggregates every module's Koin DI; only bundles the `xposed` module's artifact (the `LocationHooker` class and `META-INF/xposed/*` metadata) into the final APK for LSPosed to scan — it never calls that code directly |
-| `app-ui` | Android Library | All Jetpack Compose UI: screens, dialogs, the custom "liquid glass" widget kit (`ui/liquid`), and the ViewModel layer |
+| `app-ui` | Android Library | All Jetpack Compose UI: screens, dialogs, shared components, and the ViewModel layer |
 | `service` | Android Library | The foreground service `SpoofingService`, the floating joystick `FloatingJoystickService`, boot-completed receivers, and other background/service-layer code |
 | `xposed` | Android Library | The LSPosed/Xposed injection module itself: the `LocationHooker` entry point plus the hook implementations under `hooks/` and `hooks/network/` |
 | `core-data` | Android Library | The data/domain layer shared by `app`, `app-ui`, and `service`: the Room database, repositories, and core utilities such as `ConfigManager`, `RootManager`, `EnvironmentScanner` |
@@ -253,7 +253,7 @@ git clone https://github.com/your-username/LocationSpoofer.git
 
 * **Language**: 100% Kotlin
 * **Module layout**: 6 Gradle modules — `app` / `app-ui` / `service` / `xposed` / `core-data` / `core-geo` (see [System Architecture](#system-architecture))
-* **UI**: Jetpack Compose & Material Design 3, layered with the third-party [Miuix](https://github.com/miuix-kmp/miuix) library (`top.yukonga.miuix.kmp`) for its backdrop-blur primitives, on top of which a custom `ui/liquid` package (adapted from the open-source AndroidLiquidGlass / ILoveWork projects, Apache-2.0) implements the Liquid Glass floating bottom bar, lens/vibrancy effects, and damped-drag interactions
+* **UI**: Jetpack Compose & Material Design 3, with dynamic color (Material You) on Android 12+ and an MD3 scheme generated from the brand color on older versions
 * **Dependency Injection**: Koin, split per module into `coreDataModule` / `serviceModule` / `viewModelModule`, aggregated by `appModules` in the `app` module
 * **Local Storage**: Room Database (SQLite) + Spatial Indexing (in `core-data`)
 * **Networking & Serialization**: OkHttp 3 + Kotlinx Serialization

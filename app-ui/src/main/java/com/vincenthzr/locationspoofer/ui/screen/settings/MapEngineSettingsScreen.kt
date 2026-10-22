@@ -38,6 +38,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.ui.components.ModernSettingsInput
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
@@ -47,7 +48,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setBaiduApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setGoogleApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setKeepLastMapPosition
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun MapEngineSettingsScreen(
@@ -130,7 +131,7 @@ fun MapEngineSettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    MiuixCard(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         cornerRadius = 18.dp,
                         insideMargin = PaddingValues(16.dp)
@@ -203,7 +204,7 @@ fun MapEngineSettingsScreen(
                                 ) {
                                     Text(
                                         text = label,
-                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                        color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
                                         fontSize = 12.5.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                     )
@@ -279,7 +280,7 @@ fun MapEngineSettingsScreen(
                         )
                     }
 
-                    MiuixCard(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         cornerRadius = 18.dp,
                         insideMargin = PaddingValues(16.dp)

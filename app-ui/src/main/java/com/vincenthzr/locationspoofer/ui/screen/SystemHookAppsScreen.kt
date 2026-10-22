@@ -32,6 +32,7 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
@@ -42,7 +43,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setSystemHookGlobalMode
 import com.vincenthzr.locationspoofer.viewmodel.setForceLocationEnabled
 import com.vincenthzr.locationspoofer.viewmodel.selectAllUserAppsForSystemHook
 import com.vincenthzr.locationspoofer.viewmodel.clearAllSystemHookApps
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 private enum class SystemHookFilterTab {
     All,
@@ -194,7 +195,7 @@ fun SystemHookAppsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp)
             ) {
-                MiuixCard(
+                AppCard(
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 16.dp,
                     insideMargin = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
@@ -385,7 +386,7 @@ fun SystemHookAppsScreen(
                             text = label,
                             fontSize = 12.5.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(
+                            color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(
                                 alpha = 0.7f
                             )
                         )
@@ -538,7 +539,7 @@ private fun SystemHookAppItemCard(
     isDark: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onToggle(!isSelected) },

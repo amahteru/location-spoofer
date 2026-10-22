@@ -26,7 +26,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.stopSpoofing
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun ActionButtons(
@@ -99,7 +99,7 @@ fun UpdateCheckCard(
         newVersionName?.trim()?.removePrefix("v")?.removePrefix("V")
     }
 
-    MiuixCard(
+    AppCard(
         modifier = Modifier
             .fillMaxWidth()
             .noRippleClickable { onCheckClick() },

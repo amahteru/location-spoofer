@@ -23,8 +23,9 @@ import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun CoordinateSelectionDialog(
@@ -67,7 +68,7 @@ fun CoordinateSelectionDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        MiuixCard(
+        AppCard(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .wrapContentHeight(),
@@ -226,7 +227,7 @@ fun CoordinateSelectionDialog(
                                         Icon(
                                             Icons.Rounded.Check,
                                             contentDescription = null,
-                                            tint = Color.White,
+                                            tint = OnAccentBlue,
                                             modifier = Modifier.size(13.dp)
                                         )
                                     }

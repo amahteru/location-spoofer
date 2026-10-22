@@ -31,6 +31,7 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.RootSolution
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
+import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
@@ -41,7 +42,7 @@ import com.vincenthzr.locationspoofer.viewmodel.dismissRootSetupTestResult
 import com.vincenthzr.locationspoofer.viewmodel.requestRestartHookedApps
 import com.vincenthzr.locationspoofer.viewmodel.setRootSolution
 import com.vincenthzr.locationspoofer.viewmodel.testRootSetup
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
 fun RootDiagnosticsScreen(
@@ -121,7 +122,7 @@ fun RootDiagnosticsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    MiuixCard(
+                    AppCard(
                         modifier = Modifier.fillMaxWidth(),
                         cornerRadius = 18.dp,
                         insideMargin = PaddingValues(16.dp)
@@ -190,7 +191,7 @@ fun RootDiagnosticsScreen(
                                         ) {
                                             Text(
                                                 text = label,
-                                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                                color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
                                                 fontSize = 11.5.sp,
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                                 maxLines = 1,

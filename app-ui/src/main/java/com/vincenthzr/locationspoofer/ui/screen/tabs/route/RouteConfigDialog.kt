@@ -343,11 +343,7 @@ fun RouteConfigDialog(
                                 }
                                 Switch(
                                     checked = uiState.enableStepSimulation,
-                                    onCheckedChange = onEnableStepSimulationChange,
-                                    colors = SwitchDefaults.colors(
-                                        checkedThumbColor = Color.White,
-                                        checkedTrackColor = AccentBlue
-                                    )
+                                    onCheckedChange = onEnableStepSimulationChange
                                 )
                             }
 
@@ -492,11 +488,7 @@ fun RouteConfigDialog(
                             }
                             Switch(
                                 checked = uiState.stopAtDestination,
-                                onCheckedChange = onStopAtDestinationChange,
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = AccentBlue
-                                )
+                                onCheckedChange = onStopAtDestinationChange
                             )
                         }
                     }
@@ -536,11 +528,7 @@ fun RouteConfigDialog(
                             }
                             Switch(
                                 checked = uiState.useRealRoute,
-                                onCheckedChange = onUseRealRouteChange,
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = AccentBlue
-                                )
+                                onCheckedChange = onUseRealRouteChange
                             )
                         }
                     }
@@ -697,11 +685,7 @@ private fun RouteEnvToggleRow(
             }
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = AccentBlue
-                )
+                onCheckedChange = onCheckedChange
             )
         }
     }

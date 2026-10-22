@@ -26,7 +26,7 @@ import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.clearPinnedCollectedLocation
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 
 // 坐标输入卡片 (Miuix 风格)
@@ -40,7 +40,7 @@ fun CoordinateInputCard(
 ) {
     val textSecondary = AppColors.textSecondary(isDark)
 
-    MiuixCard(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 18.dp,
         insideMargin = PaddingValues(16.dp)
