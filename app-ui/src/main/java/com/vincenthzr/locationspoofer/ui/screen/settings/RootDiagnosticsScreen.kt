@@ -82,9 +82,7 @@ fun RootDiagnosticsScreen(
                     summary = stringResource(R.string.test_root_setup_desc),
                     tone = LabelTone.Primary,
                     onClick = { if (!uiState.isTestingRootSetup) viewModel.testRootSetup() },
-                    trailing = if (uiState.isTestingRootSetup) {
-                        { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
-                    } else null
+                    trailing = { ActionProgressSlot(uiState.isTestingRootSetup) }
                 )
                 NavigationListItem(
                     icon = Icons.Rounded.RestartAlt,
@@ -92,9 +90,7 @@ fun RootDiagnosticsScreen(
                     summary = stringResource(R.string.restart_hooked_apps_desc),
                     tone = LabelTone.Warning,
                     onClick = { if (!uiState.isRestartingHookedApps) viewModel.requestRestartHookedApps() },
-                    trailing = if (uiState.isRestartingHookedApps) {
-                        { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
-                    } else null
+                    trailing = { ActionProgressSlot(uiState.isRestartingHookedApps) }
                 )
             }
         }
@@ -123,5 +119,15 @@ fun RootDiagnosticsScreen(
                 }
             }
         )
+    }
+}
+
+/** 列表项尾部固定 24dp 的进度位：空闲时留空、执行中显示转圈，宽度不变，文字不会因此重新折行 */
+@Composable
+private fun ActionProgressSlot(running: Boolean) {
+    Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        if (running) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        }
     }
 }
