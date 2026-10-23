@@ -75,13 +75,13 @@ fun CoordinateInputCard(
                 Column {
                     Text(
                         text = stringResource(R.string.longitude),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = textSecondary
                     )
                     Text(
                         text = uiState.longitudeInput.ifEmpty { "0.0" },
                         color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1
                     )
                 }
@@ -100,13 +100,13 @@ fun CoordinateInputCard(
                 Column {
                     Text(
                         text = stringResource(R.string.latitude),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = textSecondary
                     )
                     Text(
                         text = uiState.latitudeInput.ifEmpty { "0.0" },
                         color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1
                     )
                 }

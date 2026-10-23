@@ -79,14 +79,9 @@ fun EnvTokensScreen(
                     Toast.LENGTH_SHORT
                 ).show()
             },
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                stringResource(R.string.save),
-                style = MaterialTheme.typography.titleMedium
-            )
+            Text(stringResource(R.string.save))
         }
     }
 }

@@ -220,6 +220,14 @@ fun InfoTab(
                             previewChip = currentRealismLevelName,
                             onClick = onNavigateToMotionRealism
                         )
+                        // 本机适配状态 + 厂商适配方案（仅全局方案可选），完整进度在它的二级页面
+                        SettingsEntryRow(
+                            icon = Icons.Rounded.Devices,
+                            tone = LabelTone.Success,
+                            title = stringResource(R.string.system_adaptation_title),
+                            previewChip = adaptationStatusChip,
+                            onClick = onNavigateToVendorScheme
+                        )
                         SettingsEntryRow(
                             icon = Icons.Rounded.Security,
                             tone = LabelTone.Warning,
@@ -231,14 +239,6 @@ fun InfoTab(
                             tone = LabelTone.Primary,
                             title = stringResource(R.string.root_solution_title),
                             onClick = onNavigateToRootDiagnostics
-                        )
-                        // 本机适配状态 + 厂商适配方案（仅全局方案可选），完整进度在它的二级页面
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Devices,
-                            tone = LabelTone.Success,
-                            title = stringResource(R.string.system_adaptation_title),
-                            previewChip = adaptationStatusChip,
-                            onClick = onNavigateToVendorScheme
                         )
                         SettingsEntryRow(
                             icon = Icons.Rounded.BatteryChargingFull,

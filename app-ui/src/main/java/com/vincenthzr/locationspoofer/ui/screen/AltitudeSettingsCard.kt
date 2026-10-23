@@ -74,7 +74,7 @@ fun AltitudeSettingsCard(
                                 formatMeters(base + range)
                             )
                         },
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -101,7 +101,7 @@ fun AltitudeSettingsCard(
                 Text(
                     if (range == 0) stringResource(R.string.altitude_variation_off)
                     else stringResource(R.string.altitude_variation_value, range),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -116,7 +116,7 @@ fun AltitudeSettingsCard(
             )
             Text(
                 stringResource(R.string.altitude_variation_desc),
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

@@ -1,5 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import com.vincenthzr.locationspoofer.ui.components.listItemBleed
+import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.ToneIcon
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
@@ -217,15 +219,12 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                 )
                 if (cadence != null) {
                     Spacer(Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            stringResource(R.string.gait_use_template),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Switch(checked = uiState.useGaitTemplate, onCheckedChange = { viewModel.setUseGaitTemplate(it) })
-                    }
+                    SwitchListItem(
+                        modifier = Modifier.listItemBleed(),
+                        title = stringResource(R.string.gait_use_template),
+                        checked = uiState.useGaitTemplate,
+                        onCheckedChange = { viewModel.setUseGaitTemplate(it) }
+                    )
                 }
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

@@ -148,7 +148,7 @@ fun DataCollectionAssistScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.data_collection_permission_missing),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(Modifier.height(10.dp))

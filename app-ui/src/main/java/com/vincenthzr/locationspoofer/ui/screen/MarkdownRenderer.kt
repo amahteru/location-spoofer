@@ -1,5 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -156,8 +158,13 @@ fun RenderMarkdownContent(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = block.text.replace(Regex("""^[#🌟🛠📝\s]+"""), "").trim(),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = when (block.level) {
+                            1 -> MaterialTheme.typography.titleLarge
+                            2 -> MaterialTheme.typography.titleMedium
+                            else -> MaterialTheme.typography.titleSmall
+                        },
+                        // 三级及以下标题用主色（M3 分组小标题），与同为 titleSmall 的表格行标题区分
+                        color = if (block.level >= 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -256,13 +263,15 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
     }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 2.dp)) {
         table.rows.forEach { row ->
+            // 描边容器：放在任意底色的卡片 / 对话框里都能和外层区分开
             Surface(
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                color = Color.Transparent,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Row(verticalAlignment = Alignment.Top) {

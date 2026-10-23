@@ -216,7 +216,7 @@ fun SystemHookAppsScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.selected_count_format, uiState.systemHookPackages.size),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
                     )

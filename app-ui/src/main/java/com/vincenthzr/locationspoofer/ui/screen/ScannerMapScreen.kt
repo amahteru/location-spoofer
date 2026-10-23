@@ -172,7 +172,7 @@ fun ScannerMapScreen(
                             R.string.scanned_wifi_count,
                             uiState.scannedWifiCount
                         ),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -180,7 +180,7 @@ fun ScannerMapScreen(
                             R.string.scanned_cell_count,
                             uiState.scannedCellCount
                         ),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -188,7 +188,7 @@ fun ScannerMapScreen(
                             R.string.scanned_bt_count,
                             uiState.scannedBluetoothCount
                         ),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }

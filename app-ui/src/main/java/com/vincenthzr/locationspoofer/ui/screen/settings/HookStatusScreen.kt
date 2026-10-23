@@ -126,7 +126,7 @@ private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Lo
                         color = MaterialTheme.colorScheme.error
                     )
                     report.errors.forEach {
-                        Text(it, style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace, color = MaterialTheme.colorScheme.error)
+                        Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -156,20 +156,20 @@ private fun ComponentRow(component: HookStatusReport.Component) {
             if (component.found) {
                 Text(
                     component.className,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     stringResource(R.string.hook_status_source, component.source),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 val (hooked, absent) = component.methods.entries.partition { it.value > 0 }
                 if (hooked.isNotEmpty()) {
                     Text(
                         hooked.joinToString("  ") { (name, count) -> "$name ×$count" },
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -178,7 +178,7 @@ private fun ComponentRow(component: HookStatusReport.Component) {
                     // 全部 ×0 时说明类找对了但方法都不在，要重点看；部分 ×0 多为兼容其他 Android 版本的备用方法名
                     Text(
                         stringResource(R.string.hook_status_absent_methods, absent.joinToString(", ") { it.key }),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = if (hooked.isEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
