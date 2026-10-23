@@ -39,10 +39,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -56,6 +54,12 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.vincenthzr.locationspoofer.data.motion.MotionController
+import com.vincenthzr.locationspoofer.ui.theme.AppTypography
+import com.vincenthzr.locationspoofer.ui.theme.appColorScheme
+import com.vincenthzr.locationspoofer.ui.theme.onSuccess
+import com.vincenthzr.locationspoofer.ui.theme.onWarning
+import com.vincenthzr.locationspoofer.ui.theme.success
+import com.vincenthzr.locationspoofer.ui.theme.warning
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
@@ -122,7 +126,10 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
             setViewTreeViewModelStoreOwner(this@FloatingJoystickService)
             setViewTreeSavedStateRegistryOwner(this@FloatingJoystickService)
             setContent {
-                MaterialTheme {
+                MaterialTheme(
+                    colorScheme = appColorScheme(this@FloatingJoystickService, isSystemInDarkTheme()),
+                    typography = AppTypography
+                ) {
                     val state by motionController.state.collectAsState()
                     FloatingJoystickOverlay(
                         state = state,
@@ -186,47 +193,53 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
     }
 }
 
-/** 与 App 主题（AppColors）一致的配色，深浅色跟随系统 */
+/** 悬浮窗用到的 M3 配色角色，取自与 App 相同的配色方案（Android 12+ 动态取色） */
 private data class Palette(
     val card: Color,
     val border: Color,
     val variant: Color,
     val segment: Color,
+    val onSegment: Color,
     val text: Color,
     val textSecondary: Color,
-    val red: Color
+    val primary: Color,
+    val onPrimary: Color,
+    val success: Color,
+    val onSuccess: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val red: Color,
+    val onRed: Color,
+    val redContainer: Color,
+    val onRedContainer: Color
 )
 
-private val LightPalette = Palette(
-    card = Color(0xFFFFFFFF),
-    border = Color(0xFFD0D7DE),
-    variant = Color(0xFFEEF2F6),
-    segment = Color(0xFFFFFFFF),
-    text = Color(0xFF24292F),
-    textSecondary = Color(0xFF57606A),
-    red = Color(0xFFCF222E)
+private fun ColorScheme.toPalette() = Palette(
+    card = surfaceContainer,
+    border = outlineVariant,
+    variant = surfaceContainerHighest,
+    segment = secondaryContainer,
+    onSegment = onSecondaryContainer,
+    text = onSurface,
+    textSecondary = onSurfaceVariant,
+    primary = primary,
+    onPrimary = onPrimary,
+    success = success,
+    onSuccess = onSuccess,
+    warning = warning,
+    onWarning = onWarning,
+    red = error,
+    onRed = onError,
+    redContainer = errorContainer,
+    onRedContainer = onErrorContainer
 )
-
-private val DarkPalette = Palette(
-    card = Color(0xFF1C2333),
-    border = Color(0xFF30363D),
-    variant = Color(0xFF21262D),
-    segment = Color(0xFF30363D),
-    text = Color(0xFFE6EDF3),
-    textSecondary = Color(0xFF8B949E),
-    red = Color(0xFFF85149)
-)
-
-private val AccentBlue = Color(0xFF388BFD)
-private val AccentGreen = Color(0xFF2EA043)
-private val AccentOrange = Color(0xFFD29922)
 
 private fun statusColor(state: MotionController.State, palette: Palette): Color = when {
     !state.active -> palette.textSecondary
-    state.returning -> AccentBlue
-    state.paused -> AccentOrange
-    state.mode == MotionController.Mode.ROUTE -> AccentGreen
-    else -> AccentBlue
+    state.returning -> palette.primary
+    state.paused -> palette.warning
+    state.mode == MotionController.Mode.ROUTE -> palette.success
+    else -> palette.primary
 }
 
 @Composable
@@ -243,7 +256,7 @@ private fun FloatingJoystickOverlay(
     onDiscardRecording: () -> Unit,
     onNeedKeyboard: (Boolean) -> Unit
 ) {
-    val palette = if (isSystemInDarkTheme()) DarkPalette else LightPalette
+    val palette = MaterialTheme.colorScheme.toPalette()
     var collapsed by remember { mutableStateOf(false) }
     LaunchedEffect(state.hasPendingRecording) {
         if (state.hasPendingRecording) collapsed = false
@@ -265,10 +278,10 @@ private fun FloatingJoystickOverlay(
         modifier = Modifier
             .padding(12.dp) // 给阴影留出空间
             .width(208.dp)
-            .shadow(14.dp, RoundedCornerShape(22.dp))
-            .clip(RoundedCornerShape(22.dp))
+            .shadow(6.dp, MaterialTheme.shapes.extraLarge) // M3 第 3 级阴影
+            .clip(MaterialTheme.shapes.extraLarge)
             .background(palette.card)
-            .border(1.dp, palette.border.copy(alpha = 0.6f), RoundedCornerShape(22.dp))
+            .border(1.dp, palette.border.copy(alpha = 0.6f), MaterialTheme.shapes.extraLarge)
             .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -283,9 +296,9 @@ private fun FloatingJoystickOverlay(
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 28.dp, height = 4.dp)
+                    .size(width = 32.dp, height = 4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(palette.border)
+                    .background(palette.textSecondary.copy(alpha = 0.4f))
             )
         }
 
@@ -306,7 +319,7 @@ private fun CollapsedBubble(state: MotionController.State, palette: Palette, dra
         Box(
             modifier = Modifier
                 .size(52.dp)
-                .shadow(12.dp, CircleShape)
+                .shadow(6.dp, CircleShape)
                 .clip(CircleShape)
                 .background(palette.card)
                 .border(2.dp, statusColor(state, palette), CircleShape)
@@ -317,7 +330,7 @@ private fun CollapsedBubble(state: MotionController.State, palette: Palette, dra
             Icon(
                 Icons.Rounded.Gamepad,
                 stringResource(R.string.floating_joystick_title),
-                tint = AccentBlue,
+                tint = palette.primary,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -392,14 +405,14 @@ private fun Joystick(enabled: Boolean, palette: Palette, onJoystick: (Double, Fl
                 .size(thumbSize)
                 .shadow(if (enabled) 6.dp else 0.dp, CircleShape)
                 .clip(CircleShape)
-                .background(AccentBlue),
+                .background(palette.primary),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(14.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.85f))
+                    .background(palette.onPrimary.copy(alpha = 0.85f))
             )
         }
     }
@@ -419,7 +432,7 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(11.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(palette.variant)
             .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -429,8 +442,7 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .then(if (selected) Modifier.shadow(2.dp, RoundedCornerShape(8.dp)) else Modifier)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(MaterialTheme.shapes.small)
                     .background(if (selected) palette.segment else Color.Transparent)
                     .clickable(enabled = state.active) { onPreset(preset) }
                     .padding(vertical = 6.dp),
@@ -438,9 +450,8 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
             ) {
                 Text(
                     labels[preset.name] ?: stringResource(R.string.fj_preset_custom),
-                    color = if (selected) AccentBlue else palette.textSecondary,
-                    fontSize = 12.sp,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) palette.onSegment else palette.textSecondary,
+                    style = MaterialTheme.typography.labelMedium,
                     maxLines = 1
                 )
             }
@@ -464,12 +475,12 @@ private fun ActionTabs(
             when {
                 state.paused -> TabButton(
                     Icons.Rounded.PlayArrow, stringResource(R.string.fj_resume),
-                    container = AccentGreen, content = Color.White,
+                    container = palette.success, content = palette.onSuccess,
                     enabled = state.active && !state.returning, onClick = onResume
                 )
                 else -> TabButton(
                     Icons.Rounded.Pause, stringResource(R.string.fj_pause),
-                    container = AccentOrange, content = Color.White,
+                    container = palette.warning, content = palette.onWarning,
                     enabled = state.active && !state.returning, onClick = onPause
                 )
             }
@@ -477,12 +488,12 @@ private fun ActionTabs(
         if (state.recording) {
             TabButton(
                 Icons.Rounded.Stop, stringResource(R.string.fj_stop_record),
-                container = palette.red, content = Color.White, enabled = true, onClick = onStopRecording
+                container = palette.red, content = palette.onRed, enabled = true, onClick = onStopRecording
             )
         } else {
             TabButton(
                 Icons.Rounded.FiberManualRecord, stringResource(R.string.fj_record),
-                container = palette.red.copy(alpha = 0.12f), content = palette.red,
+                container = palette.redContainer, content = palette.onRedContainer,
                 enabled = state.active, onClick = onStartRecording
             )
         }
@@ -507,7 +518,7 @@ private fun RowScope.TabButton(
             .weight(1f)
             .height(38.dp)
             .alpha(if (enabled) 1f else 0.45f)
-            .clip(RoundedCornerShape(11.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(container)
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
@@ -527,15 +538,14 @@ private fun SaveRecordingForm(palette: Palette, onSave: (String) -> Unit, onDisc
         value = name,
         onValueChange = { name = it },
         singleLine = true,
-        shape = RoundedCornerShape(12.dp),
         placeholder = { Text(stringResource(R.string.fj_route_name_hint)) },
-        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
+        textStyle = MaterialTheme.typography.bodyMedium,
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = palette.text,
             unfocusedTextColor = palette.text,
-            focusedBorderColor = AccentBlue,
+            focusedBorderColor = palette.primary,
             unfocusedBorderColor = palette.border,
-            cursorColor = AccentBlue
+            cursorColor = palette.primary
         ),
         modifier = Modifier.fillMaxWidth()
     )
@@ -546,7 +556,7 @@ private fun SaveRecordingForm(palette: Palette, onSave: (String) -> Unit, onDisc
         )
         TabButton(
             Icons.Rounded.Check, stringResource(R.string.fj_save),
-            container = AccentBlue, content = Color.White, enabled = name.isNotBlank(), onClick = { onSave(name) }
+            container = palette.primary, content = palette.onPrimary, enabled = name.isNotBlank(), onClick = { onSave(name) }
         )
     }
 }
