@@ -5,15 +5,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.outlined.East
 import androidx.compose.material.icons.outlined.North
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun CustomCoordinateDialog(
@@ -32,7 +28,6 @@ fun CustomCoordinateDialog(
             initialLng
         )
     }
-    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     val currentContext = androidx.compose.ui.platform.LocalContext.current
     val currentConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
@@ -40,17 +35,13 @@ fun CustomCoordinateDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.imePadding(),
-        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
         title = {
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides currentContext,
                 androidx.compose.ui.platform.LocalConfiguration provides currentConfiguration
             ) {
                 androidx.compose.material3.Text(
-                    androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.custom_coordinate_title),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                    fontSize = 18.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.custom_coordinate_title)
                 )
             }
         },
@@ -61,9 +52,7 @@ fun CustomCoordinateDialog(
             ) {
                 Column {
                     androidx.compose.material3.Text(
-                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.custom_coord_desc),
-                        color = textSecondary,
-                        fontSize = 14.sp
+                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.custom_coord_desc)
                     )
                     Spacer(Modifier.height(16.dp))
                     androidx.compose.material3.OutlinedTextField(
@@ -80,23 +69,20 @@ fun CustomCoordinateDialog(
                             androidx.compose.material3.Text(
                                 androidx.compose.ui.res.stringResource(
                                     com.vincenthzr.locationspoofer.ui.R.string.coordinate_hint
-                                ), color = textSecondary
+                                )
                             )
                         },
                         leadingIcon = {
                             androidx.compose.material3.Icon(
                                 androidx.compose.material.icons.Icons.Outlined.East,
-                                null,
-                                tint = textSecondary,
-                                modifier = Modifier.size(18.dp)
+                                null
                             )
                         },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
                         ),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        colors = coordinateFieldColors()
+                        singleLine = true
                     )
                     Spacer(Modifier.height(8.dp))
                     androidx.compose.material3.OutlinedTextField(
@@ -113,23 +99,20 @@ fun CustomCoordinateDialog(
                             androidx.compose.material3.Text(
                                 androidx.compose.ui.res.stringResource(
                                     com.vincenthzr.locationspoofer.ui.R.string.coordinate_hint
-                                ), color = textSecondary
+                                )
                             )
                         },
                         leadingIcon = {
                             androidx.compose.material3.Icon(
                                 androidx.compose.material.icons.Icons.Outlined.North,
-                                null,
-                                tint = textSecondary,
-                                modifier = Modifier.size(18.dp)
+                                null
                             )
                         },
                         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
                         ),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        colors = coordinateFieldColors()
+                        singleLine = true
                     )
                 }
             }
@@ -141,8 +124,7 @@ fun CustomCoordinateDialog(
             ) {
                 androidx.compose.material3.TextButton(onClick = { onConfirm(lat, lng) }) {
                     androidx.compose.material3.Text(
-                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.confirm),
-                        color = AccentBlue
+                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.confirm)
                     )
                 }
             }
@@ -154,32 +136,10 @@ fun CustomCoordinateDialog(
             ) {
                 androidx.compose.material3.TextButton(onClick = onDismiss) {
                     androidx.compose.material3.Text(
-                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.cancel),
-                        color = textSecondary
+                        androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.cancel)
                     )
                 }
             }
         }
     )
-}
-
-@Composable
-fun LocalizedDialog(
-    onDismissRequest: () -> Unit,
-    properties: androidx.compose.ui.window.DialogProperties = androidx.compose.ui.window.DialogProperties(),
-    content: @Composable () -> Unit
-) {
-    val currentContext = androidx.compose.ui.platform.LocalContext.current
-    val currentConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
-    androidx.compose.ui.window.Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = properties
-    ) {
-        androidx.compose.runtime.CompositionLocalProvider(
-            androidx.compose.ui.platform.LocalContext provides currentContext,
-            androidx.compose.ui.platform.LocalConfiguration provides currentConfiguration
-        ) {
-            content()
-        }
-    }
 }

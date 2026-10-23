@@ -1,37 +1,25 @@
 package com.vincenthzr.locationspoofer.ui.screen.managedata
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.CellTower
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.R
+import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
+import com.vincenthzr.locationspoofer.ui.components.listItemBleed
 
 @Composable
 fun EditCellDialog(
     initialItem: EditableCellItem?,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onSave: (
         cellKey: String,
@@ -66,419 +54,153 @@ fun EditCellDialog(
     var isRegistered by remember { mutableStateOf(initialItem?.isRegistered ?: true) }
     var isDesignated by remember { mutableStateOf(initialItem?.isDesignated ?: true) }
 
-    Dialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .fillMaxHeight(0.85f),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
-                // 顶部标题
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(11.dp))
-                                .background(AccentOrange.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.CellTower,
-                                contentDescription = null,
-                                tint = AccentOrange,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = stringResource(if (isEdit) R.string.edit_cell_title else R.string.new_cell_title),
-                            fontSize = 16.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            .noRippleClickable(onClick = onDismiss),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(14.dp)
+        icon = { Icon(Icons.Rounded.CellTower, contentDescription = null) },
+        title = { Text(stringResource(if (isEdit) R.string.edit_cell_title else R.string.new_cell_title)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 制式选择
+                Text(
+                    text = stringResource(R.string.cell_type_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                val types = listOf("LTE", "NR", "GSM", "WCDMA")
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    types.forEachIndexed { index, t ->
+                        SegmentedButton(
+                            selected = type.equals(t, ignoreCase = true),
+                            onClick = { type = t },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = types.size),
+                            icon = {},
+                            label = { Text(text = t, maxLines = 1) }
                         )
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                    value = mccStr,
+                    onValueChange = { mccStr = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.cell_mcc_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+                    OutlinedTextField(
+                    value = mncStr,
+                    onValueChange = { mncStr = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.cell_mnc_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+                }
+                OutlinedTextField(
+                    value = tacStr,
+                    onValueChange = { tacStr = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.cell_tac_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                    value = ciStr,
+                    onValueChange = { ciStr = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.cell_ci_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1.2f)
+                )
+                    OutlinedTextField(
+                    value = pciStr,
+                    onValueChange = { pciStr = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.cell_pci_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(0.8f)
+                )
+                }
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // 制式选择
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cell_type_label),
-                            fontSize = 11.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Medium
+                // 信号强度
+                Text(
+                    text = stringResource(R.string.cell_dbm_label, dbm),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                val options = listOf(-65 to "-65", -80 to "-80", -95 to "-95", -110 to "-110")
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { index, (lvl, lbl) ->
+                        SegmentedButton(
+                            selected = dbm == lvl,
+                            onClick = { dbm = lvl },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                            icon = {},
+                            label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                         )
-                        Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf("LTE", "NR", "GSM", "WCDMA").forEach { t ->
-                                val isChosen = type.equals(t, ignoreCase = true)
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) AccentOrange else MaterialTheme.colorScheme.surfaceContainerHigh)
-                                        .noRippleClickable { type = t }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = t,
-                                        fontSize = 11.5.sp,
-                                        fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // MCC & MNC
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cell_mcc_label),
-                                fontSize = 11.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            BasicTextField(
-                                value = mccStr,
-                                onValueChange = { mccStr = it.filter { c -> c.isDigit() } },
-                                textStyle = TextStyle(
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cell_mnc_label),
-                                fontSize = 11.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            BasicTextField(
-                                value = mncStr,
-                                onValueChange = { mncStr = it.filter { c -> c.isDigit() } },
-                                textStyle = TextStyle(
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
-                    // TAC / LAC
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cell_tac_label),
-                            fontSize = 11.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        BasicTextField(
-                            value = tacStr,
-                            onValueChange = { tacStr = it.filter { c -> c.isDigit() } },
-                            textStyle = TextStyle(
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    // CI / CID & PCI / PSC
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cell_ci_label),
-                                fontSize = 11.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            BasicTextField(
-                                value = ciStr,
-                                onValueChange = { ciStr = it.filter { c -> c.isDigit() } },
-                                textStyle = TextStyle(
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .weight(0.8f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cell_pci_label),
-                                fontSize = 11.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            BasicTextField(
-                                value = pciStr,
-                                onValueChange = { pciStr = it.filter { c -> c.isDigit() } },
-                                textStyle = TextStyle(
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
-                    // 信号强度 RSSI
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cell_dbm_label, dbm),
-                            fontSize = 11.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        val options = listOf(-65 to "-65 极强", -80 to "-80 良好", -95 to "-95 一般", -110 to "-110 微弱")
-                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                            options.forEachIndexed { index, (lvl, lbl) ->
-                                SegmentedButton(
-                                    selected = dbm == lvl,
-                                    onClick = { dbm = lvl },
-                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                                    colors = SegmentedButtonDefaults.colors(
-                                        activeContainerColor = AccentOrange,
-                                        activeContentColor = Color.White
-                                    ),
-                                    icon = {},
-                                    label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                                )
-                            }
-                        }
-                    }
-
-                    // 开关容器
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cell_is_registered_label),
-                                fontSize = 13.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Switch(
-                                checked = isRegistered,
-                                onCheckedChange = { isRegistered = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = AccentOrange
-                                )
-                            )
-                        }
-
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.08f else 0.04f))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = stringResource(R.string.designated_cell_badge),
-                                fontSize = 13.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Switch(
-                                checked = isDesignated,
-                                onCheckedChange = { isDesignated = it }
-                            )
-                        }
                     }
                 }
 
-                Spacer(Modifier.height(14.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            .noRippleClickable(onClick = onDismiss),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = stringResource(R.string.cancel), fontSize = 13.5.sp)
-                    }
-
-                    Button(
-                        onClick = {
-                            val mcc = mccStr.toIntOrNull() ?: 460
-                            val mnc = mncStr.toIntOrNull() ?: 0
-                            val tac = tacStr.toIntOrNull() ?: 0
-                            val ci = ciStr.toIntOrNull() ?: 0
-                            val pci = pciStr.toIntOrNull() ?: 0
-                            val cellKey = initialItem?.cellKey ?: "${type}_${mcc}_${mnc}_${tac}_${ci}"
+                SwitchListItem(
+                    modifier = Modifier.listItemBleed(),
+                    title = stringResource(R.string.cell_is_registered_label),
+                    checked = isRegistered,
+                    onCheckedChange = { isRegistered = it }
+                )
+                SwitchListItem(
+                    modifier = Modifier.listItemBleed(),
+                    title = stringResource(R.string.designated_cell_badge),
+                    checked = isDesignated,
+                    onCheckedChange = { isDesignated = it }
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val mcc = mccStr.toIntOrNull() ?: 460
+                val mnc = mncStr.toIntOrNull() ?: 0
+                val tac = tacStr.toIntOrNull() ?: 0
+                val ci = ciStr.toIntOrNull() ?: 0
+                val pci = pciStr.toIntOrNull() ?: 0
+                val cellKey = initialItem?.cellKey ?: "${type}_${mcc}_${mnc}_${tac}_${ci}"
                             
-                            val lac = if (type == "GSM" || type == "WCDMA") tac else 0
-                            val cid = if (type == "GSM" || type == "WCDMA") ci else 0
-                            val psc = if (type == "WCDMA") pci else 0
-                            val nci = if (type == "NR") ci.toLong() else 0L
+                val lac = if (type == "GSM" || type == "WCDMA") tac else 0
+                val cid = if (type == "GSM" || type == "WCDMA") ci else 0
+                val psc = if (type == "WCDMA") pci else 0
+                val nci = if (type == "NR") ci.toLong() else 0L
 
-                            onSave(
-                                cellKey,
-                                type,
-                                mcc,
-                                mnc,
-                                tac,
-                                ci,
-                                pci,
-                                lac,
-                                cid,
-                                psc,
-                                nci,
-                                0,
-                                0,
-                                0,
-                                dbm,
-                                isRegistered,
-                                isDesignated
-                            )
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange, contentColor = Color.White),
-                        modifier = Modifier
-                            .weight(1.3f)
-                            .height(42.dp)
-                    ) {
-                        Text(text = stringResource(R.string.save_cell), fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
+                onSave(
+                    cellKey,
+                    type,
+                    mcc,
+                    mnc,
+                    tac,
+                    ci,
+                    pci,
+                    lac,
+                    cid,
+                    psc,
+                    nci,
+                    0,
+                    0,
+                    0,
+                    dbm,
+                    isRegistered,
+                    isDesignated
+                )
+            }) {
+                Text(stringResource(R.string.save_cell))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
-    }
+    )
 }

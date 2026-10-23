@@ -1,5 +1,9 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs
 
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.ui.graphics.Color
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,11 +26,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.MyLocation
@@ -52,10 +54,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.SearchMode
@@ -63,8 +63,6 @@ import com.vincenthzr.locationspoofer.ui.components.AppMapController
 import com.vincenthzr.locationspoofer.ui.components.LocalEnvironmentDataDialog
 import com.vincenthzr.locationspoofer.ui.screen.*
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.FavoriteToggleResult
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.ManageDataViewModel
@@ -98,6 +96,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import com.vincenthzr.locationspoofer.ui.screen.tabs.location.*
 import java.util.Locale
+import androidx.compose.foundation.clickable
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -113,7 +112,6 @@ fun LocationTab(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
-    val isDark = isSystemInDarkTheme()
     val coroutineScope = rememberCoroutineScope()
     val searchFocusRequester = remember { FocusRequester() }
     val isSearching = spoofingUiState.isSearchActive
@@ -307,7 +305,6 @@ fun LocationTab(
                 LocationControlPanel(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     uiState = uiState,
-                    isDark = isDark,
                     panelState = panelState,
                     onPanelStateChange = { panelState = it },
                     viewModel = viewModel,
@@ -351,7 +348,7 @@ fun LocationTab(
                             )
                         } else {
                             // 保持占位高度与尺寸结构恒定，绝不在全屏搜索返回时发生二次重构与停顿
-                            Spacer(modifier = barModifier.height(52.dp))
+                            Spacer(modifier = barModifier.height(56.dp))
                         }
                     }
                 )
@@ -401,10 +398,8 @@ fun LocationTab(
                             enter = fadeIn(tween(160)) + expandVertically(tween(220)),
                             exit = fadeOut(tween(120)) + shrinkVertically(tween(160))
                         ) {
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                elevation = CardDefaults.cardElevation(6.dp),
+                            ElevatedCard(
+                                shape = MaterialTheme.shapes.large,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 14.dp, vertical = 8.dp)
@@ -412,54 +407,23 @@ fun LocationTab(
                             ) {
                                 LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {
                                     items(spoofingUiState.searchResults) { poi ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .noRippleClickable {
-                                                    viewModel.updateLatitude(poi.lat.toString())
-                                                    viewModel.updateLongitude(poi.lng.toString())
-                                                    mapController?.animateCamera(
-                                                        poi.lat,
-                                                        poi.lng,
-                                                        17.5f
-                                                    )
-                                                    onIntent(SpoofingIntent.HideSearchResults)
-                                                    onIntent(SpoofingIntent.SetSearchActive(false))
-                                                }
-                                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(36.dp)
-                                                    .clip(RoundedCornerShape(10.dp))
-                                                    .background(AccentBlue.copy(alpha = 0.12f)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.Place,
-                                                    null,
-                                                    tint = AccentBlue,
-                                                    modifier = Modifier.size(18.dp)
+                                        ListItem(
+                                            modifier = Modifier.clickable {
+                                                viewModel.updateLatitude(poi.lat.toString())
+                                                viewModel.updateLongitude(poi.lng.toString())
+                                                mapController?.animateCamera(
+                                                    poi.lat,
+                                                    poi.lng,
+                                                    17.5f
                                                 )
-                                            }
-                                            Spacer(Modifier.width(12.dp))
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    poi.title,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontSize = 14.sp,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
-                                                Text(
-                                                    poi.snippet,
-                                                    fontSize = 11.5.sp,
-                                                    color = MaterialTheme.colorScheme.onBackground.copy(
-                                                        alpha = 0.6f
-                                                    )
-                                                )
-                                            }
-                                        }
+                                                onIntent(SpoofingIntent.HideSearchResults)
+                                                onIntent(SpoofingIntent.SetSearchActive(false))
+                                            },
+                                            leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
+                                            headlineContent = { Text(poi.title) },
+                                            supportingContent = { Text(poi.snippet) },
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                                        )
                                     }
                                 }
                             }

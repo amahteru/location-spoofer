@@ -1,155 +1,64 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import com.vincenthzr.locationspoofer.ui.components.NavigationCard
 
 @Composable
 fun SectionHeader(icon: ImageVector, title: String) {
-    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = textSecondary, modifier = Modifier.size(15.dp))
-        Spacer(Modifier.width(6.dp))
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(8.dp))
         Text(
-            title.uppercase(),
-            color = textSecondary,
-            fontSize = 11.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.8.sp
+            title,
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium
         )
     }
 }
 
 @Composable
-fun AppCoordinateConfigCard( onClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable { onClick() },
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(AccentBlue.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.Extension,
-                    null,
-                    tint = AccentBlue,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.config_app_coordinate),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    stringResource(R.string.config_app_coordinate_desc),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp
-                )
-            }
-            Icon(
-                Icons.Rounded.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
+fun AppCoordinateConfigCard(onClick: () -> Unit) {
+    NavigationCard(
+        icon = Icons.Rounded.Extension,
+        title = stringResource(R.string.config_app_coordinate),
+        summary = stringResource(R.string.config_app_coordinate_desc),
+        tone = LabelTone.Primary,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.AppState, onClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable { onClick() },
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(AccentOrange.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.Shield,
-                    null,
-                    tint = AccentOrange,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.system_hook_apps_title),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(2.dp))
-                val statusDesc = if (uiState.isSystemHookGlobalMode) {
-                    stringResource(R.string.system_hook_global_mode_title) + "（所有应用生效）"
-                } else if (uiState.systemHookPackages.isNotEmpty()) {
-                    stringResource(R.string.selected_count_format, uiState.systemHookPackages.size)
-                } else {
-                    stringResource(R.string.system_hook_apps_card_desc)
-                }
-                Text(
-                    statusDesc,
-                    color = if (uiState.isSystemHookGlobalMode) AccentBlue else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp
-                )
-            }
-            Icon(
-                Icons.Rounded.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
+fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
+    val statusDesc = if (uiState.isSystemHookGlobalMode) {
+        stringResource(R.string.system_hook_global_mode_title) + "（所有应用生效）"
+    } else if (uiState.systemHookPackages.isNotEmpty()) {
+        stringResource(R.string.selected_count_format, uiState.systemHookPackages.size)
+    } else {
+        stringResource(R.string.system_hook_apps_card_desc)
     }
+    NavigationCard(
+        icon = Icons.Rounded.Shield,
+        title = stringResource(R.string.system_hook_apps_title),
+        summary = statusDesc,
+        tone = LabelTone.Warning,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -157,235 +66,98 @@ fun ScannerMapCard(
     uiState: AppState,
     onClick: () -> Unit
 ) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable { onClick() },
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(AccentGreen.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Rounded.Map, null, tint = AccentGreen, modifier = Modifier.size(20.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.env_map_scan),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(2.dp))
-                val statusText = if (uiState.isContinuousScanning) {
-                    stringResource(
-                        R.string.scanning_reference_points,
-                        uiState.environmentRecordCount
-                    )
-                } else {
-                    stringResource(R.string.view_heatmap_start_scan)
-                }
-                Text(statusText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-            }
-            if (uiState.isContinuousScanning) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(AccentGreen)
-                )
-                Spacer(Modifier.width(8.dp))
-            }
-            Icon(
-                Icons.Rounded.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
+    val statusText = if (uiState.isContinuousScanning) {
+        stringResource(R.string.scanning_reference_points, uiState.environmentRecordCount)
+    } else {
+        stringResource(R.string.view_heatmap_start_scan)
     }
+    NavigationCard(
+        icon = Icons.Rounded.Map,
+        title = stringResource(R.string.env_map_scan),
+        summary = statusText,
+        tone = LabelTone.Success,
+        onClick = onClick,
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (uiState.isContinuousScanning) {
+                    Badge(containerColor = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
+            }
+        }
+    )
 }
 
 @Composable
-fun ManageDataCard( onClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable { onClick() },
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(AccentOrange.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.FolderShared,
-                    null,
-                    tint = AccentOrange,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.title_manage_data),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    stringResource(R.string.manage_collected_data_desc),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp
-                )
-            }
-            Icon(
-                Icons.Rounded.ChevronRight,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
+fun ManageDataCard(onClick: () -> Unit) {
+    NavigationCard(
+        icon = Icons.Rounded.FolderShared,
+        title = stringResource(R.string.title_manage_data),
+        summary = stringResource(R.string.manage_collected_data_desc),
+        tone = LabelTone.Tertiary,
+        onClick = onClick
+    )
 }
 
 @Composable
-fun ImportExportDataCard( onImportClick: () -> Unit, onExportClick: () -> Unit) {
-    AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
-    ) {
+fun ImportExportDataCard(onImportClick: () -> Unit, onExportClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        ListItem(
+            leadingContent = { com.vincenthzr.locationspoofer.ui.components.ToneIcon(Icons.Rounded.ImportExport, LabelTone.Primary) },
+            headlineContent = { Text(stringResource(R.string.env_data_sharing)) },
+            supportingContent = { Text(stringResource(R.string.env_data_sharing_desc)) },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+        )
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(AccentBlue.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.ImportExport,
-                    null,
-                    tint = AccentBlue,
-                    modifier = Modifier.size(20.dp)
-                )
+            OutlinedButton(onClick = onImportClick) {
+                Text(stringResource(R.string.import_data))
             }
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.env_data_sharing),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    stringResource(R.string.env_data_sharing_desc),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                TextButton(
-                    onClick = onImportClick,
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text(stringResource(R.string.import_data), color = AccentBlue, fontSize = 13.sp)
-                }
-                TextButton(
-                    onClick = onExportClick,
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text(stringResource(R.string.export_data), color = AccentBlue, fontSize = 13.sp)
-                }
+            FilledTonalButton(onClick = onExportClick) {
+                Text(stringResource(R.string.export_data))
             }
         }
     }
 }
 
 @Composable
-fun FooterLinks(isDark: Boolean) {
+fun FooterLinks() {
+    val uriHandler = LocalUriHandler.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 16.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
     ) {
-        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-
-        // GitHub 胶囊
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(22.dp))
-                .background(if (isDark) Color(0xFF24292E) else Color(0xFF24292E))
-                .noRippleClickable { uriHandler.openUri("https://github.com/amahteru/location-spoofer") }
-                .padding(horizontal = 16.dp, vertical = 9.dp)
+        OutlinedButton(
+            onClick = { uriHandler.openUri("https://github.com/amahteru/location-spoofer") },
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = androidx.compose.ui.res.painterResource(R.drawable.ic_github),
-                    contentDescription = stringResource(R.string.brand_github),
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.brand_github),
-                    color = Color.White,
-                    fontSize = 12.5.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.ic_github),
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.brand_github))
         }
-
-        Spacer(Modifier.width(16.dp))
-
-        // Telegram 胶囊
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(22.dp))
-                .background(if (isDark) Color(0xFF24A1DE).copy(alpha = 0.22f) else Color(0xFFE8F4FA))
-                .noRippleClickable { uriHandler.openUri("https://t.me/+CsxZGItXdW40ZWVl") }
-                .padding(horizontal = 16.dp, vertical = 9.dp)
+        OutlinedButton(
+            onClick = { uriHandler.openUri("https://t.me/+CsxZGItXdW40ZWVl") },
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = androidx.compose.ui.res.painterResource(R.drawable.ic_telegram),
-                    contentDescription = stringResource(R.string.brand_telegram),
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.brand_telegram),
-                    color = Color(0xFF24A1DE),
-                    fontSize = 12.5.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.ic_telegram),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.brand_telegram))
         }
     }
 }

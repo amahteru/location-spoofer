@@ -5,7 +5,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddLocationAlt
@@ -31,7 +30,6 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
 import com.vincenthzr.locationspoofer.ui.components.AppMapView
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getIgnoredVersion
@@ -85,7 +83,6 @@ fun MainScaffoldScreen(
     var activeSubScreen by remember { mutableStateOf(MainSubScreen.None) }
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
     val currentSelectedTab by rememberUpdatedState(selectedTab)
-    val isDark = isSystemInDarkTheme()
     val updateViewModel: UpdateViewModel = koinViewModel()
 
     val updateUiState by updateViewModel.uiState.collectAsState()
@@ -214,7 +211,7 @@ fun MainScaffoldScreen(
                         Icon(
                             Icons.Rounded.AddLocationAlt,
                             contentDescription = null,
-                            tint = AccentBlue,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(36.dp)
                                 .padding(bottom = 16.dp)
@@ -342,7 +339,6 @@ fun MainScaffoldScreen(
                     MainSubScreen.ManageData -> ManageDataScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
@@ -355,14 +351,12 @@ fun MainScaffoldScreen(
                     MainSubScreen.LanguageSettings -> com.vincenthzr.locationspoofer.ui.screen.settings.LanguageSettingsScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.MapEngineSettings -> com.vincenthzr.locationspoofer.ui.screen.settings.MapEngineSettingsScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
@@ -399,7 +393,6 @@ fun MainScaffoldScreen(
                     MainSubScreen.EnvTokens -> com.vincenthzr.locationspoofer.ui.screen.settings.EnvTokensScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 

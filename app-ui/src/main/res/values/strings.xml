@@ -336,7 +336,6 @@
     <string name="delete_data_confirm_format">Are you sure you want to delete "%s"? Associated cell/Wi-Fi/Bluetooth signatures will also be removed.</string>
     <string name="coord_record_title">Coordinate Record</string>
     <string name="edit">Edit</string>
-    <string name="slide_left_hint">Swipe Left</string>
     <string name="set_place_name_hint">Set place name (e.g., Office, Home)</string>
     <string name="add_remark_hint">Add custom remark note...</string>
     <string name="save_changes">Save Changes</string>
@@ -408,7 +407,7 @@ Error details: %s</string>
 
     <string name="manage_wifi_list_title">Simulated Wi-Fi List &amp; Config</string>
     <string name="designated_wifi_tip">Tap to designate primary simulated Wi-Fi. Modify parameters directly and save to database.</string>
-    <string name="add_wifi_btn">+ Add Wi-Fi</string>
+    <string name="add_wifi_btn">Add Wi-Fi</string>
     <string name="edit_wifi_title">Edit Wi-Fi Data</string>
     <string name="new_wifi_title">New Wi-Fi Data</string>
     <string name="wifi_ssid_label">Wi-Fi Name (SSID)</string>
@@ -436,7 +435,7 @@ Error details: %s</string>
 
     <string name="manage_cell_list_title">Simulated Cells &amp; Configuration</string>
     <string name="designated_cell_tip">Tap to designate primary Serving Cell. You can also edit/add cell parameters directly to the database.</string>
-    <string name="add_cell_btn">+ Add Cell</string>
+    <string name="add_cell_btn">Add Cell</string>
     <string name="edit_cell_title">Edit Cell Data</string>
     <string name="new_cell_title">Add New Cell</string>
     <string name="cell_type_label">Radio Type</string>
@@ -456,7 +455,7 @@ Error details: %s</string>
 
     <string name="manage_bt_list_title">Simulated Bluetooth &amp; Configuration</string>
     <string name="designated_bt_tip">Tap to designate preferred simulated Bluetooth device. You can edit/add devices directly to the database.</string>
-    <string name="add_bt_btn">+ Add Bluetooth</string>
+    <string name="add_bt_btn">Add Bluetooth</string>
     <string name="edit_bt_title">Edit Bluetooth Data</string>
     <string name="new_bt_title">Add New Bluetooth</string>
     <string name="bt_name_label">Device Name</string>

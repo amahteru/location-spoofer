@@ -1,34 +1,26 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.rounded.Cancel
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import com.vincenthzr.locationspoofer.ui.components.AppCard
 
-// 保存名称对话框 (MIUIX 风格)
+// 保存名称对话框：M3 AlertDialog + Outlined Text Field
 @Composable
 fun SaveNameDialog(
     title: String,
@@ -37,180 +29,46 @@ fun SaveNameDialog(
 ) {
     var name by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
-    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
-    Dialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        AppCard(
-            modifier = Modifier
-                .fillMaxWidth(0.90f)
-                .padding(vertical = 20.dp)
-                .imePadding(),
-            cornerRadius = 24.dp,
-            insideMargin = PaddingValues(20.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // 顶部标题与图标
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(AccentOrange.copy(alpha = 0.14f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.Star,
-                            contentDescription = null,
-                            tint = AccentOrange,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = title,
-                            fontSize = 17.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.name),
-                            fontSize = 12.sp,
-                            color = textSecondary
-                        )
-                    }
-                }
-
-                // MIUIX 胶囊输入框
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        )
-                        .padding(horizontal = 14.dp, vertical = 12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BasicTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            textStyle = TextStyle(
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    if (name.isNotBlank()) {
-                                        onConfirm(name)
-                                    }
-                                }
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .focusRequester(focusRequester),
-                            decorationBox = { innerTextField ->
-                                Box(modifier = Modifier.fillMaxWidth()) {
-                                    if (name.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.name),
-                                            fontSize = 15.sp,
-                                            color = textSecondary.copy(alpha = 0.6f)
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            }
-                        )
-
-                        if (name.isNotEmpty()) {
-                            IconButton(
-                                onClick = { name = "" },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Close,
-                                    contentDescription = null,
-                                    tint = textSecondary.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
+        icon = { Icon(Icons.Rounded.Star, contentDescription = null) },
+        title = { Text(text = title) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(stringResource(R.string.name)) },
+                singleLine = true,
+                trailingIcon = if (name.isNotEmpty()) {
+                    {
+                        IconButton(onClick = { name = "" }) {
+                            Icon(Icons.Rounded.Cancel, contentDescription = null)
                         }
                     }
-                }
-
-                // 底部操作按钮（取消 / 保存）
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                            .noRippleClickable(onClick = onDismiss),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            if (name.isNotBlank()) {
-                                onConfirm(name)
-                            }
-                        },
-                        enabled = name.isNotBlank(),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AccentBlue,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.save),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                } else null,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { if (name.isNotBlank()) onConfirm(name) }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
-    }
+    )
 }

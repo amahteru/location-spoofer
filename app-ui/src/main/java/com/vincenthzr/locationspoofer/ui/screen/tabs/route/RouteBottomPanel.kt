@@ -1,31 +1,22 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.route
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
 import com.vincenthzr.locationspoofer.data.model.RouteRunMode
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 
 @Composable
 fun RouteBottomPanel(
@@ -61,11 +52,11 @@ fun RouteBottomPanel(
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shadowElevation = 3.dp
             ) {
-                Box(modifier = Modifier.padding(14.dp)) {
+                Box(modifier = Modifier.padding(16.dp)) {
                     when (stage) {
                         RoutePlanStage.IDLE, RoutePlanStage.SELECTING -> {
                             Row(
@@ -78,49 +69,35 @@ fun RouteBottomPanel(
                                     onClick = onConfirmPoint,
                                     modifier = Modifier
                                         .weight(1.2f)
-                                        .height(50.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+                                        .height(48.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.AddLocation,
                                         null,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(6.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
-                                        if (routePoints.isEmpty()) stringResource(R.string.add_start_point) else stringResource(R.string.add_nth_point, routePoints.size + 1),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
+                                        if (routePoints.isEmpty()) stringResource(R.string.add_start_point) else stringResource(R.string.add_nth_point, routePoints.size + 1)
                                     )
                                 }
 
                                 // 完成规划
-                                Button(
+                                FilledTonalButton(
                                     onClick = onFinishSelecting,
                                     enabled = routePoints.size >= 2,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(50.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = AccentGreen,
-                                        contentColor = Color.White,
-                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f
-                                        )
-                                    )
+                                        .height(48.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.CheckCircle,
                                         null,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(6.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
-                                        stringResource(R.string.finish_selecting),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
+                                        stringResource(R.string.finish_selecting)
                                     )
                                 }
                             }
@@ -136,20 +113,17 @@ fun RouteBottomPanel(
                                     onClick = onRestartSelecting,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(50.dp),
-                                    contentPadding = PaddingValues(horizontal = 4.dp),
-                                    shape = RoundedCornerShape(16.dp)
+                                        .height(48.dp),
+                                    contentPadding = PaddingValues(horizontal = 4.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.Refresh,
                                         null,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(3.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
                                         stringResource(R.string.reselect),
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 13.5.sp,
                                         maxLines = 1
                                     )
                                 }
@@ -158,20 +132,17 @@ fun RouteBottomPanel(
                                     onClick = onSaveRoute,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(50.dp),
-                                    contentPadding = PaddingValues(horizontal = 4.dp),
-                                    shape = RoundedCornerShape(16.dp)
+                                        .height(48.dp),
+                                    contentPadding = PaddingValues(horizontal = 4.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.BookmarkAdd,
                                         null,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(3.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
                                         stringResource(R.string.bookmark),
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 13.5.sp,
                                         maxLines = 1
                                     )
                                 }
@@ -180,21 +151,17 @@ fun RouteBottomPanel(
                                     onClick = onStartPlanning,
                                     modifier = Modifier
                                         .weight(1.35f)
-                                        .height(50.dp),
-                                    contentPadding = PaddingValues(horizontal = 8.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+                                        .height(48.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp)
                                 ) {
                                     Icon(
                                         Icons.Rounded.PlayArrow,
                                         null,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(5.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
                                         stringResource(R.string.start_simulation),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
                                         maxLines = 1
                                     )
                                 }
@@ -211,40 +178,36 @@ fun RouteBottomPanel(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(start = 6.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(AccentGreen)
+                                    Icon(
+                                        Icons.Rounded.Navigation,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         text = if (uiState.routeRunMode == RouteRunMode.MANUAL) stringResource(R.string.joystick_controlling_active) else stringResource(R.string.cruising_speed_format, uiState.routeSimMode.speedMs.toInt()),
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
                                 Button(
                                     onClick = onStopRoute,
-                                    shape = RoundedCornerShape(16.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                        contentColor = MaterialTheme.colorScheme.error
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
                                     ),
-                                    modifier = Modifier.height(46.dp)
+                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
                                 ) {
                                     Icon(
                                         Icons.Rounded.StopCircle,
                                         null,
-                                        modifier = Modifier.size(19.dp)
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                    Spacer(Modifier.width(6.dp))
+                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                                     Text(
-                                        stringResource(R.string.stop_simulation),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.5.sp
+                                        stringResource(R.string.stop_simulation)
                                     )
                                 }
                             }

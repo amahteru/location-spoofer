@@ -1,0 +1,146 @@
+package com.vincenthzr.locationspoofer.ui.screen.managedata
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.R
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+
+/** 设备行上的只读标签（"首选"、"已连接"等） */
+data class DeviceBadge(val text: String, val tone: LabelTone)
+
+/**
+ * Wi-Fi / 基站 / 蓝牙三个选项卡共用的"首选设备"单选列表：
+ * 标题 + 新增按钮、说明、"自动"选项，以及每个设备一行（单选 + 编辑 / 删除）。
+ */
+@Composable
+fun <T> DesignatedDeviceList(
+    title: String,
+    addLabel: String,
+    tip: String,
+    autoLabel: String,
+    emptyText: String,
+    items: List<T>,
+    isSelected: (T) -> Boolean,
+    headline: (T) -> String,
+    badges: @Composable (T) -> List<DeviceBadge>,
+    details: (T) -> List<String>,
+    onSelectAuto: () -> Unit,
+    onSelect: (T) -> Unit,
+    onAdd: () -> Unit,
+    onEdit: (T) -> Unit,
+    onDelete: (T) -> Unit
+) {
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = onAdd, contentPadding = ButtonDefaults.TextButtonWithIconContentPadding) {
+                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(addLabel)
+            }
+        }
+        Text(
+            text = tip,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Column(modifier = Modifier.selectableGroup().padding(vertical = 8.dp)) {
+            val autoSelected = items.none(isSelected)
+            DeviceRow(
+                selected = autoSelected,
+                onSelect = onSelectAuto,
+                headline = { Text(autoLabel) }
+            )
+
+            if (items.isEmpty()) {
+                Text(
+                    text = emptyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            }
+
+            items.forEach { item ->
+                val itemBadges = badges(item)
+                DeviceRow(
+                    selected = isSelected(item),
+                    onSelect = { onSelect(item) },
+                    headline = {
+                        Text(headline(item), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    },
+                    supporting = {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            details(item).forEach { line -> Text(line, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                            if (itemBadges.isNotEmpty()) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    itemBadges.forEach { StatusLabel(text = it.text, tone = it.tone) }
+                                }
+                            }
+                        }
+                    },
+                    trailing = {
+                        Row {
+                            IconButton(onClick = { onEdit(item) }) {
+                                Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.edit))
+                            }
+                            IconButton(onClick = { onDelete(item) }) {
+                                Icon(
+                                    Icons.Rounded.DeleteOutline,
+                                    contentDescription = stringResource(R.string.delete),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceRow(
+    selected: Boolean,
+    onSelect: () -> Unit,
+    headline: @Composable () -> Unit,
+    supporting: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null
+) {
+    ListItem(
+        modifier = Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onSelect),
+        leadingContent = { RadioButton(selected = selected, onClick = null) },
+        headlineContent = headline,
+        supportingContent = supporting,
+        trailingContent = trailing,
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+}

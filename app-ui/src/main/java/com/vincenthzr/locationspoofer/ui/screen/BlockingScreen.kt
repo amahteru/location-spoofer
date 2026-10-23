@@ -11,10 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.ui.R
 
@@ -36,29 +34,24 @@ fun InitializingScreen() {
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Rounded.MyLocation,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(36.dp)
                 )
             }
             Text(
                 stringResource(R.string.app_name),
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(Modifier.height(8.dp))
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(28.dp)
-            )
-            Text(stringResource(R.string.initializing_env), color = textSecondary, fontSize = 13.sp)
+            CircularProgressIndicator()
+            Text(stringResource(R.string.initializing_env), color = textSecondary, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -82,27 +75,25 @@ fun BlockingScreen(icon: ImageVector, title: String, message: String) {
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
+                    .background(MaterialTheme.colorScheme.errorContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.size(40.dp)
                 )
             }
             Text(
                 title,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall
             )
             Text(
                 message,
                 color = textSecondary,
-                fontSize = 13.sp,
-                lineHeight = 20.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
         }

@@ -335,7 +335,6 @@
     <string name="delete_data_confirm_format">确定要删除「%s」吗？删除后该位置及其附带的基站/Wi-Fi/蓝牙特征将无法恢复。</string>
     <string name="coord_record_title">坐标记录</string>
     <string name="edit">编辑</string>
-    <string name="slide_left_hint">向左滑动</string>
     <string name="set_place_name_hint">设置位置名称（如：教学楼、宿舍等）</string>
     <string name="add_remark_hint">添加自定义备注说明...</string>
     <string name="save_changes">保存更改</string>
@@ -408,7 +407,7 @@
 
     <string name="manage_wifi_list_title">模拟 Wi-Fi 列表与配置</string>
     <string name="designated_wifi_tip">点击可指定模拟连接的主 Wi-Fi，支持修改或新增 Wi-Fi 详细参数并保存至数据库</string>
-    <string name="add_wifi_btn">+ 添加 Wi-Fi</string>
+    <string name="add_wifi_btn">添加 Wi-Fi</string>
     <string name="edit_wifi_title">编辑 Wi-Fi 数据</string>
     <string name="new_wifi_title">新增 Wi-Fi 数据</string>
     <string name="wifi_ssid_label">Wi-Fi 名称 (SSID)</string>
@@ -436,7 +435,7 @@
 
     <string name="manage_cell_list_title">模拟基站列表与配置</string>
     <string name="designated_cell_tip">点击可指定模拟连接的主服务基站 (Serving Cell)，支持修改或新增基站参数并存入数据库</string>
-    <string name="add_cell_btn">+ 添加基站</string>
+    <string name="add_cell_btn">添加基站</string>
     <string name="edit_cell_title">编辑基站数据</string>
     <string name="new_cell_title">新增基站数据</string>
     <string name="cell_type_label">基站制式 (Type)</string>
@@ -456,7 +455,7 @@
 
     <string name="manage_bt_list_title">模拟蓝牙列表与配置</string>
     <string name="designated_bt_tip">点击可指定模拟主连接/广播蓝牙设备，支持修改或新增蓝牙设备并存入数据库</string>
-    <string name="add_bt_btn">+ 添加蓝牙</string>
+    <string name="add_bt_btn">添加蓝牙</string>
     <string name="edit_bt_title">编辑蓝牙数据</string>
     <string name="new_bt_title">新增蓝牙数据</string>
     <string name="bt_name_label">设备名称 (Name)</string>

@@ -1,37 +1,25 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
-import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 
 @Composable
 fun CoordinateSelectionDialog(
     appInfo: AppInfoItem,
     currentSystem: String,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
@@ -64,218 +52,70 @@ fun CoordinateSelectionDialog(
         )
     )
 
-    Dialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        AppCard(
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .wrapContentHeight(),
-            cornerRadius = 24.dp,
-            insideMargin = PaddingValues(22.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // 头部应用信息
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHigh
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AppIconImage(
-                            packageName = appInfo.packageName,
-                            modifier = Modifier.size(34.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.width(12.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = appInfo.appName,
-                            fontSize = 16.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = stringResource(R.string.select_coord_algo_title),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clip(CircleShape)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                            .noRippleClickable(onClick = onDismiss),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(15.dp)
-                        )
-                    }
-                }
-
-                // 坐标系选项列表
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        icon = { AppIconImage(packageName = appInfo.packageName, modifier = Modifier.size(40.dp)) },
+        title = { Text(appInfo.appName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.select_coord_algo_title),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                // 坐标系单选列表
+                Column(modifier = Modifier.selectableGroup()) {
                     options.forEach { option ->
                         val isSelected = option.key == selectedOption
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(
-                                    if (isSelected) AccentBlue.copy(alpha = if (isDark) 0.14f else 0.09f)
-                                    else if (isDark) Color.White.copy(alpha = 0.04f)
-                                    else Color.Black.copy(alpha = 0.03f)
+                                .clip(MaterialTheme.shapes.medium)
+                                .selectable(
+                                    selected = isSelected,
+                                    role = Role.RadioButton,
+                                    onClick = { selectedOption = option.key }
                                 )
-                                .border(
-                                    width = if (isSelected) 1.5.dp else 0.8.dp,
-                                    color = if (isSelected) AccentBlue else MaterialTheme.colorScheme.outline.copy(
-                                        alpha = if (isDark) 0.10f else 0.05f
-                                    ),
-                                    shape = RoundedCornerShape(14.dp)
-                                )
-                                .noRippleClickable { selectedOption = option.key }
-                                .padding(horizontal = 14.dp, vertical = 12.dp)
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Text(
-                                            text = option.name,
-                                            fontSize = 14.5.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) AccentBlue else MaterialTheme.colorScheme.onSurface
-                                        )
-                                        if (option.tag != null) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(4.dp))
-                                                    .background(AccentBlue.copy(alpha = 0.12f))
-                                                    .padding(horizontal = 5.dp, vertical = 1.dp)
-                                            ) {
-                                                Text(
-                                                    text = option.tag,
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = AccentBlue
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        text = option.desc,
-                                        fontSize = 11.5.sp,
-                                        color = if (isSelected) AccentBlue.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.5f
-                                        ),
-                                        lineHeight = 16.sp
-                                    )
-                                }
-
-                                Spacer(Modifier.width(10.dp))
-
-                                // 单选指示圆圈
-                                Box(
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .clip(CircleShape)
-                                        .background(if (isSelected) AccentBlue else Color.Transparent)
-                                        .border(
-                                            width = if (isSelected) 0.dp else 1.5.dp,
-                                            color = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.onSurface.copy(
-                                                alpha = 0.3f
-                                            ),
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
+                            RadioButton(selected = isSelected, onClick = null)
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    if (isSelected) {
-                                        Icon(
-                                            Icons.Rounded.Check,
-                                            contentDescription = null,
-                                            tint = OnAccentBlue,
-                                            modifier = Modifier.size(13.dp)
-                                        )
+                                    Text(
+                                        text = option.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (option.tag != null) {
+                                        StatusLabel(text = option.tag)
                                     }
                                 }
+                                Text(
+                                    text = option.desc,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
                 }
-
-                // 底部确认与取消操作
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(44.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                            .noRippleClickable(onClick = onDismiss),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                        )
-                    }
-
-                    Button(
-                        onClick = { onSelect(selectedOption) },
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                        modifier = Modifier
-                            .weight(1.3f)
-                            .height(44.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.app_coordinate_setting),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSelect(selectedOption) }) {
+                Text(stringResource(R.string.app_coordinate_setting))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
-    }
+    )
 }
 
 private data class CoordinateOption(

@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -18,8 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 
 sealed class MarkdownBlock {
     data class Header(val level: Int, val text: String, val category: String) : MarkdownBlock()
@@ -159,8 +156,7 @@ fun RenderMarkdownContent(
                     Spacer(Modifier.height(4.dp))
                     Text(
                         text = block.text.replace(Regex("""^[#🌟🛠📝\s]+"""), "").trim(),
-                        fontSize = 14.5.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -177,31 +173,29 @@ fun RenderMarkdownContent(
                                 .padding(top = 7.dp, end = 8.dp)
                                 .size(5.dp)
                                 .clip(CircleShape)
-                                .background(AccentBlue)
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                         Text(
-                            text = parseInlineMarkdownString(block.text, AccentBlue),
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
+                            text = parseInlineMarkdownString(block.text, MaterialTheme.colorScheme.primary),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
                 is MarkdownBlock.Paragraph -> {
                     Text(
-                        text = parseInlineMarkdownString(block.text, AccentBlue),
-                        fontSize = 13.sp,
-                        lineHeight = 19.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        text = parseInlineMarkdownString(block.text, MaterialTheme.colorScheme.primary),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
 
                 is MarkdownBlock.Blockquote -> {
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 2.dp)
@@ -214,13 +208,13 @@ fun RenderMarkdownContent(
                                 modifier = Modifier
                                     .width(3.dp)
                                     .height(18.dp)
-                                    .background(AccentBlue, RoundedCornerShape(2.dp))
+                                    .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraSmall)
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = parseInlineMarkdownString(block.text, AccentBlue),
-                                fontSize = 12.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                text = parseInlineMarkdownString(block.text, MaterialTheme.colorScheme.primary),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -230,8 +224,8 @@ fun RenderMarkdownContent(
 
                 is MarkdownBlock.CodeBlock -> {
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 2.dp)
@@ -239,8 +233,8 @@ fun RenderMarkdownContent(
                         Text(
                             text = block.code,
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 12.sp,
-                            color = AccentBlue,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(10.dp)
                         )
                     }
@@ -263,8 +257,8 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 2.dp)) {
         table.rows.forEach { row ->
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -273,25 +267,23 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
                 ) {
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
-                            text = parseInlineMarkdownString(row.getOrElse(0) { "" }, AccentBlue),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = parseInlineMarkdownString(row.getOrElse(0) { "" }, MaterialTheme.colorScheme.primary),
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         row.getOrNull(statusIndex)?.takeIf { it.isNotBlank() }?.let {
                             Spacer(Modifier.width(8.dp))
-                            Text(text = it, fontSize = 13.sp)
+                            Text(text = it, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                     row.forEachIndexed { index, cell ->
                         if (index == 0 || index == statusIndex || cell.isBlank() || cell == "—" || cell == "-") return@forEachIndexed
                         val label = table.header.getOrNull(index).orEmpty()
                         Text(
-                            text = parseInlineMarkdownString(if (label.isBlank()) cell else "$label：$cell", AccentBlue),
-                            fontSize = 12.sp,
-                            lineHeight = 17.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            text = parseInlineMarkdownString(if (label.isBlank()) cell else "$label：$cell", MaterialTheme.colorScheme.primary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

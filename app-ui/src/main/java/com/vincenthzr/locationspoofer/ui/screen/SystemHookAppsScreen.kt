@@ -1,37 +1,32 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.onWarningContainer
+import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
+import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import com.vincenthzr.locationspoofer.ui.components.EmptyState
+import com.vincenthzr.locationspoofer.ui.components.AppSearchField
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.data.model.AppState
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.loadInstalledAppsForSystemHook
 import com.vincenthzr.locationspoofer.viewmodel.setSystemHookPackageEnabled
@@ -39,8 +34,8 @@ import com.vincenthzr.locationspoofer.viewmodel.setSystemHookGlobalMode
 import com.vincenthzr.locationspoofer.viewmodel.setForceLocationEnabled
 import com.vincenthzr.locationspoofer.viewmodel.selectAllUserAppsForSystemHook
 import com.vincenthzr.locationspoofer.viewmodel.clearAllSystemHookApps
-import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
+import com.vincenthzr.locationspoofer.ui.theme.warningContainer
 
 private enum class SystemHookFilterTab {
     All,
@@ -67,7 +62,6 @@ fun SystemHookAppsScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(SystemHookFilterTab.All) }
-    val isDark = isSystemInDarkTheme()
 
     BackHandler(onBack = onBack)
 
@@ -99,370 +93,174 @@ fun SystemHookAppsScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-        ) {
-            // 顶部导航栏
-            AppTopBar(
-                title = stringResource(R.string.system_hook_apps_title),
-                subtitle = stringResource(R.string.system_hook_apps_subtitle),
-                onBack = onBack
-            )
+        AppTopBar(
+            title = stringResource(R.string.system_hook_apps_title),
+            subtitle = stringResource(R.string.system_hook_apps_subtitle),
+            onBack = onBack
+        )
 
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(bottom = 24.dp)
+        ) {
             // 实验性功能说明
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                Row(
+            item {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(AccentOrange.copy(alpha = 0.10f))
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.Top
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.warningContainer,
+                        contentColor = MaterialTheme.colorScheme.onWarningContainer
+                    )
                 ) {
-                    Icon(
-                        Icons.Rounded.Info,
-                        contentDescription = null,
-                        tint = AccentOrange,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = stringResource(R.string.system_hook_apps_warning),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
-                    )
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(text = stringResource(R.string.system_hook_apps_warning), style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
 
-            // 全局模拟模式切换卡片
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 16.dp,
-                    insideMargin = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
+            // 全局模拟模式
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Column {
+                    SwitchListItem(
+                        title = stringResource(R.string.system_hook_global_mode_title),
+                        summary = stringResource(R.string.system_hook_global_mode_desc),
+                        icon = Icons.Rounded.Public,
+                        checked = uiState.isSystemHookGlobalMode,
+                        onCheckedChange = { viewModel.setSystemHookGlobalMode(it) }
+                    )
+                    if (com.vincenthzr.locationspoofer.ui.BuildConfig.GLOBAL_SCHEME &&
+                        com.vincenthzr.locationspoofer.vendor.RomRules.isColorOs16(
+                            com.vincenthzr.locationspoofer.vendor.VendorProfile.current)) {
+                        SwitchListItem(
+                            title = stringResource(R.string.coloros_virtual_location_title),
+                            summary = stringResource(R.string.coloros_virtual_location_desc),
+                            icon = Icons.Rounded.LocationOn,
+                            checked = uiState.forceLocationEnabled,
+                            onCheckedChange = { viewModel.setForceLocationEnabled(it) }
+                        )
+                    }
+                    if (uiState.isSystemHookGlobalMode) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(38.dp)
-                                    .clip(RoundedCornerShape(11.dp))
-                                    .background(
-                                        if (uiState.isSystemHookGlobalMode) AccentBlue.copy(alpha = 0.16f)
-                                        else if (isDark) Color.White.copy(alpha = 0.08f)
-                                        else Color.Black.copy(alpha = 0.05f)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Public,
-                                    contentDescription = null,
-                                    tint = if (uiState.isSystemHookGlobalMode) AccentBlue else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.system_hook_global_mode_title),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.system_hook_global_mode_desc),
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                                )
-                            }
-                            Spacer(Modifier.width(8.dp))
-                            Switch(
-                                checked = uiState.isSystemHookGlobalMode,
-                                onCheckedChange = { viewModel.setSystemHookGlobalMode(it) }
+                            Icon(
+                                Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
                             )
-                        }
-
-                        if (com.vincenthzr.locationspoofer.ui.BuildConfig.GLOBAL_SCHEME &&
-                            com.vincenthzr.locationspoofer.vendor.RomRules.isColorOs16(
-                                com.vincenthzr.locationspoofer.vendor.VendorProfile.current)) {
-                            Spacer(Modifier.height(8.dp))
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(stringResource(R.string.coloros_virtual_location_title), fontSize = 14.sp)
-                                    Text(stringResource(R.string.coloros_virtual_location_desc), fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                }
-                                Switch(checked = uiState.forceLocationEnabled,
-                                    onCheckedChange = { viewModel.setForceLocationEnabled(it) })
-                            }
-
-                        }
-
-                        if (uiState.isSystemHookGlobalMode) {
-                            Spacer(Modifier.height(8.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(AccentBlue.copy(alpha = 0.08f))
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Rounded.CheckCircle,
-                                    contentDescription = null,
-                                    tint = AccentBlue,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.system_hook_global_mode_active_hint),
-                                    fontSize = 11.sp,
-                                    color = AccentBlue
-                                )
-                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.system_hook_global_mode_active_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
             }
 
-            // 搜索胶囊栏
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .border(
-                            width = 0.8.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(
-                                alpha = 0.05f
-                            ),
-                            shape = RoundedCornerShape(14.dp)
-                        )
-                        .padding(horizontal = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = AccentBlue,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        textStyle = TextStyle(
-                            fontSize = 13.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        decorationBox = { innerTextField ->
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.search_app_hint),
-                                    fontSize = 13.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                )
-                            }
-                            innerTextField()
-                        }
-                    )
-                    if (searchQuery.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-                                .noRippleClickable { searchQuery = "" },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Close,
-                                null,
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.size(12.dp)
-                            )
-                        }
-                    }
-                }
+            // 搜索栏
+            item {
+                AppSearchField(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholder = stringResource(R.string.search_app_hint),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
             }
 
             // 分类快捷过滤标签
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(SystemHookFilterTab.values()) { tab ->
-                    val isSelected = selectedFilter == tab
-                    val label = tab.getLabel(uiState.systemHookPackages.size)
-
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { selectedFilter = tab },
-                        label = { Text(text = label) }
-                    )
+            item {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(SystemHookFilterTab.values()) { tab ->
+                        FilterChip(
+                            selected = selectedFilter == tab,
+                            onClick = { selectedFilter = tab },
+                            label = { Text(text = tab.getLabel(uiState.systemHookPackages.size)) }
+                        )
+                    }
                 }
             }
 
             // 批量操作与统计行
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.selected_count_format, uiState.systemHookPackages.size),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                )
-
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton(
-                        onClick = { viewModel.selectAllUserAppsForSystemHook() },
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.system_hook_select_user_apps),
-                            fontSize = 12.sp,
-                            color = AccentBlue
-                        )
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.selected_count_format, uiState.systemHookPackages.size),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = { viewModel.selectAllUserAppsForSystemHook() }) {
+                        Text(stringResource(R.string.system_hook_select_user_apps))
                     }
-
                     if (uiState.systemHookPackages.isNotEmpty()) {
                         TextButton(
                             onClick = { viewModel.clearAllSystemHookApps() },
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
-                            Text(
-                                text = stringResource(R.string.system_hook_clear_all),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                            )
+                            Text(stringResource(R.string.system_hook_clear_all))
                         }
                     }
                 }
             }
 
             if (uiState.isLoadingInstalledApps && uiState.installedAppsForSystemHook.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AccentBlue)
-                }
-            } else if (appsToShow.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.SearchOff,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.no_hooked_apps),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            text = stringResource(R.string.search_no_match_hint),
-                            fontSize = 12.5.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 8.dp,
-                            bottom = 24.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(appsToShow, key = { it.packageName }) { app ->
-                            val isSelected = uiState.systemHookPackages.contains(app.packageName)
-                            SystemHookAppItemCard(
-                                appInfo = app,
-                                isSelected = isSelected,
-                                onToggle = { enabled ->
-                                    viewModel.setSystemHookPackageEnabled(app.packageName, enabled)
-                                }
-                            )
-                        }
-                    }
-
+                item {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(20.dp)
-                            .align(Alignment.TopCenter)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.background,
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
+                            .padding(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else if (appsToShow.isEmpty()) {
+                item {
+                    EmptyState(
+                        icon = Icons.Rounded.SearchOff,
+                        title = stringResource(R.string.no_hooked_apps),
+                        description = stringResource(R.string.search_no_match_hint)
+                    )
+                }
+            } else {
+                items(appsToShow, key = { it.packageName }) { app ->
+                    SystemHookAppItemCard(
+                        appInfo = app,
+                        isSelected = uiState.systemHookPackages.contains(app.packageName),
+                        onToggle = { enabled ->
+                            viewModel.setSystemHookPackageEnabled(app.packageName, enabled)
+                        }
                     )
                 }
             }
@@ -476,77 +274,30 @@ private fun SystemHookAppItemCard(
     isSelected: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable { onToggle(!isSelected) },
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
-                contentAlignment = Alignment.Center
+    ListItem(
+        modifier = Modifier.toggleable(value = isSelected, role = Role.Switch, onValueChange = onToggle),
+        leadingContent = {
+            AppIconImage(packageName = appInfo.packageName, modifier = Modifier.size(40.dp))
+        },
+        headlineContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AppIconImage(
-                    packageName = appInfo.packageName,
-                    modifier = Modifier.size(38.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = appInfo.appName,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if (appInfo.isSystem) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                                .padding(horizontal = 5.dp, vertical = 1.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.system_tag),
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(3.dp))
                 Text(
-                    text = appInfo.packageName,
-                    fontSize = 11.5.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                    text = appInfo.appName,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
+                if (appInfo.isSystem) {
+                    StatusLabel(text = stringResource(R.string.system_tag), tone = LabelTone.Neutral)
+                }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Switch(checked = isSelected, onCheckedChange = onToggle)
-        }
-    }
+        },
+        supportingContent = {
+            Text(text = appInfo.packageName, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        },
+        trailingContent = { Switch(checked = isSelected, onCheckedChange = null) }
+    )
 }

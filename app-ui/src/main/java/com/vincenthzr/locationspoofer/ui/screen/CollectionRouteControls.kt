@@ -1,8 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,20 +9,31 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.viewmodel.*
 
 @Composable
 fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppMapController?, modifier: Modifier = Modifier) {
     val busy = state.isContinuousScanning || state.isStoppingCollection
-    Surface(modifier = modifier.fillMaxWidth(0.92f), shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Surface(
+        modifier = modifier.fillMaxWidth(0.92f),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shadowElevation = 3.dp
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!busy) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = !state.isRouteCollection, onClick = { viewModel.setRouteCollection(false) },
-                        label = { Text(stringResource(R.string.collection_point_mode)) }, modifier = Modifier.weight(1f))
-                    FilterChip(selected = state.isRouteCollection, onClick = { viewModel.setRouteCollection(true) },
-                        label = { Text(stringResource(R.string.collection_route_mode)) }, modifier = Modifier.weight(1f))
+                // 采点 / 采路线 两种模式：M3 分段按钮
+                val modes = listOf(false to R.string.collection_point_mode, true to R.string.collection_route_mode)
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    modes.forEachIndexed { index, (route, label) ->
+                        SegmentedButton(
+                            selected = state.isRouteCollection == route,
+                            onClick = { viewModel.setRouteCollection(route) },
+                            shape = SegmentedButtonDefaults.itemShape(index, modes.size)
+                        ) {
+                            Text(stringResource(label), maxLines = 1)
+                        }
+                    }
                 }
             }
             if (state.isRouteCollection) {
@@ -47,7 +56,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                 } else if (!busy) {
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.selected_waypoints_count, state.collectionRoutePoints.size), style = MaterialTheme.typography.bodySmall)
-                        TextButton(onClick = viewModel::drawCollectionRoute, contentPadding = PaddingValues(0.dp)) {
+                        TextButton(onClick = viewModel::drawCollectionRoute) {
                             Text(stringResource(R.string.collection_route_edit_drawing))
                         }
                     }
@@ -58,7 +67,12 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                     enabled = !state.isStoppingCollection,
                     onClick = viewModel::toggleContinuousScanning,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (state.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen, contentColor = if (state.isContinuousScanning) MaterialTheme.colorScheme.onError else Color.White)
+                    colors = if (state.isContinuousScanning) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    } else ButtonDefaults.buttonColors()
                 ) {
                     Text(stringResource(when {
                         state.isStoppingCollection -> R.string.collection_stopping

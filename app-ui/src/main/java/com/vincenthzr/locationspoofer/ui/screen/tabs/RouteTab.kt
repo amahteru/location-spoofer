@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.*
@@ -37,10 +36,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.*
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
@@ -51,9 +48,6 @@ import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
 import com.vincenthzr.locationspoofer.ui.screen.HomeSearchBar
 import com.vincenthzr.locationspoofer.ui.screen.performPoiSearch
 import com.vincenthzr.locationspoofer.ui.screen.tabs.route.*
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.ui.components.MapCoverageHelper
 import com.vincenthzr.locationspoofer.viewmodel.prepareRouteSimulationOptions
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -87,6 +81,8 @@ import com.vincenthzr.locationspoofer.viewmodel.toggleMockWifi
 import com.vincenthzr.locationspoofer.viewmodel.undoLastRoutePoint
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import com.vincenthzr.locationspoofer.ui.theme.warning
+import androidx.compose.foundation.clickable
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -325,7 +321,7 @@ fun RouteTab(
                     Icon(
                         Icons.Rounded.AddLocationAlt,
                         contentDescription = null,
-                        tint = AccentBlue,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(36.dp)
@@ -337,7 +333,7 @@ fun RouteTab(
                     Icon(
                         Icons.Rounded.PersonPin,
                         contentDescription = null,
-                        tint = AccentOrange,
+                        tint = MaterialTheme.colorScheme.warning,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(36.dp)
@@ -353,66 +349,31 @@ fun RouteTab(
                             .statusBarsPadding()
                             .padding(top = 12.dp)
                             .animateContentSize(),
-                        shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-                        shadowElevation = 8.dp
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shadowElevation = 3.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(AccentBlue.copy(alpha = 0.12f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    "${routePoints.size}",
-                                    color = AccentBlue,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
-                                )
-                            }
-
                             Text(
                                 stringResource(R.string.selected_waypoints_count, routePoints.size),
-                                fontSize = 13.5.sp,
-                                fontWeight = FontWeight.Medium,
+                                style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
-                            VerticalDivider(
-                                modifier = Modifier.height(18.dp),
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
-                            )
+                            VerticalDivider(modifier = Modifier.height(24.dp))
 
                             // 撤销上一个点
-                            IconButton(
-                                onClick = { viewModel.undoLastRoutePoint() },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Rounded.Undo,
-                                    contentDescription = stringResource(R.string.undo),
-                                    tint = AccentOrange,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                            IconButton(onClick = { viewModel.undoLastRoutePoint() }) {
+                                Icon(Icons.AutoMirrored.Rounded.Undo, contentDescription = stringResource(R.string.undo))
                             }
 
                             // 全部清除 / 重新选点
-                            IconButton(
-                                onClick = { viewModel.restartSelectingPoints() },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    Icons.Rounded.DeleteSweep,
-                                    contentDescription = stringResource(R.string.reselect),
-                                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                                    modifier = Modifier.size(18.dp)
-                                )
+                            IconButton(onClick = { viewModel.restartSelectingPoints() }) {
+                                Icon(Icons.Rounded.DeleteSweep, contentDescription = stringResource(R.string.reselect))
                             }
                         }
                     }
@@ -502,7 +463,7 @@ fun RouteTab(
                                     focusRequester = searchFocusRequester
                                 )
                             } else {
-                                Spacer(modifier = barModifier.height(52.dp))
+                                Spacer(modifier = barModifier.height(56.dp))
                             }
                         }
                     } else null
@@ -534,10 +495,8 @@ fun RouteTab(
                             enter = fadeIn(tween(160)) + expandVertically(tween(220)),
                             exit = fadeOut(tween(120)) + shrinkVertically(tween(160))
                         ) {
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                            ElevatedCard(
+                                shape = MaterialTheme.shapes.large,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 14.dp, vertical = 6.dp)
@@ -545,52 +504,21 @@ fun RouteTab(
                             ) {
                                 LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {
                                     items(searchResults) { poi ->
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .noRippleClickable {
-                                                    mapController?.animateCamera(poi.lat, poi.lng, 17f)
-                                                    isSearchActive = false
-                                                    showSearchResults = false
-                                                    focusManager.clearFocus()
-                                                    keyboardController?.hide()
-                                                }
-                                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(36.dp)
-                                                    .clip(RoundedCornerShape(10.dp))
-                                                    .background(AccentBlue.copy(alpha = 0.12f)),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    Icons.Rounded.Place,
-                                                    null,
-                                                    tint = AccentBlue,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
-                                            Spacer(Modifier.width(12.dp))
-                                            Column(modifier = Modifier.weight(1f)) {
-                                                Text(
-                                                    poi.title,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontSize = 14.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
-                                                if (poi.snippet.isNotBlank()) {
-                                                    Text(
-                                                        poi.snippet,
-                                                        fontSize = 12.sp,
-                                                        color = MaterialTheme.colorScheme.onSurface.copy(
-                                                            alpha = 0.6f
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
+                                        ListItem(
+                                            modifier = Modifier.clickable {
+                                                mapController?.animateCamera(poi.lat, poi.lng, 17f)
+                                                isSearchActive = false
+                                                showSearchResults = false
+                                                focusManager.clearFocus()
+                                                keyboardController?.hide()
+                                            },
+                                            leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
+                                            headlineContent = { Text(poi.title) },
+                                            supportingContent = if (poi.snippet.isNotBlank()) {
+                                                { Text(poi.snippet) }
+                                            } else null,
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                                        )
                                     }
                                 }
                             }
@@ -633,13 +561,11 @@ fun RouteTab(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.35f)),
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)),
             contentAlignment = Alignment.Center
         ) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+            ElevatedCard(
+                shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier.padding(32.dp)
             ) {
                 Row(
@@ -647,11 +573,10 @@ fun RouteTab(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = AccentBlue)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(
                         stringResource(R.string.planning_route_trajectory),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }

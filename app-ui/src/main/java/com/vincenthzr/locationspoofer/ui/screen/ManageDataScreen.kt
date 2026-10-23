@@ -1,39 +1,30 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
 import com.vincenthzr.locationspoofer.ui.components.AppMapView
 import com.vincenthzr.locationspoofer.ui.screen.managedata.ModernEditDataDialog
-import com.vincenthzr.locationspoofer.ui.screen.managedata.SwipeableDataListItem
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
+import com.vincenthzr.locationspoofer.ui.screen.managedata.DataListItem
+import com.vincenthzr.locationspoofer.ui.screen.managedata.ManageDeleteConfirmDialog
 import com.vincenthzr.locationspoofer.ui.components.MapCoverageHelper
 import com.vincenthzr.locationspoofer.viewmodel.FavoriteToggleResult
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -48,13 +39,11 @@ import com.vincenthzr.locationspoofer.viewmodel.syncFavoriteCoordinateIfExists
 import com.vincenthzr.locationspoofer.viewmodel.toggleCollectedLocationFavorite
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
-import com.vincenthzr.locationspoofer.ui.components.AppBackButton
 
 @Composable
 fun ManageDataScreen(
     viewModel: MainViewModel,
     uiState: com.vincenthzr.locationspoofer.data.model.AppState,
-    isDark: Boolean,
     onClose: () -> Unit,
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
@@ -112,67 +101,27 @@ fun ManageDataScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            // 顶部导航栏（现代化独立圆形返回按键与标题，无右侧杂乱按钮）
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 独立立体圆形返回按键
-                AppBackButton(onClick = onClose)
-
-                Spacer(Modifier.width(14.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.title_manage_data),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.total_collected_data_count, (dataList.size + collectionRoutes.size)),
-                        fontSize = 12.5.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                    )
-                }
-
-                Spacer(Modifier.weight(1f))
-
-                // 手动刷新按钮：兜底给用户一个明确的"我要看最新数据"入口（issue #60）
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .noRippleClickable(
-                            onClick = { manageDataViewModel.loadManageData() }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (manageDataUiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = AccentBlue
-                        )
-                    } else {
-                        Icon(
-                            Icons.Rounded.Refresh,
-                            contentDescription = stringResource(R.string.refresh_data),
-                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                            modifier = Modifier.size(22.dp)
-                        )
+            AppTopBar(
+                title = stringResource(R.string.title_manage_data),
+                subtitle = stringResource(R.string.total_collected_data_count, (dataList.size + collectionRoutes.size)),
+                onBack = onClose,
+                actions = {
+                    // 手动刷新按钮：兜底给用户一个明确的"我要看最新数据"入口（issue #60）
+                    IconButton(
+                        onClick = { manageDataViewModel.loadManageData() },
+                        enabled = !manageDataUiState.isLoading
+                    ) {
+                        Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.refresh_data))
                     }
                 }
-            }
+            )
 
             if (manageDataUiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = AccentBlue)
+                    CircularProgressIndicator()
                 }
             } else if ((dataList.isEmpty() && collectionRoutes.isEmpty())) {
                 // 空数据状态质感呈现
@@ -186,174 +135,116 @@ fun ManageDataScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(72.dp)
-                                .clip(RoundedCornerShape(22.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Storage,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
-                                modifier = Modifier.size(36.dp)
-                            )
-                        }
+                        Icon(
+                            Icons.Rounded.Storage,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        )
                         Text(
                             text = stringResource(R.string.no_data_collected),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             text = stringResource(R.string.manage_data_empty_desc),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             } else {
                 // 地图概览卡片
-                Box(
+                OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.36f)
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .border(
-                            0.8.dp,
-                            if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.06f),
-                            RoundedCornerShape(18.dp)
-                        )
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    shape = MaterialTheme.shapes.large
                 ) {
-                    AppMapView(
-                        mapEngine = uiState.mapEngine,
-                        isDomestic = viewModel.isDomesticEnvironment(),
-                        modifier = Modifier.fillMaxSize(),
-                        onMapReady = { controller ->
-                            mapController = controller
-                            controller.disableUiControls()
-                        }
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AppMapView(
+                            mapEngine = uiState.mapEngine,
+                            isDomestic = viewModel.isDomesticEnvironment(),
+                            modifier = Modifier.fillMaxSize(),
+                            onMapReady = { controller ->
+                                mapController = controller
+                                controller.disableUiControls()
+                            }
+                        )
 
-                    // 地图右上角覆盖范围提示胶囊
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(10.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.90f))
-                            .border(
-                                0.5.dp,
-                                MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                                RoundedCornerShape(10.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(AccentGreen)
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                text = stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        // 地图右上角覆盖范围提示
+                        StatusLabel(
+                            text = stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
+                            tone = LabelTone.Secondary,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(10.dp)
+                        )
                     }
                 }
 
-                // 下部数据卡片列表（向左滑动显露编辑与删除操作，顶部平滑溶解边界）
-                Box(
+                // 下部数据卡片列表
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.64f)
+                        .weight(0.64f),
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 8.dp,
+                        bottom = 24.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 8.dp,
-                            bottom = 24.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                            com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
-                                route,
-                                onClick = {
-                                    viewModel.selectCollectedRoute(route.route.id)
-                                    mapController?.let { com.vincenthzr.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, 120) }
-                                },
-                                onEdit = { editingRoute = route.route },
-                                onDelete = { deletingRoute = route.route }
-                            )
-                        }
-                        items(dataList, key = { it.location.id }) { item ->
-                            SwipeableDataListItem(
-                                item = item,
-                                isDark = isDark,
-                                isFavorited = favoritedLocationIds.contains(item.location.id) ||
-                                    favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
-                                onClick = {
-                                    viewModel.selectCollectedLocation(item.location.id)
-                                    mapController?.animateCamera(
-                                        item.location.lat,
-                                        item.location.lng,
-                                        17f
-                                    )
-                                },
-                                onEdit = { editingItem = item },
-                                onDelete = { itemToDelete = item },
-                                onFavorite = {
-                                    viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                                        val message = when (result) {
-                                            is FavoriteToggleResult.Added -> context.getString(
-                                                R.string.favorited_toast,
-                                                result.name
-                                            )
-
-                                            is FavoriteToggleResult.Removed -> context.getString(
-                                                R.string.unfavorited_toast,
-                                                result.name
-                                            )
-
-                                            FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
-                                        }
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            )
-                        }
+                    items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
+                        com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
+                            route,
+                            onClick = {
+                                viewModel.selectCollectedRoute(route.route.id)
+                                mapController?.let { com.vincenthzr.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, 120) }
+                            },
+                            onEdit = { editingRoute = route.route },
+                            onDelete = { deletingRoute = route.route }
+                        )
                     }
-
-                    // 顶部边界模糊渐变过渡（消除生硬切边）
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(18.dp)
-                            .align(Alignment.TopCenter)
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.background,
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
-                                        Color.Transparent
-                                    )
+                    items(dataList, key = { it.location.id }) { item ->
+                        DataListItem(
+                            item = item,
+                            isFavorited = favoritedLocationIds.contains(item.location.id) ||
+                                favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
+                            onClick = {
+                                viewModel.selectCollectedLocation(item.location.id)
+                                mapController?.animateCamera(
+                                    item.location.lat,
+                                    item.location.lng,
+                                    17f
                                 )
-                            )
-                    )
+                            },
+                            onEdit = { editingItem = item },
+                            onDelete = { itemToDelete = item },
+                            onFavorite = {
+                                viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
+                                    val message = when (result) {
+                                        is FavoriteToggleResult.Added -> context.getString(
+                                            R.string.favorited_toast,
+                                            result.name
+                                        )
+
+                                        is FavoriteToggleResult.Removed -> context.getString(
+                                            R.string.unfavorited_toast,
+                                            result.name
+                                        )
+
+                                        FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
+                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                    }
                 }
+
             }
         }
     }
@@ -363,7 +254,6 @@ fun ManageDataScreen(
         val currentItem = dataList.find { it.location.id == editingItem?.location?.id } ?: editingItem!!
         ModernEditDataDialog(
             item = currentItem,
-            isDark = isDark,
             onDismiss = { editingItem = null },
             onSave = { lat, lng, placeName, remark, selectedWifiBssid, selectedBluetoothAddress, selectedCellKey ->
                 manageDataViewModel.updateManageDataMetadata(
@@ -480,101 +370,14 @@ fun ManageDataScreen(
             }, ${String.format(Locale.US, "%.4f", targetItem.location.lng)})"
         }
 
-        Dialog(
-            onDismissRequest = { itemToDelete = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(0.88f)
-                    .wrapContentHeight(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(22.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(13.dp))
-                                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.DeleteOutline,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.delete_data_title),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Text(
-                        text = stringResource(R.string.delete_data_confirm_format, displayName),
-                        fontSize = 13.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        lineHeight = 20.sp
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(42.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                                .noRippleClickable { itemToDelete = null },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                            )
-                        }
-
-                        Button(
-                            onClick = {
-                                manageDataViewModel.deleteManageDataSingle(targetItem.location.id)
-                                itemToDelete = null
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .height(42.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.delete),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
+        ManageDeleteConfirmDialog(
+            title = stringResource(R.string.delete_data_title),
+            message = stringResource(R.string.delete_data_confirm_format, displayName),
+            onDismiss = { itemToDelete = null },
+            onConfirm = {
+                manageDataViewModel.deleteManageDataSingle(targetItem.location.id)
+                itemToDelete = null
             }
-        }
+        )
     }
 }

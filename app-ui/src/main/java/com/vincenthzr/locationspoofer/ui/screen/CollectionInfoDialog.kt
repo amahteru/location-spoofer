@@ -80,7 +80,7 @@ fun CollectionInfoDialogHost(viewModel: MainViewModel, uiState: AppState) {
             }
         },
         confirmButton = {
-            Button(
+            TextButton(
                 enabled = !saving,
                 onClick = { viewModel.saveCollectionInfo(record.id, placeName, remark) }
             ) {

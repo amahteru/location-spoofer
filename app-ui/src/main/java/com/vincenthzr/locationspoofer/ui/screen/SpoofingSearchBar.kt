@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -7,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -33,7 +33,6 @@ import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiSearch
 import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import androidx.compose.runtime.Composable
 import com.amap.api.maps.AMapException
 import com.amap.api.services.poisearch.PoiResult
@@ -51,6 +50,7 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeSearchBar(
     query: String,
@@ -62,94 +62,42 @@ fun HomeSearchBar(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null
 ) {
-    Box(
-        modifier = modifier
-            .height(52.dp)
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(26.dp),
-                ambientColor = Color.Black.copy(alpha = 0.05f),
-                spotColor = Color.Black.copy(alpha = 0.1f)
-            )
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(26.dp)
-            ),
-        contentAlignment = Alignment.Center
+    // M3 Search Bar 输入框：full 形状、surfaceContainerHigh 底色，悬浮在地图上加一级阴影
+    Surface(
+        modifier = modifier.height(SearchBarDefaults.InputFieldHeight),
+        shape = SearchBarDefaults.inputFieldShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 3.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(end = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            androidx.compose.foundation.text.BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Medium
-                ),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(start = 20.dp, end = 8.dp)
-                    .then(
-                        focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
-                    )
-                    .onFocusChanged { if (it.isFocused) onFocus() },
-                decorationBox = { innerTextField ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (query.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.search_place_building_coord_hint),
-                                    fontSize = 15.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
-                            innerTextField()
+        SearchBarDefaults.InputField(
+            query = query,
+            onQueryChange = onQueryChange,
+            onSearch = { onSearch() },
+            expanded = false,
+            onExpandedChange = {},
+            placeholder = { Text(stringResource(R.string.search_place_building_coord_hint), maxLines = 1) },
+            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+            trailingIcon = if (query.isNotEmpty()) {
+                {
+                    Row {
+                        IconButton(onClick = { onQueryChange("") }) {
+                            Icon(Icons.Rounded.Close, contentDescription = null)
+                        }
+                        IconButton(onClick = onSearch) {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.ArrowForward,
+                                contentDescription = stringResource(R.string.search),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
-            )
-
-            if (query.isNotEmpty()) {
-                IconButton(
-                    onClick = { onQueryChange("") },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                }
-                Spacer(Modifier.width(4.dp))
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(AccentBlue)
-                    .clickable { onSearch() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.Search,
-                    stringResource(R.string.search),
-                    tint = OnAccentBlue,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
+            } else null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+                .onFocusChanged { if (it.isFocused) onFocus() }
+        )
     }
 }
 

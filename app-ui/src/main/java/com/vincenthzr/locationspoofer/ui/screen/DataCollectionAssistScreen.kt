@@ -1,5 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.compose.material.icons.rounded.PauseCircle
+import com.vincenthzr.locationspoofer.ui.components.onContainerOf
+import com.vincenthzr.locationspoofer.ui.components.containerOf
+import com.vincenthzr.locationspoofer.ui.components.ToneIcon
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
@@ -11,8 +16,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bluetooth
@@ -24,20 +27,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.exportEnvironmentData
 import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
@@ -118,45 +114,29 @@ fun DataCollectionAssistScreen(
             // 说明卡：视觉呼应 BlockingScreen，同时说明依然能帮忙采集数据
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(13.dp))
-                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.Lock,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
+                    ToneIcon(Icons.Rounded.Lock, LabelTone.Error)
+                    Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
                             text = stringResource(R.string.root_required),
-                            fontSize = 15.5.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.root_message),
-                            fontSize = 11.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(
                     text = stringResource(R.string.data_collection_assist_intro),
-                    fontSize = 12.5.sp,
-                    lineHeight = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -164,13 +144,11 @@ fun DataCollectionAssistScreen(
             if (missingPermissions.isNotEmpty()) {
                 AppCard(
                     modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 18.dp,
                     insideMargin = PaddingValues(16.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.data_collection_permission_missing),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(Modifier.height(10.dp))
@@ -194,11 +172,9 @@ fun DataCollectionAssistScreen(
                                 permissionLauncher.launch(missingPermissions.toTypedArray())
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentOrange, contentColor = Color.White)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.go_to_settings), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.go_to_settings))
                     }
                 }
             }
@@ -206,18 +182,14 @@ fun DataCollectionAssistScreen(
             // 采集状态与操作卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(9.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (uiState.isContinuousScanning) AccentGreen
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
-                            )
+                    Icon(
+                        if (uiState.isContinuousScanning) Icons.Rounded.Radar else Icons.Rounded.PauseCircle,
+                        contentDescription = null,
+                        tint = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
@@ -226,8 +198,7 @@ fun DataCollectionAssistScreen(
                         } else {
                             stringResource(R.string.scanning_status_inactive)
                         },
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -240,19 +211,19 @@ fun DataCollectionAssistScreen(
                 ) {
                     ScanCountBadge(
                         icon = Icons.Rounded.Wifi,
-                        tint = AccentBlue,
+                        tone = LabelTone.Primary,
                         text = stringResource(R.string.scanned_wifi_count, uiState.scannedWifiCount),
                         modifier = Modifier.weight(1f)
                     )
                     ScanCountBadge(
                         icon = Icons.Rounded.CellTower,
-                        tint = AccentGreen,
+                        tone = LabelTone.Warning,
                         text = stringResource(R.string.scanned_cell_count, uiState.scannedCellCount),
                         modifier = Modifier.weight(1f)
                     )
                     ScanCountBadge(
                         icon = Icons.Rounded.Bluetooth,
-                        tint = AccentOrange,
+                        tone = LabelTone.Tertiary,
                         text = stringResource(R.string.scanned_bt_count, uiState.scannedBluetoothCount),
                         modifier = Modifier.weight(1f)
                     )
@@ -262,9 +233,8 @@ fun DataCollectionAssistScreen(
 
                 Text(
                     text = stringResource(R.string.data_collection_assist_hint),
-                    fontSize = 11.5.sp,
-                    lineHeight = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(14.dp))
@@ -273,14 +243,16 @@ fun DataCollectionAssistScreen(
                     onClick = { viewModel.toggleContinuousScanning() },
                     enabled = !uiState.isStoppingCollection,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.error else AccentGreen,
-                        contentColor = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.onError else Color.White
-                    )
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                    colors = if (uiState.isContinuousScanning) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
+                    } else ButtonDefaults.buttonColors()
                 ) {
-                    Icon(Icons.Rounded.Radar, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.Rounded.Radar, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                     Text(
                         text = if (uiState.isStoppingCollection) {
                             stringResource(R.string.collection_stopping)
@@ -288,9 +260,7 @@ fun DataCollectionAssistScreen(
                             stringResource(R.string.stop_collection)
                         } else {
                             stringResource(R.string.start_collection)
-                        },
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
+                        }
                     )
                 }
             }
@@ -298,7 +268,6 @@ fun DataCollectionAssistScreen(
             // 导出卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                cornerRadius = 18.dp,
                 insideMargin = PaddingValues(16.dp)
             ) {
                 if (uiState.environmentRecordCount > 0) {
@@ -308,17 +277,15 @@ fun DataCollectionAssistScreen(
                                 .format(java.util.Date())
                             exportLauncher.launch("environment_data_$stamp.json")
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
                     ) {
-                        Text(stringResource(R.string.export_data), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.export_data))
                     }
                 } else {
                     Text(
                         text = stringResource(R.string.no_data_collected),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -329,19 +296,24 @@ fun DataCollectionAssistScreen(
 @Composable
 private fun ScanCountBadge(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tint: Color,
+    tone: LabelTone,
     text: String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(tint.copy(alpha = 0.1f))
-            .padding(vertical = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = colors.containerOf(tone),
+        contentColor = colors.onContainerOf(tone)
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.height(4.dp))
-        Text(text = text, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = tint)
+        Column(
+            modifier = Modifier.padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(text = text, style = MaterialTheme.typography.labelMedium)
+        }
     }
 }

@@ -28,8 +28,7 @@ fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, onD
             }
         },
         dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text(stringResource(R.string.collection_info_skip)) } },
-        confirmButton = {
-            Button(enabled = name.isNotBlank() && !saving, onClick = { onSave(name, remark) }) {
+        confirmButton = { TextButton(enabled = name.isNotBlank() && !saving, onClick = { onSave(name, remark) }) {
                 Text(stringResource(if (saving) R.string.collection_info_saving else R.string.save))
             }
         }

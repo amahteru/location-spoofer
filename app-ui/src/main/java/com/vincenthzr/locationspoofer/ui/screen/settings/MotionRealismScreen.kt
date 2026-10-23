@@ -1,10 +1,12 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import com.vincenthzr.locationspoofer.ui.components.ToneIcon
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
@@ -20,15 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.GaitRecordingState
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -61,64 +58,33 @@ fun MotionRealismScreen(
         onDispose { view.keepScreenOn = false }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    SubPageScaffold(
+        title = stringResource(R.string.motion_realism_title),
+        subtitle = stringResource(R.string.motion_realism_desc),
+        onBack = onClose
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-        ) {
-            AppTopBar(
-                title = stringResource(R.string.motion_realism_title),
-                subtitle = stringResource(R.string.motion_realism_desc),
-                onBack = onClose
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
-                SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
-                GaitCard(viewModel, uiState)
-                HintRow(stringResource(R.string.realism_next_session_hint))
-                Spacer(Modifier.height(16.dp))
-            }
-        }
+        RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
+        SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
+        GaitCard(viewModel, uiState)
+        HintRow(stringResource(R.string.realism_next_session_hint))
     }
 }
 
 @Composable
-private fun CardHeader(icon: ImageVector, tint: Color, title: String, desc: String) {
+private fun CardHeader(icon: ImageVector, tone: LabelTone, title: String, desc: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(11.dp))
-                .background(tint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(19.dp))
-        }
-        Spacer(Modifier.width(12.dp))
+        ToneIcon(icon, tone)
+        Spacer(Modifier.width(16.dp))
         Column {
             Text(
                 text = title,
-                fontSize = 15.5.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = desc,
-                fontSize = 11.5.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -126,10 +92,10 @@ private fun CardHeader(icon: ImageVector, tint: Color, title: String, desc: Stri
 
 @Composable
 private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.Rounded.Shuffle,
-            AccentBlue,
+            LabelTone.Primary,
             stringResource(R.string.realism_level_title),
             stringResource(R.string.realism_level_desc)
         )
@@ -155,10 +121,10 @@ private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
 
 @Composable
 private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.Rounded.Speed,
-            AccentOrange,
+            LabelTone.Warning,
             stringResource(R.string.speed_fluctuation_title),
             stringResource(R.string.speed_fluctuation_desc)
         )
@@ -171,15 +137,13 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
                 onValueChangeFinished = { onChange(local.roundToInt()) },
                 valueRange = 0f..MotionRealism.MAX_SPEED_FLUCTUATION_PCT.toFloat(),
                 steps = MotionRealism.MAX_SPEED_FLUCTUATION_PCT / 5 - 1,
-                colors = SliderDefaults.colors(thumbColor = AccentOrange, activeTrackColor = AccentOrange),
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(12.dp))
             Text(
                 text = stringResource(R.string.speed_fluctuation_value, local.roundToInt()),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = AccentOrange,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.widthIn(min = 48.dp)
             )
         }
@@ -188,10 +152,10 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
 
 @Composable
 private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
-    AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.AutoMirrored.Rounded.DirectionsWalk,
-            AccentGreen,
+            LabelTone.Success,
             stringResource(R.string.gait_title),
             stringResource(R.string.gait_desc)
         )
@@ -204,16 +168,15 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     is GaitRecordingState.Recording -> stringResource(R.string.gait_recording)
                     else -> stringResource(R.string.gait_processing)
                 }
-                Text(text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(10.dp))
                 if (recording is GaitRecordingState.Recording) {
                     LinearProgressIndicator(
                         progress = { recording.progress },
-                        color = AccentGreen,
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
-                    LinearProgressIndicator(color = AccentGreen, modifier = Modifier.fillMaxWidth())
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 if (recording !is GaitRecordingState.Processing) {
                     Spacer(Modifier.height(10.dp))
@@ -229,13 +192,12 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     GaitTemplate.Reason.NO_RHYTHM -> stringResource(R.string.gait_failed_no_rhythm)
                     GaitTemplate.Reason.TOO_FEW_STRIDES -> stringResource(R.string.gait_failed_too_few_strides)
                 }
-                Text(reason, fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
+                Text(reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
                         onClick = { viewModel.startGaitRecording() },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White)
-                    ) { Text(stringResource(R.string.gait_retry)) }
+                                            ) { Text(stringResource(R.string.gait_retry)) }
                     OutlinedButton(onClick = { viewModel.dismissGaitRecordingResult() }) {
                         Text(stringResource(R.string.gait_cancel))
                     }
@@ -250,16 +212,15 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     } else {
                         stringResource(R.string.gait_not_recorded)
                     },
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (cadence != null) {
                     Spacer(Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(R.string.gait_use_template),
-                            fontSize = 13.5.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
@@ -269,8 +230,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
-                        onClick = { viewModel.startGaitRecording() },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White)
+                        onClick = { viewModel.startGaitRecording() }
                     ) {
                         Text(stringResource(if (cadence != null) R.string.gait_rerecord else R.string.gait_record))
                     }
@@ -293,18 +253,16 @@ private fun HintRow(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.Top
     ) {
         Icon(
             Icons.Rounded.Info,
             null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            modifier = Modifier.size(16.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(8.dp))
-        Text(text, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

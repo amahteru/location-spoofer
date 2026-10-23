@@ -1,10 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -12,21 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.data.model.RootSetupTestResult
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
+import com.vincenthzr.locationspoofer.ui.theme.success
 
 @Composable
 private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null) {
@@ -37,24 +28,21 @@ private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null
         Icon(
             if (ok) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
             contentDescription = null,
-            tint = if (ok) AccentGreen else MaterialTheme.colorScheme.error,
-            modifier = Modifier
-                .size(16.dp)
-                .padding(top = 1.dp)
+            tint = if (ok) MaterialTheme.colorScheme.success else MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(20.dp)
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
-                fontSize = 12.5.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (!detail.isNullOrBlank()) {
                 Text(
                     text = detail,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -68,141 +56,73 @@ fun RootSetupTestResultDialog(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
+    val overallOk = result.hasRoot && result.overallVerified
 
-    Dialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
+        icon = {
+            Icon(
+                if (overallOk) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
+                contentDescription = null,
+                tint = if (overallOk) MaterialTheme.colorScheme.success else MaterialTheme.colorScheme.error
+            )
+        },
+        title = { Text(stringResource(R.string.root_test_result_title)) },
+        text = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(22.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val overallOk = result.hasRoot && result.overallVerified
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(13.dp))
-                            .background((if (overallOk) AccentGreen else MaterialTheme.colorScheme.error).copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            if (overallOk) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
-                            contentDescription = null,
-                            tint = if (overallOk) AccentGreen else MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.root_test_result_title),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                DiagnosticItemRow(
+                    label = stringResource(R.string.root_test_item_root),
+                    ok = result.hasRoot,
+                    detail = result.idOutput.take(120)
+                )
+                DiagnosticItemRow(
+                    label = stringResource(R.string.root_test_item_framework),
+                    ok = result.frameworkConnected
+                )
+                DiagnosticItemRow(
+                    label = stringResource(R.string.root_test_item_remote_config),
+                    ok = result.remoteConfigAccessible,
+                    detail = stringResource(R.string.root_test_remote_config_detail)
+                )
+                DiagnosticItemRow(
+                    label = stringResource(R.string.root_test_item_config_published),
+                    ok = result.configPublished,
+                    detail = if (result.configPublished) null else stringResource(R.string.root_test_config_not_published)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                val summary = buildString {
+                    appendLine("solution=${result.solution}")
+                    appendLine("hasRoot=${result.hasRoot}")
+                    appendLine("idOutput=${result.idOutput}")
+                    appendLine("frameworkConnected=${result.frameworkConnected}")
+                    appendLine("remoteConfigAccessible=${result.remoteConfigAccessible}")
+                    appendLine("configPublished=${result.configPublished}")
+                    appendLine("frameworkDetail=${result.frameworkDetail}")
                 }
-
-                Spacer(Modifier.height(16.dp))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 360.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DiagnosticItemRow(
-                        label = stringResource(R.string.root_test_item_root),
-                        ok = result.hasRoot,
-                        detail = result.idOutput.take(120)
-                    )
-                    DiagnosticItemRow(
-                        label = stringResource(R.string.root_test_item_framework),
-                        ok = result.frameworkConnected
-                    )
-                    DiagnosticItemRow(
-                        label = stringResource(R.string.root_test_item_remote_config),
-                        ok = result.remoteConfigAccessible,
-                        detail = stringResource(R.string.root_test_remote_config_detail)
-                    )
-                    DiagnosticItemRow(
-                        label = stringResource(R.string.root_test_item_config_published),
-                        ok = result.configPublished,
-                        detail = if (result.configPublished) null else stringResource(R.string.root_test_config_not_published)
-                    )
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                            .noRippleClickable {
-                                val summary = buildString {
-                                    appendLine("solution=${result.solution}")
-                                    appendLine("hasRoot=${result.hasRoot}")
-                                    appendLine("idOutput=${result.idOutput}")
-                                    appendLine("frameworkConnected=${result.frameworkConnected}")
-                                    appendLine("remoteConfigAccessible=${result.remoteConfigAccessible}")
-                                    appendLine("configPublished=${result.configPublished}")
-                                    appendLine("frameworkDetail=${result.frameworkDetail}")
-                                }
-                                clipboardManager.setText(AnnotatedString(summary))
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.copied_to_clipboard),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.copy_diagnostic_info),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                        )
-                    }
-
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(42.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.close),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                clipboardManager.setText(AnnotatedString(summary))
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.copied_to_clipboard),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }) {
+                Text(stringResource(R.string.copy_diagnostic_info))
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -211,121 +131,43 @@ fun RestartHookedAppsConfirmDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    Dialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.88f)
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(22.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(13.dp))
-                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.RestartAlt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.restart_hooked_apps_confirm_title),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                if (apps.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.restart_hooked_apps_empty),
-                        fontSize = 13.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        lineHeight = 20.sp
-                    )
-                    Button(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                    ) {
-                        Text(stringResource(R.string.close), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    }
-                } else {
-                    Text(
-                        text = stringResource(R.string.restart_hooked_apps_confirm_message, apps.size),
-                        fontSize = 13.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        lineHeight = 20.sp
-                    )
-
+        icon = { Icon(Icons.Rounded.RestartAlt, contentDescription = null) },
+        title = { Text(stringResource(R.string.restart_hooked_apps_confirm_title)) },
+        text = {
+            if (apps.isEmpty()) {
+                Text(stringResource(R.string.restart_hooked_apps_empty))
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.restart_hooked_apps_confirm_message, apps.size))
                     Text(
                         text = apps.joinToString("、") { it.appName },
-                        fontSize = 12.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        lineHeight = 18.sp
+                        style = MaterialTheme.typography.bodySmall
                     )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(42.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                )
-                                .noRippleClickable(onDismiss),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                            )
-                        }
-
-                        Button(
-                            onClick = onConfirm,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .weight(1.2f)
-                                .height(42.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.restart_hooked_apps_confirm_button),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (apps.isEmpty()) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.close))
+                }
+            } else {
+                TextButton(
+                    onClick = onConfirm,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.restart_hooked_apps_confirm_button))
+                }
+            }
+        },
+        dismissButton = if (apps.isEmpty()) null else {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         }
-    }
+    )
 }

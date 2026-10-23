@@ -1,35 +1,58 @@
 package com.vincenthzr.locationspoofer.ui.theme
 
 import android.os.Build
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-// 强调色跟随当前配色方案的 primary（动态取色时即系统壁纸色）
-val AccentBlue: Color
-    @Composable @ReadOnlyComposable
-    get() = MaterialTheme.colorScheme.primary
+/**
+ * 应用主题：Material 3 配色（Android 12+ 动态取色）、M3 标准字阶与 M3 形状阶梯。
+ */
+@Composable
+fun AppTheme(isDark: Boolean, content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = appColorScheme(isDark),
+        typography = AppTypography,
+        shapes = AppShapes,
+        content = content
+    )
+}
 
-// 位于 AccentBlue 背景之上的文字与图标颜色
-val OnAccentBlue: Color
-    @Composable @ReadOnlyComposable
-    get() = MaterialTheme.colorScheme.onPrimary
+// M3 标准字阶（Display ~ Label 共 15 级）
+val AppTypography = Typography()
 
-// 语义状态色（成功 / 警告），不随动态取色变化
-val AccentGreen = Color(0xFF2EA043)
-val AccentOrange = Color(0xFFD29922)
+// M3 形状阶梯：extraSmall 4 / small 8 / medium 12 / large 16 / extraLarge 28
+val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(28.dp)
+)
+
+// 语义状态色（成功 / 警告）：M3 自定义配色角色，按当前配色方案的明暗取对应色调
+private val ColorScheme.isDark: Boolean get() = surface.luminance() < 0.5f
+
+val ColorScheme.success: Color get() = if (isDark) Color(0xFF9DD67D) else Color(0xFF386A20)
+val ColorScheme.onSuccess: Color get() = if (isDark) Color(0xFF0B3900) else Color(0xFFFFFFFF)
+val ColorScheme.successContainer: Color get() = if (isDark) Color(0xFF205107) else Color(0xFFB8F397)
+val ColorScheme.onSuccessContainer: Color get() = if (isDark) Color(0xFFB8F397) else Color(0xFF042100)
+
+val ColorScheme.warning: Color get() = if (isDark) Color(0xFFF7BD4A) else Color(0xFF7C5800)
+val ColorScheme.onWarning: Color get() = if (isDark) Color(0xFF412D00) else Color(0xFFFFFFFF)
+val ColorScheme.warningContainer: Color get() = if (isDark) Color(0xFF5E4200) else Color(0xFFFFDEA6)
+val ColorScheme.onWarningContainer: Color get() = if (isDark) Color(0xFFFFDEA6) else Color(0xFF271900)
 
 // Android 12 以下无系统动态取色时的回退配色：由品牌种子色 #388BFD 通过 material-color-utilities（Tonal Spot，2021 规范）生成
 val AppColorSchemeLight = lightColorScheme(
@@ -119,15 +142,4 @@ fun appColorScheme(isDark: Boolean): ColorScheme {
         isDark -> AppColorSchemeDark
         else -> AppColorSchemeLight
     }
-}
-
-/**
- * 彻底取消点击水波纹/高亮特效的全局 Modifier 扩展
- */
-fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
-    clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
-        onClick = onClick
-    )
 }

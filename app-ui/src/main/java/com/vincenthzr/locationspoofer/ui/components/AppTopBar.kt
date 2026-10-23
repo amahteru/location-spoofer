@@ -1,6 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -21,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 
 /**
- * 二级页面统一返回按钮：Material3 Filled Tonal Icon Button
+ * 悬浮在地图等内容之上的返回按钮：Material3 Filled Tonal Icon Button
  */
 @Composable
 fun AppBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -42,7 +44,8 @@ fun AppBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 fun AppTopBar(
     title: String,
     onBack: () -> Unit,
-    subtitle: String? = null
+    subtitle: String? = null,
+    actions: @Composable RowScope.() -> Unit = {}
 ) {
     Column {
         TopAppBar(
@@ -54,8 +57,50 @@ fun AppTopBar(
                     overflow = TextOverflow.Ellipsis
                 )
             },
-            navigationIcon = { AppBackButton(onClick = onBack) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            },
+            actions = actions,
             windowInsets = WindowInsets(0),
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        )
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+            )
+        }
+    }
+}
+
+/**
+ * 底部导航一级页面的顶栏：无返回按钮的 M3 TopAppBar，自行处理状态栏内边距；说明文字作为辅助文本放在标题下方。
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppRootTopBar(
+    title: String,
+    subtitle: String? = null,
+    actions: @Composable RowScope.() -> Unit = {}
+) {
+    Column {
+        TopAppBar(
+            title = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            actions = actions,
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
         )
         if (subtitle != null) {

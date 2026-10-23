@@ -5,51 +5,37 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.MapEngine
+import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.ModernSettingsInput
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
+import com.vincenthzr.locationspoofer.ui.components.SectionTitle
+import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
+import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setAmapApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setBaiduApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setGoogleApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setKeepLastMapPosition
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
-import com.vincenthzr.locationspoofer.ui.components.AppCard
-import com.vincenthzr.locationspoofer.ui.components.AppTopBar
-import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun MapEngineSettingsScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
@@ -59,211 +45,95 @@ fun MapEngineSettingsScreen(
 
     BackHandler(onBack = onClose)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    SubPageScaffold(
+        title = stringResource(R.string.map_config),
+        subtitle = stringResource(R.string.map_engine_and_keys),
+        onBack = onClose
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-        ) {
-            AppTopBar(
-                title = stringResource(R.string.map_config),
-                subtitle = stringResource(R.string.map_engine_and_keys),
-                onBack = onClose
+        // 地图引擎 4 分段选择器
+        SectionTitle(stringResource(R.string.current_engine))
+        AppCard(modifier = Modifier.fillMaxWidth()) {
+            val engines = listOf(
+                MapEngine.AUTO to stringResource(R.string.engine_auto_short),
+                MapEngine.AMAP to stringResource(R.string.engine_amap_short),
+                MapEngine.BAIDU to stringResource(R.string.engine_baidu_short),
+                MapEngine.GOOGLE to stringResource(R.string.engine_google_short)
             )
-
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    AppCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 18.dp,
-                        insideMargin = PaddingValues(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(11.dp))
-                                    .background(AccentGreen.copy(alpha = 0.12f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Map,
-                                    null,
-                                    tint = AccentGreen,
-                                    modifier = Modifier.size(19.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.map_config),
-                                    fontSize = 15.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = stringResource(R.string.map_engine_and_keys),
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                                )
-                            }
-                        }
-
-                        Spacer(Modifier.height(14.dp))
-
-                        // 地图引擎 4 分段选择器
-                        Text(
-                            text = stringResource(R.string.current_engine),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        val engines = listOf(
-                                MapEngine.AUTO to stringResource(R.string.engine_auto_short),
-                                MapEngine.AMAP to stringResource(R.string.engine_amap_short),
-                                MapEngine.BAIDU to stringResource(R.string.engine_baidu_short),
-                                MapEngine.GOOGLE to stringResource(R.string.engine_google_short)
-                            )
-                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                            engines.forEachIndexed { index, (engine, label) ->
-                                SegmentedButton(
-                                    selected = uiState.mapEngine == engine,
-                                    onClick = { viewModel.setMapEngine(engine) },
-                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = engines.size),
-                                    label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                                )
-                            }
-                        }
-
-                        // 各引擎自定义 API Key 输入
-                        AnimatedVisibility(
-                            visible = uiState.mapEngine == MapEngine.AMAP || uiState.mapEngine == MapEngine.BAIDU || uiState.mapEngine == MapEngine.GOOGLE,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            Column(modifier = Modifier.padding(top = 14.dp)) {
-                                when (uiState.mapEngine) {
-                                    MapEngine.AMAP -> {
-                                        ModernSettingsInput(
-                                            label = stringResource(R.string.custom_amap_key),
-                                            value = localAmapApiKey,
-                                            onValueChange = { localAmapApiKey = it },
-                                            placeholder = stringResource(R.string.custom_amap_key_hint),
-                                            isDark = isDark
-                                        )
-                                    }
-
-                                    MapEngine.BAIDU -> {
-                                        ModernSettingsInput(
-                                            label = stringResource(R.string.custom_baidu_key),
-                                            value = localBaiduApiKey,
-                                            onValueChange = { localBaiduApiKey = it },
-                                            placeholder = stringResource(R.string.custom_baidu_key_hint),
-                                            isDark = isDark
-                                        )
-                                    }
-
-                                    MapEngine.GOOGLE -> {
-                                        ModernSettingsInput(
-                                            label = stringResource(R.string.custom_google_key),
-                                            value = localGoogleApiKey,
-                                            onValueChange = { localGoogleApiKey = it },
-                                            placeholder = stringResource(R.string.custom_google_key_hint),
-                                            isDark = isDark
-                                        )
-                                    }
-
-                                    else -> Unit
-                                }
-                            }
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            viewModel.setAmapApiKey(localAmapApiKey)
-                            viewModel.setBaiduApiKey(localBaiduApiKey)
-                            viewModel.setGoogleApiKey(localGoogleApiKey)
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.restart_required_hint),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                    ) {
-                        Text(
-                            stringResource(R.string.save),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    AppCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 18.dp,
-                        insideMargin = PaddingValues(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.keep_last_map_position_title),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.keep_last_map_position_desc),
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                                )
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            Switch(
-                                checked = uiState.keepLastMapPosition,
-                                onCheckedChange = { viewModel.setKeepLastMapPosition(it) }
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(16.dp))
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                engines.forEachIndexed { index, (engine, label) ->
+                    SegmentedButton(
+                        selected = uiState.mapEngine == engine,
+                        onClick = { viewModel.setMapEngine(engine) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = engines.size),
+                        label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(18.dp)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.background,
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
             }
+
+            // 各引擎自定义 API Key 输入
+            AnimatedVisibility(
+                visible = uiState.mapEngine == MapEngine.AMAP || uiState.mapEngine == MapEngine.BAIDU || uiState.mapEngine == MapEngine.GOOGLE,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Column(modifier = Modifier.padding(top = 14.dp)) {
+                    when (uiState.mapEngine) {
+                        MapEngine.AMAP -> {
+                            ModernSettingsInput(
+                                label = stringResource(R.string.custom_amap_key),
+                                value = localAmapApiKey,
+                                onValueChange = { localAmapApiKey = it },
+                                placeholder = stringResource(R.string.custom_amap_key_hint)
+                            )
+                        }
+
+                        MapEngine.BAIDU -> {
+                            ModernSettingsInput(
+                                label = stringResource(R.string.custom_baidu_key),
+                                value = localBaiduApiKey,
+                                onValueChange = { localBaiduApiKey = it },
+                                placeholder = stringResource(R.string.custom_baidu_key_hint)
+                            )
+                        }
+
+                        MapEngine.GOOGLE -> {
+                            ModernSettingsInput(
+                                label = stringResource(R.string.custom_google_key),
+                                value = localGoogleApiKey,
+                                onValueChange = { localGoogleApiKey = it },
+                                placeholder = stringResource(R.string.custom_google_key_hint)
+                            )
+                        }
+
+                        else -> Unit
+                    }
+                }
+            }
+        }
+
+        Button(
+            onClick = {
+                viewModel.setAmapApiKey(localAmapApiKey)
+                viewModel.setBaiduApiKey(localBaiduApiKey)
+                viewModel.setGoogleApiKey(localGoogleApiKey)
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.restart_required_hint),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.save))
+        }
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            SwitchListItem(
+                title = stringResource(R.string.keep_last_map_position_title),
+                summary = stringResource(R.string.keep_last_map_position_desc),
+                checked = uiState.keepLastMapPosition,
+                onCheckedChange = { viewModel.setKeepLastMapPosition(it) }
+            )
         }
     }
 }

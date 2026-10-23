@@ -1,12 +1,11 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.VpnKey
@@ -19,17 +18,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.components.ModernSettingsInput
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setOpencellidApiToken
 import com.vincenthzr.locationspoofer.viewmodel.setWigleApiToken
@@ -40,7 +35,6 @@ import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 fun EnvTokensScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
@@ -49,132 +43,50 @@ fun EnvTokensScreen(
 
     BackHandler(onBack = onClose)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    SubPageScaffold(
+        title = stringResource(R.string.env_datasource_tokens_title),
+        subtitle = stringResource(R.string.env_datasource_tokens_desc),
+        onBack = onClose
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
+        AppCard(
+            modifier = Modifier.fillMaxWidth(),
+            insideMargin = PaddingValues(16.dp)
         ) {
-            AppTopBar(
-                title = stringResource(R.string.env_datasource_tokens_title),
-                subtitle = stringResource(R.string.env_datasource_tokens_desc),
-                onBack = onClose
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                ModernSettingsInput(
+                    label = stringResource(R.string.custom_wigle_token),
+                    value = localWigleToken,
+                    onValueChange = { localWigleToken = it },
+                    placeholder = stringResource(R.string.custom_wigle_token_hint)
+                )
 
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    AppCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 18.dp,
-                        insideMargin = PaddingValues(16.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(11.dp))
-                                    .background(AccentBlue.copy(alpha = 0.12f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Rounded.VpnKey,
-                                    null,
-                                    tint = AccentBlue,
-                                    modifier = Modifier.size(19.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.env_datasource_tokens_title),
-                                    fontSize = 15.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = stringResource(R.string.env_datasource_tokens_desc),
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                                )
-                            }
-                        }
-
-                        Spacer(Modifier.height(14.dp))
-
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            ModernSettingsInput(
-                                label = stringResource(R.string.custom_wigle_token),
-                                value = localWigleToken,
-                                onValueChange = { localWigleToken = it },
-                                placeholder = stringResource(R.string.custom_wigle_token_hint),
-                                isDark = isDark
-                            )
-
-                            ModernSettingsInput(
-                                label = stringResource(R.string.custom_opencellid_token),
-                                value = localOpencellidToken,
-                                onValueChange = { localOpencellidToken = it },
-                                placeholder = stringResource(R.string.custom_opencellid_token_hint),
-                                isDark = isDark
-                            )
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            viewModel.setWigleApiToken(localWigleToken)
-                            viewModel.setOpencellidApiToken(localOpencellidToken)
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.restart_required_hint),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                    ) {
-                        Text(
-                            stringResource(R.string.save),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(18.dp)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.background,
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                    MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
+                ModernSettingsInput(
+                    label = stringResource(R.string.custom_opencellid_token),
+                    value = localOpencellidToken,
+                    onValueChange = { localOpencellidToken = it },
+                    placeholder = stringResource(R.string.custom_opencellid_token_hint)
                 )
             }
+        }
+
+        Button(
+            onClick = {
+                viewModel.setWigleApiToken(localWigleToken)
+                viewModel.setOpencellidApiToken(localOpencellidToken)
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.restart_required_hint),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Text(
+                stringResource(R.string.save),
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }

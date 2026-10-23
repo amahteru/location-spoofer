@@ -1,9 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ImportExport
@@ -17,15 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 
 /**
  * 导入 / 导出共用的分类选择对话框。
@@ -40,57 +35,15 @@ fun ImportExportSelectionDialog(
 ) {
     var selection by remember { mutableStateOf(ImportExportSelection()) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(AccentBlue.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.ImportExport,
-                            contentDescription = null,
-                            tint = AccentBlue,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = stringResource(
-                                if (isExport) R.string.export_select_title else R.string.import_select_title
-                            ),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(
-                                if (isExport) R.string.export_select_desc else R.string.import_select_desc
-                            ),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                        )
-                    }
-                }
-
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.ImportExport, contentDescription = null) },
+        title = {
+            Text(stringResource(if (isExport) R.string.export_select_title else R.string.import_select_title))
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(if (isExport) R.string.export_select_desc else R.string.import_select_desc))
                 Column(
                     modifier = Modifier
                         .heightIn(max = 380.dp)
@@ -136,35 +89,19 @@ fun ImportExportSelectionDialog(
                         onCheckedChange = { selection = selection.copy(apiKeys = it) }
                     )
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(stringResource(R.string.cancel), fontSize = 14.sp)
-                    }
-                    Button(
-                        onClick = { onConfirm(selection) },
-                        enabled = selection.hasAny,
-                        modifier = Modifier.weight(1.2f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                    ) {
-                        Text(
-                            stringResource(if (isExport) R.string.export_action else R.string.import_action),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selection) }, enabled = selection.hasAny) {
+                Text(stringResource(if (isExport) R.string.export_action else R.string.import_action))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -180,38 +117,41 @@ private fun SelectionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .noRippleClickable { if (enabled) onCheckedChange(!checked) }
+            .clip(MaterialTheme.shapes.small)
+            .toggleable(
+                value = checked && enabled,
+                enabled = enabled,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange
+            )
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
             checked = checked && enabled,
-            onCheckedChange = { if (enabled) onCheckedChange(it) },
-            enabled = enabled,
-            colors = CheckboxDefaults.colors(checkedColor = AccentBlue)
+            onCheckedChange = null,
+            enabled = enabled
         )
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = if (showCount && enabled) {
                     stringResource(R.string.category_with_count, label, count)
                 } else label,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.4f)
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
             )
             if (warning != null) {
                 Text(
                     text = warning,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.error.copy(alpha = if (enabled) 0.85f else 0.4f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             } else if (!enabled) {
                 Text(
                     text = stringResource(R.string.category_empty),
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

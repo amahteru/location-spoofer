@@ -26,7 +26,7 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.screen.BlockingScreen
 import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
-import com.vincenthzr.locationspoofer.ui.theme.appColorScheme
+import com.vincenthzr.locationspoofer.ui.theme.AppTheme
 import com.vincenthzr.locationspoofer.utils.LocaleUtils
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
@@ -72,7 +72,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 val uiState by viewModel.uiState.collectAsState()
                 val isDark = isSystemInDarkTheme()
-                val colorScheme = appColorScheme(isDark)
                 val baseDensity = LocalDensity.current
                 val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
                     Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
@@ -95,7 +94,7 @@ class MainActivity : ComponentActivity() {
                     LocalConfiguration provides configuration,
                     LocalDensity provides appDensity
                 ) {
-                    MaterialTheme(colorScheme = colorScheme) {
+                    AppTheme(isDark = isDark) {
                         Surface(
                             modifier = Modifier.fillMaxSize(),
                             color = MaterialTheme.colorScheme.background

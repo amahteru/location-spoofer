@@ -1,41 +1,40 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
+import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.components.LabelTone
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.Icons
 import android.app.DownloadManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
 import com.vincenthzr.locationspoofer.viewmodel.UpdateViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setCheckBetaUpdates
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import com.vincenthzr.locationspoofer.ui.components.AppCard
-import com.vincenthzr.locationspoofer.ui.components.AppBackButton
+import com.vincenthzr.locationspoofer.ui.theme.success
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(
     updateViewModel: UpdateViewModel,
@@ -87,40 +86,40 @@ fun UpdateScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // 主内容列表
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(stringResource(R.string.software_update)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        }
+    ) { innerPadding ->
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 112.dp, bottom = 36.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = innerPadding.calculateTopPadding(),
+                bottom = innerPadding.calculateBottomPadding() + 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 大标题区域（距离顶部充裕舒展）
             item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.software_update),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        text = stringResource(R.string.software_update_desc),
-                        fontSize = 13.5.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.software_update_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
             }
 
             // 当前版本卡片（无大图标，Miuix 质感卡片，仅最新版支持忽略）
@@ -143,39 +142,13 @@ fun UpdateScreen(
 
             // Beta 测试版通道开关
             item {
-                AppCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 18.dp,
-                    insideMargin = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 12.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.check_beta_channel_title),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(Modifier.height(3.dp))
-                            Text(
-                                text = stringResource(R.string.check_beta_channel_desc),
-                                fontSize = 12.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                        Switch(
-                            checked = appState.checkBetaUpdates,
-                            onCheckedChange = { viewModel.setCheckBetaUpdates(it) }
-                        )
-                    }
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    SwitchListItem(
+                        title = stringResource(R.string.check_beta_channel_title),
+                        summary = stringResource(R.string.check_beta_channel_desc),
+                        checked = appState.checkBetaUpdates,
+                        onCheckedChange = { viewModel.setCheckBetaUpdates(it) }
+                    )
                 }
             }
 
@@ -184,10 +157,9 @@ fun UpdateScreen(
                 item {
                     Text(
                         text = if (hasNewVersion) stringResource(R.string.changelog) else stringResource(R.string.version_history),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                     )
                 }
 
@@ -208,37 +180,6 @@ fun UpdateScreen(
                 }
             }
         }
-
-        // 顶部边界模糊渐变遮罩（消除生硬边缘，平滑模糊溶解）
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(96.dp)
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.92f),
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.45f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-
-        // 顶部悬浮栏（独立圆形返回按钮，无顶栏文字干扰）
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .align(Alignment.TopStart),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 独立的圆形立体纯白返回按钮
-            AppBackButton(onClick = onBack)
-        }
     }
 }
 
@@ -256,8 +197,7 @@ private fun CurrentVersionHeroCard(
 ) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 18.dp,
-        insideMargin = PaddingValues(horizontal = 20.dp, vertical = 18.dp)
+        insideMargin = PaddingValues(16.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -272,15 +212,14 @@ private fun CurrentVersionHeroCard(
                 Column {
                     Text(
                         text = stringResource(R.string.app_name),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
                         text = "Location Spoofer",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -291,25 +230,11 @@ private fun CurrentVersionHeroCard(
                 ) {
                     // 当前安装的是哪个模拟方案变体，更新时只会拉取同一变体的安装包
                     com.vincenthzr.locationspoofer.ui.screen.settings.SchemeBadge()
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = "v$cleanCurrentVersion",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
-                    }
+                    StatusLabel(text = "v$cleanCurrentVersion", tone = LabelTone.Neutral)
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             // 状态标签
             Row(
@@ -318,70 +243,55 @@ private fun CurrentVersionHeroCard(
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(13.dp),
-                        strokeWidth = 2.dp,
-                        color = AccentBlue
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
                     )
                     Text(
                         text = stringResource(R.string.checking_latest_release),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else if (uiState.error != null) {
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.error)
+                    Icon(
+                        Icons.Rounded.ErrorOutline,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(R.string.check_failed_network),
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
                 } else if (hasNewVersion && latestRelease != null) {
                     val cleanLatestVersion =
                         latestRelease.versionName.trim().removePrefix("v").removePrefix("V")
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.error)
+                    Icon(
+                        Icons.Rounded.NewReleases,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(R.string.new_version_found_format, cleanLatestVersion),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.error
                     )
                     if (latestRelease.isPrerelease) {
                         Spacer(Modifier.width(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFFFF9800).copy(alpha = 0.15f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.prerelease_badge),
-                                fontSize = 10.5.sp,
-                                color = Color(0xFFFF9800),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .clip(CircleShape)
-                            .background(AccentGreen)
+                    Icon(
+                        Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.success,
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(R.string.already_latest_version),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = AccentGreen
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.success
                     )
                 }
             }
@@ -390,14 +300,8 @@ private fun CurrentVersionHeroCard(
             val isDownloading = uiState.activeDownloadId != null
             if (isDownloading) {
                 if (uiState.downloadStatus == DownloadManager.STATUS_SUCCESSFUL) {
-                    Button(
-                        onClick = onInstall,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen, contentColor = Color.White),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                        modifier = Modifier.height(40.dp)
-                    ) {
-                        Text(stringResource(R.string.install_new_version), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Button(onClick = onInstall) {
+                        Text(stringResource(R.string.install_new_version))
                     }
                 } else {
                     Column(
@@ -411,24 +315,16 @@ private fun CurrentVersionHeroCard(
                         ) {
                             Text(
                                 text = stringResource(R.string.downloading_progress, uiState.downloadProgress),
-                                fontSize = 12.5.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(
-                                text = stringResource(R.string.cancel),
-                                fontSize = 12.5.sp,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.noRippleClickable(onClick = onCancelDownload)
-                            )
+                            TextButton(onClick = onCancelDownload) {
+                                Text(stringResource(R.string.cancel))
+                            }
                         }
                         LinearProgressIndicator(
                             progress = { uiState.downloadProgress / 100f },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = AccentBlue,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -448,16 +344,10 @@ private fun CurrentVersionHeroCard(
                             Button(
                                 onClick = {
                                     onDownload(latestDownloadUrl, latestRelease.versionName)
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                                modifier = Modifier.height(40.dp)
+                                }
                             ) {
                                 Text(
-                                    text = if (latestDownloadUrl32Bit != null) stringResource(R.string.update_now_64) else stringResource(R.string.update_now),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
+                                    text = if (latestDownloadUrl32Bit != null) stringResource(R.string.update_now_64) else stringResource(R.string.update_now)
                                 )
                             }
                         }
@@ -469,34 +359,23 @@ private fun CurrentVersionHeroCard(
                                         latestDownloadUrl32Bit,
                                         "${latestRelease.versionName}_32bit"
                                     )
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                                modifier = Modifier.height(40.dp)
+                                }
                             ) {
-                                Text(stringResource(R.string.download_32_compat), fontSize = 13.sp, color = AccentBlue)
+                                Text(stringResource(R.string.download_32_compat))
                             }
                         }
                     }
 
                     // 仅最新版显示“忽略此版本”
-                    Text(
-                        text = stringResource(R.string.ignore_this_version),
-                        fontSize = 12.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .noRippleClickable { onIgnore(latestRelease.versionName) }
-                    )
+                    TextButton(onClick = { onIgnore(latestRelease.versionName) }) {
+                        Text(stringResource(R.string.ignore_this_version))
+                    }
                 }
             } else {
                 OutlinedButton(
-                    onClick = onCheckAgain,
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    modifier = Modifier.height(38.dp)
+                    onClick = onCheckAgain
                 ) {
-                    Text(stringResource(R.string.recheck), fontSize = 13.sp)
+                    Text(stringResource(R.string.recheck))
                 }
             }
         }
@@ -514,7 +393,6 @@ private fun ReleaseItemCard(
 ) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        cornerRadius = 18.dp,
         insideMargin = PaddingValues(16.dp)
     ) {
         Column(
@@ -531,73 +409,36 @@ private fun ReleaseItemCard(
                         release.versionName.trim().removePrefix("v").removePrefix("V")
                     Text(
                         text = "v$cleanReleaseVersion",
-                        fontSize = 16.5.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (isCurrentVersion) {
                         Spacer(Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(AccentGreen.copy(alpha = 0.15f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.current_version),
-                                fontSize = 10.5.sp,
-                                color = AccentGreen,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        StatusLabel(text = stringResource(R.string.current_version), tone = LabelTone.Success)
                     }
 
                     if (isMergedRelease) {
                         Spacer(Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(AccentBlue.copy(alpha = 0.15f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.merged_count_badge, mergedCount),
-                                fontSize = 10.5.sp,
-                                color = AccentBlue,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        StatusLabel(text = stringResource(R.string.merged_count_badge, mergedCount))
                     }
 
                     if (release.isPrerelease) {
                         Spacer(Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFFF9800).copy(alpha = 0.15f))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.prerelease_badge),
-                                fontSize = 10.5.sp,
-                                color = Color(0xFFFF9800),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
                     }
                 }
 
                 if (release.publishedAt.isNotBlank()) {
                     Text(
                         text = release.publishedAt.take(10),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             // 更新说明详情（结构化渲染）
             RenderMarkdownContent(markdown = release.body)
@@ -620,16 +461,10 @@ private fun ReleaseItemCard(
                             Button(
                                 onClick = {
                                     onDownload(releaseDownloadUrl, release.versionName)
-                                },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = AccentBlue),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                                modifier = Modifier.height(34.dp)
+                                }
                             ) {
                                 Text(
-                                    text = if (releaseDownloadUrl32Bit != null) stringResource(R.string.download_64) else stringResource(R.string.download),
-                                    fontSize = 12.5.sp,
-                                    fontWeight = FontWeight.Bold
+                                    text = if (releaseDownloadUrl32Bit != null) stringResource(R.string.download_64) else stringResource(R.string.download)
                                 )
                             }
                         }
@@ -642,12 +477,9 @@ private fun ReleaseItemCard(
                                         releaseDownloadUrl32Bit,
                                         "${release.versionName}_32bit"
                                     )
-                                },
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                modifier = Modifier.height(34.dp)
+                                }
                             ) {
-                                Text(stringResource(R.string.download_32), fontSize = 12.sp, color = AccentBlue)
+                                Text(stringResource(R.string.download_32))
                             }
                         }
                     }

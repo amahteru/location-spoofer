@@ -13,7 +13,6 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.StopCircle
@@ -21,34 +20,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.ui.screen.ActionButtons
 import com.vincenthzr.locationspoofer.ui.screen.CoordinateInputCard
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import kotlin.math.roundToInt
+import androidx.compose.foundation.clickable
 
 @Composable
 fun LocationControlPanel(
     modifier: Modifier,
     uiState: AppState,
-    isDark: Boolean,
     panelState: LocationPanelState,
     onPanelStateChange: (LocationPanelState) -> Unit,
     viewModel: MainViewModel,
@@ -132,7 +123,7 @@ fun LocationControlPanel(
                     .fillMaxWidth()
                     .padding(top = 2.dp, bottom = 4.dp)
                     .then(dragGestureModifier)
-                    .noRippleClickable {
+                    .clickable {
                         val next = when (panelState) {
                             LocationPanelState.COLLAPSED -> LocationPanelState.DEFAULT
                             LocationPanelState.DEFAULT -> LocationPanelState.EXPANDED
@@ -142,15 +133,12 @@ fun LocationControlPanel(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .width(36.dp)
-                        .height(4.5.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(
-                            if (isDark) Color.White.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.20f)
-                        )
-                )
+                // M3 拖动手柄：32x4dp、onSurfaceVariant 40%
+                Surface(
+                    modifier = Modifier.size(width = 32.dp, height = 4.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                ) {}
             }
 
             // 顶部常驻搜索栏行（无论是否折叠都平滑存在，右侧操作按钮采用柔和弥散阴影与平滑横向伸展）
@@ -164,7 +152,7 @@ fun LocationControlPanel(
                 searchBar(
                     Modifier
                         .weight(1f)
-                        .height(52.dp)
+                        .height(56.dp)
                 )
 
                 // 正在模拟时的停止模拟按钮
@@ -173,45 +161,14 @@ fun LocationControlPanel(
                     enter = expandHorizontally(tween(200, easing = FastOutSlowInEasing)) + fadeIn(tween(200)),
                     exit = shrinkHorizontally(tween(180, easing = FastOutSlowInEasing)) + fadeOut(tween(180))
                 ) {
-                    val errorColor = MaterialTheme.colorScheme.error
-                    val errorContainer = MaterialTheme.colorScheme.errorContainer
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .height(52.dp)
-                            .shadow(
-                                elevation = 6.dp,
-                                shape = RoundedCornerShape(26.dp),
-                                ambientColor = Color.Black.copy(alpha = 0.08f),
-                                spotColor = errorColor.copy(alpha = 0.25f)
-                            )
-                            .clip(RoundedCornerShape(26.dp))
-                            .background(errorContainer.copy(alpha = 0.95f))
-                            .noRippleClickable(onClick = onStopSpoofing),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.StopCircle,
-                                contentDescription = null,
-                                tint = errorColor,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                stringResource(R.string.stop_simulation),
-                                fontSize = 13.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = errorColor
-                            )
-                        }
-                    }
+                    ExtendedFloatingActionButton(
+                        onClick = onStopSpoofing,
+                        icon = { Icon(Icons.Rounded.StopCircle, contentDescription = null) },
+                        text = { Text(stringResource(R.string.stop_simulation)) },
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
 
                 // 未模拟且处于 COLLAPSED 状态下的定点模拟胶囊按钮（间距内聚，收缩与渐隐严格同周期，绝无二次伸长）
@@ -220,58 +177,24 @@ fun LocationControlPanel(
                     enter = expandHorizontally(tween(200, easing = FastOutSlowInEasing)) + fadeIn(tween(200)),
                     exit = shrinkHorizontally(tween(180, easing = FastOutSlowInEasing)) + fadeOut(tween(180))
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .height(52.dp)
-                            .shadow(
-                                elevation = 6.dp,
-                                shape = RoundedCornerShape(26.dp),
-                                ambientColor = Color.Black.copy(alpha = 0.08f),
-                                spotColor = AccentBlue.copy(alpha = 0.32f)
-                            )
-                            .clip(RoundedCornerShape(26.dp))
-                            .background(AccentBlue)
-                            .noRippleClickable(onClick = onStartFixedSpoofing),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(horizontal = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
+                    ExtendedFloatingActionButton(
+                        onClick = { if (!uiState.isSavingConfig) onStartFixedSpoofing() },
+                        icon = {
                             if (uiState.isSavingConfig) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    color = OnAccentBlue,
+                                    modifier = Modifier.size(24.dp),
+                                    color = LocalContentColor.current,
                                     strokeWidth = 2.dp
                                 )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    stringResource(R.string.starting_ellipsis),
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = OnAccentBlue
-                                )
                             } else {
-                                Icon(
-                                    Icons.Rounded.MyLocation,
-                                    contentDescription = null,
-                                    tint = OnAccentBlue,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    stringResource(R.string.fixed_simulation),
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = OnAccentBlue
-                                )
+                                Icon(Icons.Rounded.MyLocation, contentDescription = null)
                             }
-                        }
-                    }
+                        },
+                        text = {
+                            Text(stringResource(if (uiState.isSavingConfig) R.string.starting_ellipsis else R.string.fixed_simulation))
+                        },
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
             }
 
@@ -285,14 +208,14 @@ fun LocationControlPanel(
                         }
                     }
                     .then(dragGestureModifier),
-                shape = RoundedCornerShape(22.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                shadowElevation = 3.dp
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                        .padding(16.dp)
                 ) {
                     CoordinateInputCard(
                         viewModel = viewModel,

@@ -3,6 +3,8 @@ package com.vincenthzr.locationspoofer.ui.components
 import android.graphics.Color.argb
 import com.vincenthzr.locationspoofer.data.db.LocationRecord
 import kotlin.math.cos
+import com.vincenthzr.locationspoofer.ui.theme.success
+import androidx.compose.material3.MaterialTheme
 
 object MapCoverageHelper {
     /**
@@ -18,7 +20,7 @@ object MapCoverageHelper {
     ) {
         if (locations.isEmpty()) return
 
-        val fillColor = argb(50, 46, 204, 113) // 带透明度的 AccentGreen
+        val fillColor = argb(50, 46, 204, 113) // 带透明度的 MaterialTheme.colorScheme.success
         val strokeColor = argb(100, 46, 204, 113)
 
         val targetList = if (locations.size > 180) {

@@ -1,39 +1,25 @@
 package com.vincenthzr.locationspoofer.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalEnvironmentDataDialog(
     dataList: List<CompleteLocation>,
@@ -79,269 +65,135 @@ fun LocalEnvironmentDataDialog(
         collectionRoutes.filter { query.isBlank() || it.route.name.contains(query, true) || it.route.remark.contains(query, true) }
     }
 
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .fillMaxWidth(0.92f)
-                .padding(vertical = 20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
-        ) {
-            Column(
+        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+            // 标题与导入操作
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(start = 24.dp, end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 顶部标题与关闭
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(38.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(AccentBlue.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Storage,
-                                contentDescription = null,
-                                tint = AccentBlue,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = stringResource(R.string.local_collected_datasource),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                text = if (dataList.isEmpty() && collectionRoutes.isEmpty()) stringResource(R.string.no_local_env_data) else stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Rounded.Close,
-                            contentDescription = stringResource(R.string.close),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.local_collected_datasource),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Text(
+                        text = if (dataList.isEmpty() && collectionRoutes.isEmpty()) stringResource(R.string.no_local_env_data) else stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-
-                Spacer(Modifier.height(14.dp))
-
-                // 搜索过滤框
                 if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(42.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .padding(horizontal = 12.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Rounded.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            BasicTextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                textStyle = TextStyle(
-                                    fontSize = 13.5.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Medium
-                                ),
-                                singleLine = true,
-                                modifier = Modifier.weight(1f),
-                                decorationBox = { innerTextField ->
-                                    if (searchQuery.isEmpty()) {
-                                        Text(
-                                            stringResource(R.string.search_remark_coord_hint),
-                                            fontSize = 13.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            )
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(
-                                    onClick = { searchQuery = "" },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Clear,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.height(12.dp))
-                }
-
-                // 采集点列表
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = AccentBlue,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                } else if (dataList.isEmpty() && collectionRoutes.isEmpty()) {
-                    // 空数据状态
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.FolderOff,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = stringResource(R.string.no_local_env_data),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.scan_or_import_hint),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Button(
-                            onClick = onImportClick,
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentBlue)
-                        ) {
-                            Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.import_external_data_json), fontSize = 13.sp)
-                        }
-                    }
-                } else if (filteredList.isEmpty() && filteredRoutes.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(140.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.no_matching_collected_points),
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 340.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                            CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
-                        }
-                        items(filteredList, key = { it.location.id }) { item ->
-                            LocalDataItem(
-                                item = item,
-                                timeStr = timeFormat.format(Date(item.location.timestamp)),
-                                isFavorited = favoritedLocationIds.contains(item.location.id) ||
-                                    favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
-                                onClick = {
-                                    onSelectPoint(item)
-                                    onDismiss()
-                                },
-                                onFavorite = { onFavorite(item) }
-                            )
-                        }
-                    }
-                }
-
-                if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = onImportClick,
-                            contentPadding = PaddingValues(horizontal = 8.dp)
-                        ) {
-                            Icon(
-                                Icons.Rounded.FolderOpen,
-                                contentDescription = null,
-                                tint = AccentBlue,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                stringResource(R.string.import_external_data_json),
-                                fontSize = 12.5.sp,
-                                color = AccentBlue,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        TextButton(
-                            onClick = onDismiss,
-                            contentPadding = PaddingValues(horizontal = 12.dp)
-                        ) {
-                            Text(
-                                stringResource(R.string.close),
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                        }
+                    IconButton(onClick = onImportClick) {
+                        Icon(Icons.Rounded.FolderOpen, contentDescription = stringResource(R.string.import_external_data_json))
                     }
                 }
             }
+
+            // 搜索过滤框
+            if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
+                AppSearchField(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    placeholder = stringResource(R.string.search_remark_coord_hint),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            }
+
+        // 采集点列表
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (dataList.isEmpty() && collectionRoutes.isEmpty()) {
+            // 空数据状态
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    Icons.Rounded.FolderOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.no_local_env_data),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.scan_or_import_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+                FilledTonalButton(
+                    onClick = onImportClick,
+                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                ) {
+                    Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.import_external_data_json))
+                }
+            }
+        } else if (filteredList.isEmpty() && filteredRoutes.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.no_matching_collected_points),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
+                    CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
+                }
+                items(filteredList, key = { it.location.id }) { item ->
+                    LocalDataItem(
+                        item = item,
+                        timeStr = timeFormat.format(Date(item.location.timestamp)),
+                        isFavorited = favoritedLocationIds.contains(item.location.id) ||
+                            favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
+                        onClick = {
+                            onSelectPoint(item)
+                            onDismiss()
+                        },
+                        onFavorite = { onFavorite(item) }
+                    )
+                }
+            }
+        }
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
@@ -368,15 +220,14 @@ private fun LocalDataItem(
     val cellCount = item.cells.size
     val btCount = item.bluetooths.size
 
-    AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .noRippleClickable(onClick = onClick),
-        cornerRadius = 16.dp,
-        insideMargin = PaddingValues(14.dp)
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
@@ -393,8 +244,7 @@ private fun LocalDataItem(
                 ) {
                     Text(
                         text = primaryTitle,
-                        fontSize = 15.5.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -404,8 +254,8 @@ private fun LocalDataItem(
                     )
                     Text(
                         text = timeStr,
-                        fontSize = 11.5.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -418,13 +268,13 @@ private fun LocalDataItem(
                         Icon(
                             Icons.Rounded.Description,
                             contentDescription = null,
-                            tint = AccentBlue,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
                             text = subtitle,
-                            fontSize = 12.5.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -434,8 +284,8 @@ private fun LocalDataItem(
                     text = "${String.format(Locale.US, "%.5f", item.location.lat)}, ${
                         String.format(Locale.US, "%.5f", item.location.lng)
                     }",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // 信号设备标签组（按类型分色，与管理页保持一致）
@@ -444,49 +294,27 @@ private fun LocalDataItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (wifiCount > 0) {
-                        SignalTag(Icons.Rounded.Wifi, "$wifiCount", AccentBlue)
+                        StatusLabel(text = "$wifiCount", icon = Icons.Rounded.Wifi, tone = LabelTone.Primary)
                     }
                     if (cellCount > 0) {
-                        SignalTag(Icons.Rounded.CellTower, "$cellCount", AccentGreen)
+                        StatusLabel(text = "$cellCount", icon = Icons.Rounded.CellTower, tone = LabelTone.Warning)
                     }
                     if (btCount > 0) {
-                        SignalTag(Icons.Rounded.Bluetooth, "$btCount", AccentOrange)
+                        StatusLabel(text = "$btCount", icon = Icons.Rounded.Bluetooth, tone = LabelTone.Tertiary)
                     }
                 }
             }
 
             Spacer(Modifier.width(8.dp))
 
-            IconButton(onClick = onFavorite, modifier = Modifier.size(36.dp)) {
+            IconToggleButton(checked = isFavorited, onCheckedChange = { onFavorite() }) {
                 Icon(
                     imageVector = if (isFavorited) Icons.Rounded.Star else Icons.Rounded.StarOutline,
                     contentDescription = stringResource(
                         if (isFavorited) R.string.remove_from_favorites else R.string.add_to_favorites
-                    ),
-                    tint = AccentOrange,
-                    modifier = Modifier.size(20.dp)
+                    )
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SignalTag(icon: ImageVector, text: String, color: Color) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(color.copy(alpha = 0.1f))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
-        Text(
-            text = text,
-            fontSize = 10.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color
-        )
     }
 }
