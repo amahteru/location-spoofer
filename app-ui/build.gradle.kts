@@ -51,23 +51,27 @@ android {
     }
 }
 
-/** 把仓库根目录的适配进度文档复制进 assets，App 联网取不到最新版时显示这份 */
+/** 把仓库根目录的适配进度文档（中英文两份）复制进 assets，App 联网取不到最新版时显示这份 */
 abstract class BundleAdaptationProgress : DefaultTask() {
-    @get:InputFile
-    abstract val source: RegularFileProperty
+    @get:InputFiles
+    abstract val sources: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
     @TaskAction
     fun copy() {
-        val src = source.get().asFile
-        src.copyTo(outputDir.get().asFile.resolve(src.name), overwrite = true)
+        sources.files.forEach { src ->
+            src.copyTo(outputDir.get().asFile.resolve(src.name), overwrite = true)
+        }
     }
 }
 
 val bundleAdaptationProgress = tasks.register<BundleAdaptationProgress>("bundleAdaptationProgress") {
-    source.set(rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS.md"))
+    sources.from(
+        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS.md"),
+        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS_EN.md")
+    )
 }
 
 androidComponents {

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.TaskAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,8 +55,9 @@ fun VendorSchemeScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    val source = remember { AdaptationProgressSource(context) }
-    var document by remember { mutableStateOf(source.local()) }
+    // 文档按语言区分中英文版，语言变了要换一份
+    val source = remember(LocalConfiguration.current.locales[0]) { AdaptationProgressSource(context) }
+    var document by remember(source) { mutableStateOf(source.local()) }
     var loading by remember { mutableStateOf(false) }
     var showFullProgress by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -84,8 +86,11 @@ fun VendorSchemeScreen(
         }
     }
     LaunchedEffect(Unit) {
-        refresh()
         refreshHookStatus()
+    }
+    // 换语言后重新拉取对应语言的文档
+    LaunchedEffect(source) {
+        refresh()
     }
 
     BackHandler(enabled = !showHookStatus && !showFullProgress, onBack = onClose)

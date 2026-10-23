@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -79,21 +80,24 @@ fun InfoTab(
     }
 
     // 本机在适配进度表里的状态（只读本地缓存 / 内置文档，不联网），非全局方案不依赖系统适配，不显示
+    // 只缓存状态本身，文案每次按当前语言取，切换应用内语言后不会残留旧语言的文字
     val progressContext = LocalContext.current
-    val statusVerified = stringResource(R.string.progress_status_verified)
-    val statusPartial = stringResource(R.string.progress_status_partial)
-    val statusBroken = stringResource(R.string.progress_status_broken)
-    val statusUnverified = stringResource(R.string.progress_status_unverified)
-    val adaptationStatusChip = remember {
+    val progressLocale = LocalConfiguration.current.locales[0]
+    val adaptationStatus = remember(progressLocale) {
         if (!BuildConfig.GLOBAL_SCHEME) return@remember null
         val markdown = AdaptationProgressSource(progressContext).local().markdown
         val family = VendorProfile.current.family
-        when (AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status) {
-            AdaptationProgress.Status.VERIFIED -> statusVerified
-            AdaptationProgress.Status.PARTIAL -> statusPartial
-            AdaptationProgress.Status.BROKEN -> statusBroken
-            else -> statusUnverified
-        }
+        AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status ?: AdaptationProgress.Status.UNVERIFIED
+    }
+    val adaptationStatusChip = adaptationStatus?.let {
+        stringResource(
+            when (it) {
+                AdaptationProgress.Status.VERIFIED -> R.string.progress_status_verified
+                AdaptationProgress.Status.PARTIAL -> R.string.progress_status_partial
+                AdaptationProgress.Status.BROKEN -> R.string.progress_status_broken
+                AdaptationProgress.Status.UNVERIFIED -> R.string.progress_status_unverified
+            }
+        )
     }
 
     val realismLevelNames = listOf(

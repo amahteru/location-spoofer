@@ -43,6 +43,19 @@ class AdaptationProgressTest {
         }
     }
 
+    /** 英文版（非中文界面显示）：每个系统都能查到，且状态和中文版一致，防止两份文档改漏 */
+    @Test
+    fun `english edition matches the chinese status of every system family`() {
+        val en = File("../ADAPTATION_PROGRESS_EN.md").readText()
+        for (family in RomFamily.entries) {
+            val zhEntry = AdaptationProgress.findGlobalSystem(doc, family.progressKeywords)
+            val enEntry = AdaptationProgress.findGlobalSystem(en, family.progressKeywords)
+            assertTrue("$family should have a row in the english edition", enEntry != null)
+            assertEquals("$family status", zhEntry?.status, enEntry?.status)
+        }
+        assertEquals("HyperOS 4, HyperOS 3", AdaptationProgress.findGlobalSystem(en, RomFamily.HYPEROS_MIUI.progressKeywords)!!.verifiedVersions)
+    }
+
     @Test
     fun `unknown structure degrades gracefully`() {
         assertNull(AdaptationProgress.findGlobalSystem("# 适配进度\n\n没有表格", listOf("HyperOS")))

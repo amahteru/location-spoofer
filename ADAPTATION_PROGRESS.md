@@ -9,6 +9,7 @@
 
 - 全局方案实测时，App"系统适配 → Hook 运行状态"页会列出每个组件是否找到类、方法是否挂上，可作为登记依据。
 - "按系统"表格第一列的系统名会被 App 用来查找"本机状态"（关键字见 `core-geo` 的 `RomFamily.progressKeywords`），改名时注意保留。
+- 英文版见 [ADAPTATION_PROGRESS_EN.md](ADAPTATION_PROGRESS_EN.md)，App 在非中文界面下显示英文版，两份需同步更新。
 
 **状态说明**：✅ 实测通过 · ⚠️ 部分可用（见备注） · ❌ 实测不可用 · ❔ 未验证
 
