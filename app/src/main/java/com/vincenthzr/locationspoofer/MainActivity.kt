@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         val isLangSet = prefs.getBoolean("is_language_set", false)
-        val lang = if (isLangSet) prefs.getString("language", "") ?: "" else ""
+        val lang = if (isLangSet) LocaleUtils.normalizeLanguage(prefs.getString("language", "") ?: "") else ""
 
         val context = if (lang.isNotEmpty()) {
             LocaleUtils.wrap(newBase, lang)

@@ -26,8 +26,7 @@ data class LanguageOption(val name: String, val code: String, val nativeName: St
 
 val LANGUAGES = listOf(
     LanguageOption("English", "en", "English"),
-    LanguageOption("Chinese", "zh", "简体中文"),
-    LanguageOption("Arabic", "ar", "العربية")
+    LanguageOption("Chinese", "zh", "简体中文")
 )
 
 @Composable
@@ -38,7 +37,6 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
     // 如果支持，则默认为系统语言，否则使用 English
     val defaultLang = when {
         systemLocale.startsWith("zh") -> "zh"
-        systemLocale.startsWith("ar") -> "ar"
         else -> "en"
     }
 
@@ -73,7 +71,7 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
             }
 
             Text(
-                text = "Select Language / 选择语言 / اختر اللغة",
+                text = "Select Language / 选择语言",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -109,7 +107,6 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
                 Text(
                     text = when (selectedLang) {
                         "zh" -> "确定"
-                        "ar" -> "موافق"
                         else -> "Confirm"
                     }
                 )

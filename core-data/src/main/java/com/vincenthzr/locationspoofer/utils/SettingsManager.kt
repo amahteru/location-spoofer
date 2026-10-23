@@ -36,7 +36,7 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putBoolean("is_dark_mode", value).apply()
 
     var language: String
-        get() = prefs.getString("language", "") ?: ""
+        get() = LocaleUtils.normalizeLanguage(prefs.getString("language", "") ?: "")
         set(value) = prefs.edit().putString("language", value).apply()
 
     var isLanguageSet: Boolean

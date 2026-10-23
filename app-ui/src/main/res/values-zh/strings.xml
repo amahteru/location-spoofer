@@ -154,6 +154,7 @@
     <string name="cycling">骑行</string>
     <string name="driving">驾驶</string>
     <string name="custom">自定义</string>
+    <string name="custom_coordinate_btn">自定义</string>
     <string name="ignore_this_version">忽略此版本</string>
     <string name="app_sha1">应用 SHA1 签名</string>
     <string name="map_config">地图配置</string>
