@@ -1,9 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -28,6 +27,7 @@ import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
+import com.vincenthzr.locationspoofer.ui.components.SubPageOverlay
 import com.vincenthzr.locationspoofer.ui.components.AppMapView
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -135,6 +135,9 @@ fun MainScaffoldScreen(
         }
     }
 
+    // M3 标准动效：位移 / 尺寸用 spatial 弹簧，透明度 / 缩放等非位移效果用 effects 弹簧
+    val motion = AppMotion
+
     val selectPage: (Int) -> Unit = { index ->
         selectedTab = index.coerceIn(0, pageCount - 1)
     }
@@ -145,8 +148,8 @@ fun MainScaffoldScreen(
             bottomBar = {
                 AnimatedVisibility(
                     visible = currentSubScreen == MainSubScreen.None,
-                    enter = fadeIn(tween(180)) + expandVertically(tween(180)),
-                    exit = fadeOut(tween(140)) + shrinkVertically(tween(140))
+                    enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
+                    exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
                 ) {
                     NavigationBar {
                         BottomTab.values().forEachIndexed { index, tab ->
@@ -206,7 +209,9 @@ fun MainScaffoldScreen(
                     // 定位选点十字准心（仅在定位 Tab 显示）
                     AnimatedVisibility(
                         visible = selectedTab == 0,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultEffectsSpec(), initialScale = 0.8f),
+                        exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastEffectsSpec(), targetScale = 0.8f)
                     ) {
                         Icon(
                             Icons.Rounded.AddLocationAlt,
@@ -219,40 +224,13 @@ fun MainScaffoldScreen(
                     }
                 }
 
-                // 底部 Tab 内容切换（纯左右完整切换，无渐变）
+                // 底部 Tab 内容切换：整页左右滑动，按 Tab 顺序决定方向，使用 M3 标准位移弹簧
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
-                        val isForward = targetState > initialState
-                        if (isForward) {
-                            slideInHorizontally(
-                                animationSpec = tween(
-                                    300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) { width -> width }
-                                .togetherWith(
-                                    slideOutHorizontally(
-                                        animationSpec = tween(
-                                            300,
-                                            easing = FastOutSlowInEasing
-                                        )
-                                    ) { width -> -width })
-                        } else {
-                            slideInHorizontally(
-                                animationSpec = tween(
-                                    300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) { width -> -width }
-                                .togetherWith(
-                                    slideOutHorizontally(
-                                        animationSpec = tween(
-                                            300,
-                                            easing = FastOutSlowInEasing
-                                        )
-                                    ) { width -> width })
-                        }
+                        val direction = if (targetState > initialState) 1 else -1
+                        slideInHorizontally(motion.defaultSpatialSpec()) { width -> width * direction }
+                            .togetherWith(slideOutHorizontally(motion.defaultSpatialSpec()) { width -> -width * direction })
                     },
                     label = "main_tabs_transition"
                 ) { targetTab ->
@@ -305,24 +283,11 @@ fun MainScaffoldScreen(
             }
         }
 
-        // 全屏子页面覆盖层（纯左右完整滑入与退出，无内部冲突动画）
-        AnimatedVisibility(
-            visible = currentSubScreen != MainSubScreen.None,
-            enter = slideInHorizontally(
-                tween(
-                    300,
-                    easing = FastOutSlowInEasing
-                )
-            ) { width -> width },
-            exit = slideOutHorizontally(tween(300, easing = FastOutSlowInEasing)) { width -> width }
-        ) {
+        // 全屏子页面覆盖层：从右侧整页滑入，返回时向右滑出
+        SubPageOverlay(visible = currentSubScreen != MainSubScreen.None) {
             val subScreenToRender =
                 if (currentSubScreen != MainSubScreen.None) currentSubScreen else activeSubScreen
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 when (subScreenToRender) {
                     MainSubScreen.CoordinateConfig -> AppCoordinateScreen(
                         viewModel = viewModel,

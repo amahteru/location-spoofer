@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -73,8 +74,8 @@ fun MapEngineSettingsScreen(
             // 各引擎自定义 API Key 输入
             AnimatedVisibility(
                 visible = uiState.mapEngine == MapEngine.AMAP || uiState.mapEngine == MapEngine.BAIDU || uiState.mapEngine == MapEngine.GOOGLE,
-                enter = fadeIn(),
-                exit = fadeOut()
+                enter = fadeIn(AppMotion.defaultEffectsSpec()),
+                exit = fadeOut(AppMotion.fastEffectsSpec())
             ) {
                 Column(modifier = Modifier.padding(top = 14.dp)) {
                     when (uiState.mapEngine) {

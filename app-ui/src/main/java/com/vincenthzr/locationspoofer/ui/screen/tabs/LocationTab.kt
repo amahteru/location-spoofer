@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ElevatedCard
@@ -12,11 +13,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -108,6 +106,7 @@ fun LocationTab(
     manageDataViewModel: ManageDataViewModel = koinViewModel(),
     onCollectionRouteSelected: () -> Unit = {}
 ) {
+    val motion = AppMotion
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -213,11 +212,12 @@ fun LocationTab(
         }
     }
 
-    BackHandler(enabled = isSearching) {
+    val exitSearch: () -> Unit = {
         focusManager.clearFocus()
         keyboardController?.hide()
         onIntent(SpoofingIntent.SetSearchActive(false))
     }
+    BackHandler(enabled = isSearching, onBack = exitSearch)
 
     // 悬浮卡片避让底部控制栏高度：
     // COLLAPSED（仅搜索）：避让搜索框，停留在 tabBarHeight + 74dp
@@ -229,10 +229,7 @@ fun LocationTab(
             LocationPanelState.DEFAULT -> tabBarHeight + coordCardHeightDp + 82.dp
             LocationPanelState.COLLAPSED -> tabBarHeight + 74.dp
         },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
+        animationSpec = motion.defaultSpatialSpec(),
         label = "location_fab_bottom_padding"
     )
     val fabBottomPadding = rawFabBottomPadding.coerceAtLeast(0.dp)
@@ -254,10 +251,7 @@ fun LocationTab(
                         val isTopSearchTransition = (initialBounds.top < 350f && targetBounds.top > 350f) ||
                                 (initialBounds.top > 350f && targetBounds.top < 350f)
                         if (isTopSearchTransition) {
-                            spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow
-                            )
+                            motion.defaultSpatialSpec()
                         } else {
                             snap()
                         }
@@ -387,6 +381,7 @@ fun LocationTab(
                             onQueryChange = { onIntent(SpoofingIntent.UpdateSearchQuery(it)) },
                             onSearch = submitSearch,
                             onFocus = { onIntent(SpoofingIntent.SetSearchActive(true)) },
+                            onBack = exitSearch,
                             modifier = searchModifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 14.dp),
@@ -395,8 +390,8 @@ fun LocationTab(
 
                         AnimatedVisibility(
                             visible = spoofingUiState.showSearchResults && spoofingUiState.searchResults.isNotEmpty(),
-                            enter = fadeIn(tween(160)) + expandVertically(tween(220)),
-                            exit = fadeOut(tween(120)) + shrinkVertically(tween(160))
+                            enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
+                            exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
                         ) {
                             ElevatedCard(
                                 shape = MaterialTheme.shapes.large,

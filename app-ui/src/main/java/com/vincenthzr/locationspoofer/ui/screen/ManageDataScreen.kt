@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
@@ -198,50 +199,54 @@ fun ManageDataScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                        com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
-                            route,
-                            onClick = {
-                                viewModel.selectCollectedRoute(route.route.id)
-                                mapController?.let { com.vincenthzr.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, 120) }
-                            },
-                            onEdit = { editingRoute = route.route },
-                            onDelete = { deletingRoute = route.route }
-                        )
+                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
+                                route,
+                                onClick = {
+                                    viewModel.selectCollectedRoute(route.route.id)
+                                    mapController?.let { com.vincenthzr.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, 120) }
+                                },
+                                onEdit = { editingRoute = route.route },
+                                onDelete = { deletingRoute = route.route }
+                            )
+                        }
                     }
                     items(dataList, key = { it.location.id }) { item ->
-                        DataListItem(
-                            item = item,
-                            isFavorited = favoritedLocationIds.contains(item.location.id) ||
-                                favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
-                            onClick = {
-                                viewModel.selectCollectedLocation(item.location.id)
-                                mapController?.animateCamera(
-                                    item.location.lat,
-                                    item.location.lng,
-                                    17f
-                                )
-                            },
-                            onEdit = { editingItem = item },
-                            onDelete = { itemToDelete = item },
-                            onFavorite = {
-                                viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                                    val message = when (result) {
-                                        is FavoriteToggleResult.Added -> context.getString(
-                                            R.string.favorited_toast,
-                                            result.name
-                                        )
+                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            DataListItem(
+                                item = item,
+                                isFavorited = favoritedLocationIds.contains(item.location.id) ||
+                                    favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
+                                onClick = {
+                                    viewModel.selectCollectedLocation(item.location.id)
+                                    mapController?.animateCamera(
+                                        item.location.lat,
+                                        item.location.lng,
+                                        17f
+                                    )
+                                },
+                                onEdit = { editingItem = item },
+                                onDelete = { itemToDelete = item },
+                                onFavorite = {
+                                    viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
+                                        val message = when (result) {
+                                            is FavoriteToggleResult.Added -> context.getString(
+                                                R.string.favorited_toast,
+                                                result.name
+                                            )
 
-                                        is FavoriteToggleResult.Removed -> context.getString(
-                                            R.string.unfavorited_toast,
-                                            result.name
-                                        )
+                                            is FavoriteToggleResult.Removed -> context.getString(
+                                                R.string.unfavorited_toast,
+                                                result.name
+                                            )
 
-                                        FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
+                                            FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
+                                        }
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
 

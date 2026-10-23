@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import com.vincenthzr.locationspoofer.ui.screen.tabs.location.MapControlButton
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.PauseCircle
@@ -150,8 +151,8 @@ fun ScannerMapScreen(
         // 右上角实时扫描统计卡片 (放在状态胶囊下方)
         AnimatedVisibility(
             visible = uiState.isContinuousScanning || uiState.scannedWifiCount > 0 || uiState.scannedCellCount > 0 || uiState.scannedBluetoothCount > 0,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            enter = fadeIn(AppMotion.defaultEffectsSpec()),
+            exit = fadeOut(AppMotion.fastEffectsSpec()),
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()

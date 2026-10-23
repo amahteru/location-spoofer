@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import android.content.Context
 import android.widget.Toast
@@ -24,10 +25,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.amap.api.maps.model.LatLng
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiSearch
@@ -59,6 +58,7 @@ fun HomeSearchBar(
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onFocus: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null
 ) {
@@ -76,7 +76,16 @@ fun HomeSearchBar(
             expanded = false,
             onExpandedChange = {},
             placeholder = { Text(stringResource(R.string.search_place_building_coord_hint), maxLines = 1) },
-            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+            // M3 搜索视图：展开后前导图标换成返回箭头，用于退出搜索
+            leadingIcon = if (onBack != null) {
+                {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                }
+            } else {
+                { Icon(Icons.Rounded.Search, contentDescription = null) }
+            },
             trailingIcon = if (query.isNotEmpty()) {
                 {
                     Row {

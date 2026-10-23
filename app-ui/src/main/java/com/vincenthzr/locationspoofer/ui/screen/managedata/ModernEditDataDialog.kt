@@ -1,5 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.screen.managedata
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.AnimatedContent
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.foundation.layout.*
@@ -310,57 +315,67 @@ fun ModernEditDataDialog(
                     }
                 }
 
-                // 选项卡内容区
-                when (selectedTab) {
-                    EditDataTab.WIFI -> {
-                        ManageWifiTabContent(
-                            wifiList = wifiList,
-                            selectedWifiBssid = selectedWifiBssid,
-                            onSelectBssid = { selectedWifiBssid = it },
-                            onAddWifi = {
-                                isNewWifiDialog = true
-                                wifiBeingEdited = null
-                            },
-                            onEditWifi = { wifi ->
-                                wifiBeingEdited = wifi
-                                isNewWifiDialog = false
-                            },
-                            onDeleteWifi = { bssid -> wifiToDelete = bssid }
-                        )
-                    }
+                // 选项卡内容区：同级内容，按选项卡顺序左右滑动（M3 标准位移弹簧）
+                AnimatedContent(
+                    targetState = selectedTab,
+                    transitionSpec = {
+                        val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                        slideInHorizontally(AppMotion.defaultSpatialSpec()) { width -> width * direction }
+                            .togetherWith(slideOutHorizontally(AppMotion.defaultSpatialSpec()) { width -> -width * direction })
+                    },
+                    label = "edit_data_tab"
+                ) { tab ->
+                    when (tab) {
+                        EditDataTab.WIFI -> {
+                            ManageWifiTabContent(
+                                wifiList = wifiList,
+                                selectedWifiBssid = selectedWifiBssid,
+                                onSelectBssid = { selectedWifiBssid = it },
+                                onAddWifi = {
+                                    isNewWifiDialog = true
+                                    wifiBeingEdited = null
+                                },
+                                onEditWifi = { wifi ->
+                                    wifiBeingEdited = wifi
+                                    isNewWifiDialog = false
+                                },
+                                onDeleteWifi = { bssid -> wifiToDelete = bssid }
+                            )
+                        }
 
-                    EditDataTab.CELL -> {
-                        ManageCellTabContent(
-                            cellList = cellList,
-                            selectedCellKey = selectedCellKey,
-                            onSelectCellKey = { selectedCellKey = it },
-                            onAddCell = {
-                                isNewCellDialog = true
-                                cellBeingEdited = null
-                            },
-                            onEditCell = { cell ->
-                                cellBeingEdited = cell
-                                isNewCellDialog = false
-                            },
-                            onDeleteCell = { cellKey -> cellToDelete = cellKey }
-                        )
-                    }
+                        EditDataTab.CELL -> {
+                            ManageCellTabContent(
+                                cellList = cellList,
+                                selectedCellKey = selectedCellKey,
+                                onSelectCellKey = { selectedCellKey = it },
+                                onAddCell = {
+                                    isNewCellDialog = true
+                                    cellBeingEdited = null
+                                },
+                                onEditCell = { cell ->
+                                    cellBeingEdited = cell
+                                    isNewCellDialog = false
+                                },
+                                onDeleteCell = { cellKey -> cellToDelete = cellKey }
+                            )
+                        }
 
-                    EditDataTab.BLUETOOTH -> {
-                        ManageBluetoothTabContent(
-                            btList = btList,
-                            selectedBluetoothAddress = selectedBluetoothAddress,
-                            onSelectAddress = { selectedBluetoothAddress = it },
-                            onAddBluetooth = {
-                                isNewBtDialog = true
-                                btBeingEdited = null
-                            },
-                            onEditBluetooth = { bt ->
-                                btBeingEdited = bt
-                                isNewBtDialog = false
-                            },
-                            onDeleteBluetooth = { address -> btToDelete = address }
-                        )
+                        EditDataTab.BLUETOOTH -> {
+                            ManageBluetoothTabContent(
+                                btList = btList,
+                                selectedBluetoothAddress = selectedBluetoothAddress,
+                                onSelectAddress = { selectedBluetoothAddress = it },
+                                onAddBluetooth = {
+                                    isNewBtDialog = true
+                                    btBeingEdited = null
+                                },
+                                onEditBluetooth = { bt ->
+                                    btBeingEdited = bt
+                                    isNewBtDialog = false
+                                },
+                                onDeleteBluetooth = { address -> btToDelete = address }
+                            )
+                        }
                     }
                 }
             }

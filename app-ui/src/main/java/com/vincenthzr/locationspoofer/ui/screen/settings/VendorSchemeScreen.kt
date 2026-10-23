@@ -12,6 +12,7 @@ import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
+import com.vincenthzr.locationspoofer.ui.components.SubPageOverlay
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -87,36 +88,59 @@ fun VendorSchemeScreen(
         refreshHookStatus()
     }
 
-    if (showHookStatus) {
-        HookStatusScreen(
-            reports = hookReports,
-            loading = hookLoading,
-            onRefresh = { refreshHookStatus() },
-            debugDump = uiState.debugDumpSystemServices,
-            onDebugDumpChange = { viewModel.setDebugDumpSystemServices(it) },
-            onClose = { showHookStatus = false }
+    BackHandler(enabled = !showHookStatus && !showFullProgress, onBack = onClose)
+
+    // 下级页面（Hook 状态 / 完整适配进度）以覆盖层滑入，上级页面保留在下方
+    Box(modifier = Modifier.fillMaxSize()) {
+        VendorSchemeContent(
+            viewModel = viewModel,
+            uiState = uiState,
+            markdown = document.markdown,
+            hookReports = hookReports,
+            hookLoading = hookLoading,
+            onClose = onClose,
+            onOpenHookStatus = { showHookStatus = true },
+            onOpenFullProgress = { showFullProgress = true }
         )
-        return
+        SubPageOverlay(visible = showHookStatus) {
+            HookStatusScreen(
+                reports = hookReports,
+                loading = hookLoading,
+                onRefresh = { refreshHookStatus() },
+                debugDump = uiState.debugDumpSystemServices,
+                onDebugDumpChange = { viewModel.setDebugDumpSystemServices(it) },
+                onClose = { showHookStatus = false }
+            )
+        }
+        SubPageOverlay(visible = showFullProgress) {
+            AdaptationProgressScreen(
+                document = document,
+                loading = loading,
+                onRefresh = { refresh() },
+                onClose = { showFullProgress = false }
+            )
+        }
     }
+}
 
-    if (showFullProgress) {
-        AdaptationProgressScreen(
-            document = document,
-            loading = loading,
-            onRefresh = { refresh() },
-            onClose = { showFullProgress = false }
-        )
-        return
-    }
-
-    BackHandler(onBack = onClose)
-
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun VendorSchemeContent(
+    viewModel: MainViewModel,
+    uiState: AppState,
+    markdown: String,
+    hookReports: Map<String, HookStatusReport?>,
+    hookLoading: Boolean,
+    onClose: () -> Unit,
+    onOpenHookStatus: () -> Unit,
+    onOpenFullProgress: () -> Unit
+) {
     SubPageScaffold(
         title = stringResource(R.string.system_adaptation_title),
         subtitle = null,
         onBack = onClose
     ) {
-        DeviceAdaptationCard(document.markdown)
+        DeviceAdaptationCard(markdown)
 
         // 厂商适配只作用于系统级 Hook，仅全局方案可选
         if (BuildConfig.GLOBAL_SCHEME) {
@@ -182,14 +206,14 @@ fun VendorSchemeScreen(
                     summary.first == summary.second -> LabelTone.Success
                     else -> LabelTone.Warning
                 },
-                onClick = { showHookStatus = true }
+                onClick = onOpenHookStatus
             )
         }
 
         NavigationRowCard(
             icon = Icons.Rounded.TaskAlt,
             title = stringResource(R.string.adaptation_progress_full),
-            onClick = { showFullProgress = true }
+            onClick = onOpenFullProgress
         )
     }
 }

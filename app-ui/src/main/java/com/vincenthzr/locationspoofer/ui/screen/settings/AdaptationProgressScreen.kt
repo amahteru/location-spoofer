@@ -1,5 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import androidx.compose.animation.Crossfade
 import com.vincenthzr.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
@@ -45,11 +47,13 @@ fun AdaptationProgressScreen(
         ),
         onBack = onClose,
         actions = {
-            if (loading) {
-                CircularProgressIndicator(modifier = Modifier.padding(12.dp).size(24.dp))
-            } else {
-                IconButton(onClick = onRefresh) {
-                    Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.progress_refresh))
+            Crossfade(targetState = loading, animationSpec = AppMotion.defaultEffectsSpec(), label = "refresh_loading") { isLoading ->
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.padding(12.dp).size(24.dp))
+                } else {
+                    IconButton(onClick = onRefresh) {
+                        Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.progress_refresh))
+                    }
                 }
             }
         }

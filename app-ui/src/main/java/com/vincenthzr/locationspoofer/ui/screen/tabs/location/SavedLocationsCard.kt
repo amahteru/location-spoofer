@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.location
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -119,11 +120,13 @@ fun SavedLocationsCard(
                         items = savedLocations,
                         key = { "${it.name}_${it.lat}_${it.lng}" }
                     ) { loc ->
-                        SavedLocationItemRow(
-                            location = loc,
-                            onSelect = { onSelect(loc) },
-                            onDelete = { onDelete(loc) }
-                        )
+                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            SavedLocationItemRow(
+                                location = loc,
+                                onSelect = { onSelect(loc) },
+                                onDelete = { onDelete(loc) }
+                            )
+                        }
                     }
                 }
             }

@@ -1,5 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedContent
 import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
@@ -203,25 +208,20 @@ private fun CurrentVersionHeroCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 第一行：应用名与当前安装版本号徽章
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "Location Spoofer",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            // 第一行：应用名，下方为方案与当前安装版本号徽章（同一行放不下，避免版本号被截断）
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "Location Spoofer",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
 
                 val cleanCurrentVersion = currentVersion.trim().removePrefix("v").removePrefix("V")
                 Row(
@@ -236,63 +236,81 @@ private fun CurrentVersionHeroCard(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // 状态标签
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Text(
-                        text = stringResource(R.string.checking_latest_release),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else if (uiState.error != null) {
-                    Icon(
-                        Icons.Rounded.ErrorOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.check_failed_network),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                } else if (hasNewVersion && latestRelease != null) {
-                    val cleanLatestVersion =
-                        latestRelease.versionName.trim().removePrefix("v").removePrefix("V")
-                    Icon(
-                        Icons.Rounded.NewReleases,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.new_version_found_format, cleanLatestVersion),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    if (latestRelease.isPrerelease) {
-                        Spacer(Modifier.width(4.dp))
-                        StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
+            // 状态标签：检查中 / 失败 / 发现新版本 / 已是最新 之间切换时淡入淡出
+            val releaseStatus = when {
+                uiState.isLoading -> 0
+                uiState.error != null -> 1
+                hasNewVersion && latestRelease != null -> 2
+                else -> 3
+            }
+            AnimatedContent(
+                targetState = releaseStatus,
+                transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
+                label = "release_status"
+            ) { status ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    when (status) {
+                        0 -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = stringResource(R.string.checking_latest_release),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        1 -> {
+                            Icon(
+                                Icons.Rounded.ErrorOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.check_failed_network),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        2 -> {
+                            val release = latestRelease ?: return@Row
+                            val cleanLatestVersion =
+                                release.versionName.trim().removePrefix("v").removePrefix("V")
+                            Icon(
+                                Icons.Rounded.NewReleases,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.new_version_found_format, cleanLatestVersion),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            if (release.isPrerelease) {
+                                Spacer(Modifier.width(4.dp))
+                                StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
+                            }
+                        }
+                        else -> {
+                            Icon(
+                                Icons.Rounded.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.success,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.already_latest_version),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.success
+                            )
+                        }
                     }
-                } else {
-                    Icon(
-                        Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.success,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.already_latest_version),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.success
-                    )
                 }
             }
 

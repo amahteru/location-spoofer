@@ -1,14 +1,12 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -95,6 +93,7 @@ fun RouteTab(
     bottomBarHeight: Dp = 90.dp,
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
+    val motion = AppMotion
     val collectionRoutes by viewModel.collectionRoutes.collectAsState()
     val context = LocalContext.current
     var showMapTypeDialog by remember { mutableStateOf(false) }
@@ -154,12 +153,13 @@ fun RouteTab(
         }
     }
 
-    BackHandler(enabled = isSearchActive || showSearchResults) {
+    val exitSearch: () -> Unit = {
         isSearchActive = false
         showSearchResults = false
         focusManager.clearFocus()
         keyboardController?.hide()
     }
+    BackHandler(enabled = isSearchActive || showSearchResults, onBack = exitSearch)
 
     val density = LocalDensity.current
     val bottomActionHeightDp = with(density) { bottomActionHeightPx.toDp() }
@@ -283,10 +283,7 @@ fun RouteTab(
                         val isTopSearchTransition = (initialBounds.top < 350f && targetBounds.top > 350f) ||
                                 (initialBounds.top > 350f && targetBounds.top < 350f)
                         if (isTopSearchTransition) {
-                            spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow
-                            )
+                            motion.defaultSpatialSpec()
                         } else {
                             snap()
                         }
@@ -348,7 +345,7 @@ fun RouteTab(
                             .align(Alignment.TopCenter)
                             .statusBarsPadding()
                             .padding(top = 12.dp)
-                            .animateContentSize(),
+                            .animateContentSize(motion.defaultSpatialSpec()),
                         shape = MaterialTheme.shapes.extraLarge,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         shadowElevation = 3.dp
@@ -382,7 +379,7 @@ fun RouteTab(
                 // 右侧悬浮地图控制按钮组
                 val animatedBottomPadding by animateDpAsState(
                     targetValue = bottomBarHeight + bottomActionHeightDp + 16.dp,
-                    animationSpec = tween(durationMillis = 200),
+                    animationSpec = motion.defaultSpatialSpec(),
                     label = "fab_padding"
                 )
 
@@ -484,6 +481,7 @@ fun RouteTab(
                             onQueryChange = { searchQuery = it },
                             onSearch = submitSearch,
                             onFocus = { isSearchActive = true },
+                            onBack = exitSearch,
                             modifier = searchModifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 14.dp),
@@ -492,8 +490,8 @@ fun RouteTab(
 
                         AnimatedVisibility(
                             visible = showSearchResults && searchResults.isNotEmpty(),
-                            enter = fadeIn(tween(160)) + expandVertically(tween(220)),
-                            exit = fadeOut(tween(120)) + shrinkVertically(tween(160))
+                            enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
+                            exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
                         ) {
                             ElevatedCard(
                                 shape = MaterialTheme.shapes.large,

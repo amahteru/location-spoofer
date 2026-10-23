@@ -1,5 +1,10 @@
 package com.vincenthzr.locationspoofer.ui.components
 
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedContent
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -106,90 +111,111 @@ fun LocalEnvironmentDataDialog(
             }
 
         // 采集点列表
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (dataList.isEmpty() && collectionRoutes.isEmpty()) {
-            // 空数据状态
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    Icons.Rounded.FolderOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.size(48.dp)
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = stringResource(R.string.no_local_env_data),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.scan_or_import_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(Modifier.height(16.dp))
-                FilledTonalButton(
-                    onClick = onImportClick,
-                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-                ) {
-                    Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.import_external_data_json))
+        val listState = when {
+            isLoading -> 0
+            dataList.isEmpty() && collectionRoutes.isEmpty() -> 1
+            filteredList.isEmpty() && filteredRoutes.isEmpty() -> 2
+            else -> 3
+        }
+        // 加载 / 空状态 / 无匹配 / 列表 之间切换时淡入淡出
+        AnimatedContent(
+            targetState = listState,
+            transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
+            modifier = Modifier.weight(1f, fill = false),
+            label = "local_data_list_state"
+        ) { state ->
+            when (state) {
+                0 -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
-        } else if (filteredList.isEmpty() && filteredRoutes.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.no_matching_collected_points),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                    CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
+                1 -> {
+                    // 空数据状态
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Rounded.FolderOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.no_local_env_data),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.scan_or_import_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        FilledTonalButton(
+                            onClick = onImportClick,
+                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                        ) {
+                            Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                            Text(stringResource(R.string.import_external_data_json))
+                        }
+                    }
                 }
-                items(filteredList, key = { it.location.id }) { item ->
-                    LocalDataItem(
-                        item = item,
-                        timeStr = timeFormat.format(Date(item.location.timestamp)),
-                        isFavorited = favoritedLocationIds.contains(item.location.id) ||
-                            favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
-                        onClick = {
-                            onSelectPoint(item)
-                            onDismiss()
-                        },
-                        onFavorite = { onFavorite(item) }
-                    )
+                2 -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.no_matching_collected_points),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
+                            Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                                CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
+                            }
+                        }
+                        items(filteredList, key = { it.location.id }) { item ->
+                            Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                                LocalDataItem(
+                                    item = item,
+                                    timeStr = timeFormat.format(Date(item.location.timestamp)),
+                                    isFavorited = favoritedLocationIds.contains(item.location.id) ||
+                                        favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
+                                    onClick = {
+                                        onSelectPoint(item)
+                                        onDismiss()
+                                    },
+                                    onFavorite = { onFavorite(item) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

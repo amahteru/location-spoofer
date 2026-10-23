@@ -1,11 +1,8 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.location
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -57,6 +54,7 @@ fun LocationControlPanel(
     onOpenManageSavedLocations: () -> Unit,
     searchBar: @Composable (Modifier) -> Unit
 ) {
+    val motion = AppMotion
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
     val density = LocalDensity.current
 
@@ -96,10 +94,7 @@ fun LocationControlPanel(
             LocationPanelState.DEFAULT -> savedCardHeightDp + 8.dp
             LocationPanelState.COLLAPSED -> savedCardHeightDp + coordCardHeightDp + 16.dp
         },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
+        animationSpec = motion.defaultSpatialSpec(),
         label = "drawer_offset_y"
     )
 
@@ -158,8 +153,8 @@ fun LocationControlPanel(
                 // 正在模拟时的停止模拟按钮
                 AnimatedVisibility(
                     visible = uiState.isSpoofingActive,
-                    enter = expandHorizontally(tween(200, easing = FastOutSlowInEasing)) + fadeIn(tween(200)),
-                    exit = shrinkHorizontally(tween(180, easing = FastOutSlowInEasing)) + fadeOut(tween(180))
+                    enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                    exit = shrinkHorizontally(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = onStopSpoofing,
@@ -174,8 +169,8 @@ fun LocationControlPanel(
                 // 未模拟且处于 COLLAPSED 状态下的定点模拟胶囊按钮（间距内聚，收缩与渐隐严格同周期，绝无二次伸长）
                 AnimatedVisibility(
                     visible = !uiState.isSpoofingActive && panelState == LocationPanelState.COLLAPSED,
-                    enter = expandHorizontally(tween(200, easing = FastOutSlowInEasing)) + fadeIn(tween(200)),
-                    exit = shrinkHorizontally(tween(180, easing = FastOutSlowInEasing)) + fadeOut(tween(180))
+                    enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                    exit = shrinkHorizontally(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = { if (!uiState.isSavingConfig) onStartFixedSpoofing() },

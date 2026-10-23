@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.AppSearchField
@@ -148,11 +149,13 @@ fun AppCoordinateScreen(
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
                     items(appsToShow, key = { it.packageName }) { app ->
-                        AppItemRow(
-                            appInfo = app,
-                            currentCoordinateSystem = uiState.appCoordinateSystems[app.packageName],
-                            onClick = { selectedApp = app }
-                        )
+                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            AppItemRow(
+                                appInfo = app,
+                                currentCoordinateSystem = uiState.appCoordinateSystems[app.packageName],
+                                onClick = { selectedApp = app }
+                            )
+                        }
                     }
                 }
             }

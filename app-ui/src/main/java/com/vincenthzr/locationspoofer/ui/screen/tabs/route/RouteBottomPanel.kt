@@ -1,8 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs.route
 
+import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -36,10 +35,7 @@ fun RouteBottomPanel(
         modifier = modifier
             .fillMaxWidth()
             .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
+                animationSpec = AppMotion.defaultSpatialSpec()
             )
     ) {
         Column(
