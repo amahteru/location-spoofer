@@ -26,7 +26,8 @@ fun SavedLocationsDialog(
 ) {
     AppBottomSheet(
         title = stringResource(R.string.saved_locations),
-        subtitle = if (savedLocations.isEmpty()) stringResource(R.string.no_saved_locations) else stringResource(R.string.saved_locations_count_format, savedLocations.size),
+        // 列表为空时由下方空状态说明，标题下不再重复同一句话
+        subtitle = if (savedLocations.isEmpty()) null else stringResource(R.string.saved_locations_count_format, savedLocations.size),
         onDismiss = onDismiss
     ) {
         if (savedLocations.isEmpty()) {

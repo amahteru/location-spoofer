@@ -39,7 +39,8 @@ fun SavedRoutesDialog(
 
     AppBottomSheet(
         title = stringResource(R.string.route_library),
-        subtitle = if (uiState.savedRoutes.isEmpty()) stringResource(R.string.no_saved_routes) else stringResource(R.string.total_saved_routes, uiState.savedRoutes.size),
+        // 列表为空时由下方空状态说明，标题下不再重复同一句话
+        subtitle = if (uiState.savedRoutes.isEmpty()) null else stringResource(R.string.total_saved_routes, uiState.savedRoutes.size),
         onDismiss = onDismiss
     ) {
         if (uiState.savedRoutes.isEmpty()) {

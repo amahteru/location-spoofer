@@ -370,7 +370,7 @@
     <string name="no_matching_collected_points">未找到匹配的采集点</string>
     <string name="search_place_building_coord_hint">搜索地点、建筑或坐标...</string>
     <string name="saved_locations_count_format">已收藏 %d 个常用坐标点</string>
-    <string name="map_save_location_hint">在地图选点后点击「收藏」按钮即可快速保存常用地点</string>
+    <string name="map_save_location_hint">在地图选点后点击「保存」即可收藏常用地点</string>
     <string name="altitude_meter">海拔 (米)</string>
     <string name="altitude_simulation">海拔</string>
     <string name="altitude_fixed_value">固定 %1$s 米</string>
