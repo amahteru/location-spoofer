@@ -89,9 +89,7 @@ fun CoordinateSelectionDialog(
                             .size(42.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(
-                                    alpha = 0.03f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -125,9 +123,7 @@ fun CoordinateSelectionDialog(
                             .size(30.dp)
                             .clip(CircleShape)
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                    alpha = 0.05f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
@@ -249,9 +245,7 @@ fun CoordinateSelectionDialog(
                             .height(44.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                    alpha = 0.05f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center

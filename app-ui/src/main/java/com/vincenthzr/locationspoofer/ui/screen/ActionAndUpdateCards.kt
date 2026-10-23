@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.stopSpoofing
@@ -89,12 +87,11 @@ fun ActionButtons(
 
 @Composable
 fun UpdateCheckCard(
-    isDark: Boolean,
     hasNewVersion: Boolean = false,
     newVersionName: String? = null,
     onCheckClick: () -> Unit
 ) {
-    val textSecondary = AppColors.textSecondary(isDark)
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     val cleanNewVersion = remember(newVersionName) {
         newVersionName?.trim()?.removePrefix("v")?.removePrefix("V")
     }
@@ -115,7 +112,7 @@ fun UpdateCheckCard(
                     .size(38.dp)
                     .clip(RoundedCornerShape(11.dp))
                     .background(
-                        if (hasNewVersion) Color(0xFFE53935).copy(alpha = 0.12f)
+                        if (hasNewVersion) MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
                         else AccentBlue.copy(alpha = 0.12f)
                     ),
                 contentAlignment = Alignment.Center
@@ -123,7 +120,7 @@ fun UpdateCheckCard(
                 Icon(
                     Icons.Rounded.SystemUpdateAlt,
                     null,
-                    tint = if (hasNewVersion) Color(0xFFE53935) else AccentBlue,
+                    tint = if (hasNewVersion) MaterialTheme.colorScheme.error else AccentBlue,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -145,7 +142,7 @@ fun UpdateCheckCard(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFE53935))
+                                .background(MaterialTheme.colorScheme.error)
                         )
                     }
                 }
@@ -153,7 +150,7 @@ fun UpdateCheckCard(
                 if (hasNewVersion && cleanNewVersion != null) {
                     Text(
                         text = stringResource(R.string.new_version_available_badge, cleanNewVersion),
-                        color = Color(0xFFE53935),
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -169,12 +166,12 @@ fun UpdateCheckCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFE53935).copy(alpha = 0.12f))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
                         .padding(horizontal = 7.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = "v$cleanNewVersion",
-                        color = Color(0xFFE53935),
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold
                     )

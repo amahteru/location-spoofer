@@ -19,8 +19,6 @@ package com.vincenthzr.locationspoofer.xposed.hooks
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.utils.*
 import com.vincenthzr.locationspoofer.xposed.hooks.*
-import org.json.JSONObject
-import java.util.concurrent.ConcurrentHashMap
 import java.lang.reflect.*
 import kotlin.math.*
 import io.github.libxposed.api.*
@@ -231,12 +229,3 @@ internal fun LocationHooker.createSpoofedGpsSatellites(classLoader: ClassLoader)
     return GnssFastMockEngine.getOrCreateSpoofedGpsSatellites(classLoader, count)
 }
 
-// GNSS 卫星矩阵数据结构（预留，暂无调用方）
-data class SatelliteData(
-    val svid: Int,
-    val type: Int, // 1=GPS, 3=GLONASS, 5=BDS
-    val elevation: Float,
-    val azimuth: Float,
-    val cn0: Float,
-    val usedInFix: Boolean
-)

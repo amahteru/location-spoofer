@@ -9,7 +9,6 @@ koin = "3.5.3"
 libxposed = "102.0.0"
 libxposedService = "102.0.0"
 amap = "10.0.600"
-amapLocation = "6.4.9"
 amapSearch = "9.7.0"
 baiduMap = "7.6.4"
 baiduLocation = "9.6.4"
@@ -19,7 +18,6 @@ playServicesLocation = "21.2.0"
 places = "3.4.0"
 room = "2.8.4"
 kotlinxSerializationJson = "1.11.0"
-kotlinMetadata = "2.4.0"
 ksp = "2.1.10-1.0.30"
 junit = "4.13.2"
 orgJson = "20231013"
@@ -27,7 +25,6 @@ orgJson = "20231013"
 [libraries]
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 amap-map = { module = "com.amap.api:3dmap", version.ref = "amap" }
-amap-location = { module = "com.amap.api:location", version.ref = "amapLocation" }
 amap-search = { module = "com.amap.api:search", version.ref = "amapSearch" }
 baidu-map = { module = "com.baidu.lbsyun:BaiduMapSDK_Map", version.ref = "baiduMap" }
 baidu-location = { module = "com.baidu.lbsyun:BaiduMapSDK_Location", version.ref = "baiduLocation" }
@@ -38,7 +35,6 @@ google-maps = { group = "com.google.android.gms", name = "play-services-maps", v
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 google-places = { group = "com.google.android.libraries.places", name = "places", version.ref = "places" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-kotlin-metadata-jvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlinMetadata" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,7 +47,6 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-compose-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

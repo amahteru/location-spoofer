@@ -16,13 +16,7 @@
 
 package com.vincenthzr.locationspoofer.xposed.hooks.network
 
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
-import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.utils.*
-import org.json.JSONObject
-import kotlin.random.Random
 import io.github.libxposed.api.*
 
 /**
@@ -67,19 +61,6 @@ internal fun isValidAdStructure(bytes: ByteArray): Boolean {
             pos += 1 + len
         }
         return foundValidAd
-    }
-
-    // 检查字节数组是否已包含名称 AD (0x08 简称 或 0x09 全称)
-internal fun containsAdName(bytes: ByteArray): Boolean {
-        var pos = 0
-        while (pos < bytes.size) {
-            val len = bytes[pos].toInt() and 0xFF
-            if (len == 0 || pos + 1 + len > bytes.size) break
-            val type = bytes[pos + 1].toInt() and 0xFF
-            if (type == 0x08 || type == 0x09) return true
-            pos += 1 + len
-        }
-        return false
     }
 
     // 辅助函数：智能构造并规范化 BLE 广播包字节数组

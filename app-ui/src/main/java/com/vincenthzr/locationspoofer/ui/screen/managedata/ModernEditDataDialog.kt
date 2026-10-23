@@ -26,7 +26,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.text.SimpleDateFormat
@@ -530,7 +529,7 @@ fun ModernEditDataDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -650,9 +649,7 @@ fun ModernEditDataDialog(
                             .height(44.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                    alpha = 0.05f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
@@ -713,7 +710,6 @@ fun ModernEditDataDialog(
         val targetBssid = wifiToDelete!!
         ManageDeleteConfirmDialog(
             message = stringResource(R.string.delete_wifi_confirm, targetBssid),
-            isDark = isDark,
             onDismiss = { wifiToDelete = null },
             onConfirm = {
                 onDeleteWifi(targetBssid)
@@ -750,7 +746,6 @@ fun ModernEditDataDialog(
         val targetCellKey = cellToDelete!!
         ManageDeleteConfirmDialog(
             message = stringResource(R.string.delete_cell_confirm, targetCellKey),
-            isDark = isDark,
             onDismiss = { cellToDelete = null },
             onConfirm = {
                 onDeleteCell(targetCellKey)
@@ -787,7 +782,6 @@ fun ModernEditDataDialog(
         val targetAddress = btToDelete!!
         ManageDeleteConfirmDialog(
             message = stringResource(R.string.delete_bt_confirm, targetAddress),
-            isDark = isDark,
             onDismiss = { btToDelete = null },
             onConfirm = {
                 onDeleteBluetooth(targetAddress)

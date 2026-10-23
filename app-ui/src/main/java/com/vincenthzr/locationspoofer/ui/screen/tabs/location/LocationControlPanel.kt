@@ -297,7 +297,6 @@ fun LocationControlPanel(
                     CoordinateInputCard(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onSaveClick = onSaveClick,
                         onCustomClick = onCustomClick
                     )
@@ -322,7 +321,6 @@ fun LocationControlPanel(
                 },
                 savedLocations = uiState.savedLocations,
                 panelState = panelState,
-                isDark = isDark,
                 onSelect = onSelectSavedLocation,
                 onDelete = onDeleteSavedLocation,
                 onToggleExpand = {

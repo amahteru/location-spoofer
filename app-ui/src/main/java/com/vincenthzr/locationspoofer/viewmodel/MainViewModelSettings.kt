@@ -1,7 +1,6 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
 import com.vincenthzr.locationspoofer.ui.BuildConfig
-import android.content.Context
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
@@ -13,7 +12,6 @@ import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.data.model.RootSolution
 import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.data.model.SearchMode
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import com.vincenthzr.locationspoofer.utils.XposedModuleStatus
@@ -173,11 +171,6 @@ private suspend fun MainViewModel.mergeLegacyRecords() {
             environmentDao.deleteLocation(other.location.id)
         }
     }
-}
-
-internal fun MainViewModel.updateLanguage(langCode: String) {
-    settingsRepository.setLanguage(langCode)
-    _uiState.update { it.copy(currentLanguage = langCode) }
 }
 
 internal fun MainViewModel.setMapType(type: AppMapType) {
@@ -597,20 +590,6 @@ internal fun MainViewModel.setSystemHookPackageEnabled(pkg: String, enabled: Boo
         viewModelScope.launch {
             // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
             locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
-    }
-}
-
-internal fun MainViewModel.removeAppCoordinateSystem(pkg: String) {
-    val currentMap = _uiState.value.appCoordinateSystems.toMutableMap()
-    currentMap.remove(pkg)
-    settingsRepository.setAppCoordinateSystems(currentMap)
-    _uiState.update { it.copy(appCoordinateSystems = currentMap) }
-
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(currentMap)) }
         }
     }
 }

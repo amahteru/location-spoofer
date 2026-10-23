@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.clearPinnedCollectedLocation
@@ -34,11 +33,10 @@ import com.vincenthzr.locationspoofer.ui.components.AppCard
 fun CoordinateInputCard(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean,
     onSaveClick: () -> Unit,
     onCustomClick: () -> Unit
 ) {
-    val textSecondary = AppColors.textSecondary(isDark)
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     AppCard(
         modifier = Modifier.fillMaxWidth(),
@@ -49,9 +47,7 @@ fun CoordinateInputCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SectionHeader(
                     Icons.Outlined.PinDrop,
-                    stringResource(R.string.target_coordinates),
-                    isDark
-                )
+                    stringResource(R.string.target_coordinates))
                 Spacer(Modifier.weight(1f))
                 TextButton(
                     onClick = onCustomClick,
@@ -94,7 +90,7 @@ fun CoordinateInputCard(
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f)
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
@@ -120,7 +116,7 @@ fun CoordinateInputCard(
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f)
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {

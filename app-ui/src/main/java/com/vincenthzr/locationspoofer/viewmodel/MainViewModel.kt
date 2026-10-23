@@ -16,7 +16,6 @@ import com.vincenthzr.locationspoofer.data.motion.MotionController
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
 import com.vincenthzr.locationspoofer.data.repository.WifiRepository
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingUiState
 import com.vincenthzr.locationspoofer.utils.EnvironmentScanner
 import com.vincenthzr.locationspoofer.utils.LSPosedManager

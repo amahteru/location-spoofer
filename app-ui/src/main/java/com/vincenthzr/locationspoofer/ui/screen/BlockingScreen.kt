@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,11 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 
 @Composable
-fun InitializingScreen(isDark: Boolean) {
-    val textSecondary = AppColors.textSecondary(isDark)
+fun InitializingScreen() {
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = Modifier
@@ -66,8 +64,8 @@ fun InitializingScreen(isDark: Boolean) {
 }
 
 @Composable
-fun BlockingScreen(icon: ImageVector, title: String, message: String, isDark: Boolean) {
-    val textSecondary = AppColors.textSecondary(isDark)
+fun BlockingScreen(icon: ImageVector, title: String, message: String) {
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = Modifier

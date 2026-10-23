@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.ui.screen.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +27,6 @@ import com.vincenthzr.locationspoofer.ui.screen.RenderMarkdownContent
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 
@@ -38,7 +36,6 @@ fun AdaptationProgressScreen(
     document: AdaptationProgressSource.Document,
     loading: Boolean,
     onRefresh: () -> Unit,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     BackHandler(onBack = onClose)
@@ -46,7 +43,7 @@ fun AdaptationProgressScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -63,7 +60,6 @@ fun AdaptationProgressScreen(
                         else -> R.string.progress_source_bundled
                     }
                 ),
-                isDark = isDark,
                 onBack = onClose
             ) {
                 if (loading) {

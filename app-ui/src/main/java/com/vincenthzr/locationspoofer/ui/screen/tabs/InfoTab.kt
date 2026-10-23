@@ -1,8 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,7 +48,6 @@ import com.vincenthzr.locationspoofer.ui.screen.isNewerVersion
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
@@ -135,7 +132,7 @@ fun InfoTab(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -208,7 +205,6 @@ fun InfoTab(
             // 1. 软件更新卡片
             item {
                 UpdateCheckCard(
-                    isDark = isDark,
                     hasNewVersion = hasNewVersion,
                     newVersionName = if (hasNewVersion) latestRelease?.versionName else null,
                     onCheckClick = onNavigateToUpdate

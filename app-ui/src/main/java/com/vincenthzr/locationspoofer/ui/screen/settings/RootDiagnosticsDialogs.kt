@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -38,7 +37,7 @@ private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null
         Icon(
             if (ok) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
             contentDescription = null,
-            tint = if (ok) AccentGreen else Color(0xFFE53935),
+            tint = if (ok) AccentGreen else MaterialTheme.colorScheme.error,
             modifier = Modifier
                 .size(16.dp)
                 .padding(top = 1.dp)
@@ -65,7 +64,6 @@ private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null
 @Composable
 fun RootSetupTestResultDialog(
     result: RootSetupTestResult,
-    isDark: Boolean,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -97,13 +95,13 @@ fun RootSetupTestResultDialog(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(13.dp))
-                            .background((if (overallOk) AccentGreen else Color(0xFFE53935)).copy(alpha = 0.12f)),
+                            .background((if (overallOk) AccentGreen else MaterialTheme.colorScheme.error).copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             if (overallOk) Icons.Rounded.CheckCircle else Icons.Rounded.Cancel,
                             contentDescription = null,
-                            tint = if (overallOk) AccentGreen else Color(0xFFE53935),
+                            tint = if (overallOk) AccentGreen else MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -158,9 +156,7 @@ fun RootSetupTestResultDialog(
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                    alpha = 0.05f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable {
                                 val summary = buildString {
@@ -212,7 +208,6 @@ fun RootSetupTestResultDialog(
 @Composable
 fun RestartHookedAppsConfirmDialog(
     apps: List<com.vincenthzr.locationspoofer.data.model.AppInfoItem>,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -242,13 +237,13 @@ fun RestartHookedAppsConfirmDialog(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(13.dp))
-                            .background(Color(0xFFE53935).copy(alpha = 0.12f)),
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Rounded.RestartAlt,
                             contentDescription = null,
-                            tint = Color(0xFFE53935),
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -301,9 +296,7 @@ fun RestartHookedAppsConfirmDialog(
                                 .height(42.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
-                                    if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                        alpha = 0.05f
-                                    )
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
                                 )
                                 .noRippleClickable(onDismiss),
                             contentAlignment = Alignment.Center
@@ -318,7 +311,7 @@ fun RestartHookedAppsConfirmDialog(
 
                         Button(
                             onClick = onConfirm,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .weight(1.2f)

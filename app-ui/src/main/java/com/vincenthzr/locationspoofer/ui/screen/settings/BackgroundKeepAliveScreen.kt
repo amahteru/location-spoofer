@@ -3,15 +3,11 @@ package com.vincenthzr.locationspoofer.ui.screen.settings
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
@@ -21,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -32,16 +27,15 @@ import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 
 @Composable
 fun BackgroundKeepAliveScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
@@ -51,59 +45,18 @@ fun BackgroundKeepAliveScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
-                        .border(
-                            width = 1.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(
-                                0xFFE5E8EC
-                            ),
-                            shape = CircleShape
-                        )
-                        .noRippleClickable(onClick = onClose),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
-
-                Spacer(Modifier.width(14.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.background_keep_alive_title),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.background_keep_alive_desc),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    )
-                }
-            }
+            AppTopBar(
+                title = stringResource(R.string.background_keep_alive_title),
+                subtitle = stringResource(R.string.background_keep_alive_desc),
+                onBack = onClose
+            )
 
             Box(modifier = Modifier
                 .weight(1f)
@@ -160,9 +113,7 @@ fun BackgroundKeepAliveScreen(
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(
-                                            alpha = 0.03f
-                                        )
+                                        MaterialTheme.colorScheme.surfaceContainerHigh
                                     )
                                     .noRippleClickable {
                                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -222,9 +173,7 @@ fun BackgroundKeepAliveScreen(
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(
-                                            alpha = 0.03f
-                                        )
+                                        MaterialTheme.colorScheme.surfaceContainerHigh
                                     )
                                     .noRippleClickable {
                                         try {
@@ -283,9 +232,9 @@ fun BackgroundKeepAliveScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    AppColors.background(isDark),
-                                    AppColors.background(isDark).copy(alpha = 0.85f),
-                                    AppColors.background(isDark).copy(alpha = 0.40f),
+                                    MaterialTheme.colorScheme.background,
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
                                     Color.Transparent
                                 )
                             )

@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,7 +20,6 @@ import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 fun ManageDeleteConfirmDialog(
     title: String = stringResource(R.string.delete),
     message: String,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -61,9 +59,7 @@ fun ManageDeleteConfirmDialog(
                             .height(40.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                    alpha = 0.05f
-                                )
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
@@ -74,7 +70,7 @@ fun ManageDeleteConfirmDialog(
                     Button(
                         onClick = onConfirm,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
                         modifier = Modifier
                             .weight(1.2f)
                             .height(40.dp)

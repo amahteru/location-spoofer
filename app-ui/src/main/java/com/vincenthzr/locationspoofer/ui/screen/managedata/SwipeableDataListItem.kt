@@ -190,7 +190,7 @@ fun SwipeableDataListItem(
                     .width(60.dp)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFE53935))
+                    .background(MaterialTheme.colorScheme.error)
                     .noRippleClickable {
                         coroutineScope.launch {
                             offsetX.animateTo(
@@ -212,14 +212,14 @@ fun SwipeableDataListItem(
                     Icon(
                         Icons.Rounded.DeleteOutline,
                         contentDescription = stringResource(R.string.delete),
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onError,
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
                         text = stringResource(R.string.delete),
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onError
                     )
                 }
             }

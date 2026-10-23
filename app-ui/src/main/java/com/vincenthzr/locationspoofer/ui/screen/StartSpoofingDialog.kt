@@ -19,12 +19,10 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 
 @Composable
 fun StartSpoofingDialog(
     uiState: AppState,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     onToggleWifi: () -> Unit,
@@ -45,7 +43,7 @@ fun StartSpoofingDialog(
     ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = AppColors.cardBackground(isDark),
+            color = MaterialTheme.colorScheme.surfaceContainer,
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .imePadding()

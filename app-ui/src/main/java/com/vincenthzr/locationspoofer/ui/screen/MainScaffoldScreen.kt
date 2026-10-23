@@ -336,7 +336,6 @@ fun MainScaffoldScreen(
                     MainSubScreen.ScannerMap -> ScannerMapScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
@@ -350,7 +349,6 @@ fun MainScaffoldScreen(
                     MainSubScreen.Update -> UpdateScreen(
                         updateViewModel = updateViewModel,
                         viewModel = viewModel,
-                        isDark = isDark,
                         onBack = { currentSubScreen = MainSubScreen.None }
                     )
 
@@ -371,35 +369,30 @@ fun MainScaffoldScreen(
                     MainSubScreen.SignatureAuth -> com.vincenthzr.locationspoofer.ui.screen.settings.SignatureAuthScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.RootDiagnostics -> com.vincenthzr.locationspoofer.ui.screen.settings.RootDiagnosticsScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.MotionRealism -> com.vincenthzr.locationspoofer.ui.screen.settings.MotionRealismScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.VendorScheme -> com.vincenthzr.locationspoofer.ui.screen.settings.VendorSchemeScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.BackgroundKeepAlive -> com.vincenthzr.locationspoofer.ui.screen.settings.BackgroundKeepAliveScreen(
                         viewModel = viewModel,
                         uiState = uiState,
-                        isDark = isDark,
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 

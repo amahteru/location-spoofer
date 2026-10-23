@@ -22,13 +22,12 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 
 @Composable
-fun SectionHeader(icon: ImageVector, title: String, isDark: Boolean) {
-    val textSecondary = AppColors.textSecondary(isDark)
+fun SectionHeader(icon: ImageVector, title: String) {
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, null, tint = textSecondary, modifier = Modifier.size(15.dp))
         Spacer(Modifier.width(6.dp))
@@ -43,7 +42,7 @@ fun SectionHeader(icon: ImageVector, title: String, isDark: Boolean) {
 }
 
 @Composable
-fun AppCoordinateConfigCard(isDark: Boolean, onClick: () -> Unit) {
+fun AppCoordinateConfigCard( onClick: () -> Unit) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,14 +79,14 @@ fun AppCoordinateConfigCard(isDark: Boolean, onClick: () -> Unit) {
                 Spacer(Modifier.height(2.dp))
                 Text(
                     stringResource(R.string.config_app_coordinate_desc),
-                    color = AppColors.textSecondary(isDark),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }
             Icon(
                 Icons.Rounded.ChevronRight,
                 null,
-                tint = AppColors.textSecondary(isDark).copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -95,7 +94,7 @@ fun AppCoordinateConfigCard(isDark: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.AppState, isDark: Boolean, onClick: () -> Unit) {
+fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.AppState, onClick: () -> Unit) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,14 +138,14 @@ fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.
                 }
                 Text(
                     statusDesc,
-                    color = if (uiState.isSystemHookGlobalMode) AccentBlue else AppColors.textSecondary(isDark),
+                    color = if (uiState.isSystemHookGlobalMode) AccentBlue else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }
             Icon(
                 Icons.Rounded.ChevronRight,
                 null,
-                tint = AppColors.textSecondary(isDark).copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -155,7 +154,6 @@ fun SystemHookAppsConfigCard(uiState: com.vincenthzr.locationspoofer.data.model.
 
 @Composable
 fun ScannerMapCard(
-    isDark: Boolean,
     uiState: AppState,
     onClick: () -> Unit
 ) {
@@ -196,7 +194,7 @@ fun ScannerMapCard(
                 } else {
                     stringResource(R.string.view_heatmap_start_scan)
                 }
-                Text(statusText, color = AppColors.textSecondary(isDark), fontSize = 12.sp)
+                Text(statusText, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
             if (uiState.isContinuousScanning) {
                 Box(
@@ -210,7 +208,7 @@ fun ScannerMapCard(
             Icon(
                 Icons.Rounded.ChevronRight,
                 null,
-                tint = AppColors.textSecondary(isDark).copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -218,7 +216,7 @@ fun ScannerMapCard(
 }
 
 @Composable
-fun ManageDataCard(isDark: Boolean, onClick: () -> Unit) {
+fun ManageDataCard( onClick: () -> Unit) {
     AppCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,14 +253,14 @@ fun ManageDataCard(isDark: Boolean, onClick: () -> Unit) {
                 Spacer(Modifier.height(2.dp))
                 Text(
                     stringResource(R.string.manage_collected_data_desc),
-                    color = AppColors.textSecondary(isDark),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }
             Icon(
                 Icons.Rounded.ChevronRight,
                 null,
-                tint = AppColors.textSecondary(isDark).copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -270,7 +268,7 @@ fun ManageDataCard(isDark: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun ImportExportDataCard(isDark: Boolean, onImportClick: () -> Unit, onExportClick: () -> Unit) {
+fun ImportExportDataCard( onImportClick: () -> Unit, onExportClick: () -> Unit) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
         cornerRadius = 16.dp,
@@ -305,7 +303,7 @@ fun ImportExportDataCard(isDark: Boolean, onImportClick: () -> Unit, onExportCli
                 Spacer(Modifier.height(2.dp))
                 Text(
                     stringResource(R.string.env_data_sharing_desc),
-                    color = AppColors.textSecondary(isDark),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
             }

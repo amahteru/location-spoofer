@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer.ui.screen.settings
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +27,6 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,7 +53,6 @@ fun HookStatusScreen(
     onRefresh: () -> Unit,
     debugDump: Boolean,
     onDebugDumpChange: (Boolean) -> Unit,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     BackHandler(onBack = onClose)
@@ -65,7 +62,7 @@ fun HookStatusScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -80,7 +77,6 @@ fun HookStatusScreen(
                         it.vendorId
                     )
                 },
-                isDark = isDark,
                 onBack = onClose
             ) {
                 if (loading) {

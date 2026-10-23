@@ -416,7 +416,3 @@ fun parseInlineMarkdownString(
     }
 }
 
-@Composable
-fun parseMarkdown(text: String): androidx.compose.ui.text.AnnotatedString {
-    return parseInlineMarkdownString(text, AccentBlue)
-}

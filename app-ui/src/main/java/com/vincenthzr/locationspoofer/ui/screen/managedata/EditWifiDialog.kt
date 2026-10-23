@@ -25,10 +25,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.util.Locale
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun EditWifiDialog(
@@ -107,7 +107,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {
@@ -134,7 +134,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -173,7 +173,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -212,7 +212,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -225,28 +225,16 @@ fun EditWifiDialog(
                         Spacer(Modifier.height(6.dp))
 
                         // 快速选择强度按钮
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(-40 to "-40 极强", -55 to "-55 良好", -70 to "-70 一般", -85 to "-85 微弱").forEach { (lvl, lbl) ->
-                                val isChosen = level == lvl
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) AccentBlue else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
-                                        .noRippleClickable { level = lvl }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = lbl,
-                                        fontSize = 10.5.sp,
-                                        fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                                    )
-                                }
+                        val options = listOf(-40 to "-40 极强", -55 to "-55 良好", -70 to "-70 一般", -85 to "-85 微弱")
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                            options.forEachIndexed { index, (lvl, lbl) ->
+                                SegmentedButton(
+                                    selected = level == lvl,
+                                    onClick = { level = lvl },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                    icon = {},
+                                    label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -256,7 +244,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -268,28 +256,16 @@ fun EditWifiDialog(
                         )
                         Spacer(Modifier.height(6.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(2412 to "2.4G (2412)", 5180 to "5G (5180)", 5745 to "5.8G (5745)").forEach { (freq, lbl) ->
-                                val isChosen = frequency == freq
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) AccentBlue else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
-                                        .noRippleClickable { frequency = freq }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = lbl,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                                    )
-                                }
+                        val options = listOf(2412 to "2.4G (2412)", 5180 to "5G (5180)", 5745 to "5.8G (5745)")
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                            options.forEachIndexed { index, (freq, lbl) ->
+                                SegmentedButton(
+                                    selected = frequency == freq,
+                                    onClick = { frequency = freq },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                    icon = {},
+                                    label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -299,7 +275,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -326,7 +302,7 @@ fun EditWifiDialog(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (capabilities == cap) AccentBlue.copy(alpha = 0.15f) else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                                        .background(if (capabilities == cap) AccentBlue.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceContainerHigh)
                                         .noRippleClickable { capabilities = cap }
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
@@ -346,7 +322,7 @@ fun EditWifiDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
@@ -409,7 +385,7 @@ fun EditWifiDialog(
                             .weight(1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {

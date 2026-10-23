@@ -3,9 +3,6 @@ package com.vincenthzr.locationspoofer.viewmodel
 import com.vincenthzr.locationspoofer.ui.BuildConfig
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.data.db.LocationRecord
-import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
-import com.vincenthzr.locationspoofer.data.state.SpoofingState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay

@@ -550,7 +550,6 @@ fun LocationTab(
     if (spoofingUiState.showSaveDialog) {
         SaveNameDialog(
             title = stringResource(R.string.save_current_location),
-            isDark = isDark,
             onConfirm = { name ->
                 viewModel.saveCurrentLocation(name)
                 onIntent(SpoofingIntent.SetSaveDialogVisible(false))
@@ -562,7 +561,6 @@ fun LocationTab(
     if (spoofingUiState.showStartSpoofingDialog) {
         StartSpoofingDialog(
             uiState = uiState,
-            isDark = isDark,
             onDismiss = { onIntent(SpoofingIntent.SetStartSpoofingDialogVisible(false)) },
             onConfirm = {
                 viewModel.startSpoofing()
@@ -583,7 +581,6 @@ fun LocationTab(
         CustomCoordinateDialog(
             initialLat = uiState.latitudeInput,
             initialLng = uiState.longitudeInput,
-            isDark = isDark,
             onDismiss = { onIntent(SpoofingIntent.SetCustomCoordDialogVisible(false)) },
             onConfirm = { lat, lng ->
                 viewModel.updateLatitude(lat)

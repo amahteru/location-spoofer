@@ -10,14 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -35,7 +33,6 @@ import com.vincenthzr.locationspoofer.ui.screen.managedata.ModernEditDataDialog
 import com.vincenthzr.locationspoofer.ui.screen.managedata.SwipeableDataListItem
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.ui.components.MapCoverageHelper
 import com.vincenthzr.locationspoofer.viewmodel.FavoriteToggleResult
@@ -51,6 +48,7 @@ import com.vincenthzr.locationspoofer.viewmodel.syncFavoriteCoordinateIfExists
 import com.vincenthzr.locationspoofer.viewmodel.toggleCollectedLocationFavorite
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.components.AppBackButton
 
 @Composable
 fun ManageDataScreen(
@@ -107,7 +105,7 @@ fun ManageDataScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -122,29 +120,7 @@ fun ManageDataScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 独立立体圆形返回按键
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
-                        .border(
-                            width = 1.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(
-                                0xFFE5E8EC
-                            ),
-                            shape = CircleShape
-                        )
-                        .noRippleClickable(onClick = onClose),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
+                AppBackButton(onClick = onClose)
 
                 Spacer(Modifier.width(14.dp))
 
@@ -215,9 +191,7 @@ fun ManageDataScreen(
                                 .size(72.dp)
                                 .clip(RoundedCornerShape(22.dp))
                                 .background(
-                                    if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(
-                                        alpha = 0.03f
-                                    )
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -371,9 +345,9 @@ fun ManageDataScreen(
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        AppColors.background(isDark),
-                                        AppColors.background(isDark).copy(alpha = 0.85f),
-                                        AppColors.background(isDark).copy(alpha = 0.40f),
+                                        MaterialTheme.colorScheme.background,
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
                                         Color.Transparent
                                     )
                                 )
@@ -532,13 +506,13 @@ fun ManageDataScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(13.dp))
-                                .background(Color(0xFFE53935).copy(alpha = 0.12f)),
+                                .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Rounded.DeleteOutline,
                                 contentDescription = null,
-                                tint = Color(0xFFE53935),
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -568,9 +542,7 @@ fun ManageDataScreen(
                                 .height(42.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
-                                    if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                        alpha = 0.05f
-                                    )
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
                                 )
                                 .noRippleClickable { itemToDelete = null },
                             contentAlignment = Alignment.Center
@@ -588,7 +560,7 @@ fun ManageDataScreen(
                                 manageDataViewModel.deleteManageDataSingle(targetItem.location.id)
                                 itemToDelete = null
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935), contentColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .weight(1.2f)

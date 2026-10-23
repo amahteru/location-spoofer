@@ -13,13 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun CustomCoordinateDialog(
     initialLat: String,
     initialLng: String,
-    isDark: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (String, String) -> Unit
 ) {
@@ -33,7 +32,7 @@ fun CustomCoordinateDialog(
             initialLng
         )
     }
-    val textSecondary = AppColors.textSecondary(isDark)
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     val currentContext = androidx.compose.ui.platform.LocalContext.current
     val currentConfiguration = androidx.compose.ui.platform.LocalConfiguration.current

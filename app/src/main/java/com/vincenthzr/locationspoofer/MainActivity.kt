@@ -102,8 +102,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             MainScreen(
                                 viewModel = viewModel,
-                                uiState = uiState,
-                                isDark = isDark
+                                uiState = uiState
                             )
                         }
                     }
@@ -209,23 +208,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
-    uiState: com.vincenthzr.locationspoofer.data.model.AppState,
-    isDark: Boolean
+    uiState: com.vincenthzr.locationspoofer.data.model.AppState
 ) {
     when {
-        uiState.isInitializing -> InitializingScreen(isDark)
+        uiState.isInitializing -> InitializingScreen()
         !uiState.isLanguageSet -> LanguageSelectionScreen(viewModel)
         !uiState.hasRootAccess -> com.vincenthzr.locationspoofer.ui.screen.DataCollectionAssistScreen(
             viewModel = viewModel,
-            uiState = uiState,
-            isDark = isDark
+            uiState = uiState
         )
         !uiState.isLSPosedActive -> BlockingScreen(
             icon = Icons.Rounded.Extension,
             title = stringResource(R.string.lsposed_not_active),
-            message = stringResource(R.string.lsposed_message),
-            isDark = isDark
-        )
+            message = stringResource(R.string.lsposed_message))
         else -> com.vincenthzr.locationspoofer.ui.screen.MainScaffoldScreen(
             viewModel = viewModel,
             uiState = uiState

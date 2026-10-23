@@ -38,7 +38,6 @@ import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.exportEnvironmentData
 import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
@@ -62,9 +61,7 @@ private val REQUIRED_PERMISSIONS: List<String>
 @Composable
 fun DataCollectionAssistScreen(
     viewModel: MainViewModel,
-    uiState: AppState,
-    isDark: Boolean
-) {
+    uiState: AppState) {
     val context = LocalContext.current
 
     var missingPermissions by remember {
@@ -108,7 +105,7 @@ fun DataCollectionAssistScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier

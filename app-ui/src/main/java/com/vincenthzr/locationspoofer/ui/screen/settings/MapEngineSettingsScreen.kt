@@ -6,15 +6,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -38,10 +34,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.ui.components.ModernSettingsInput
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setAmapApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setBaiduApiKey
@@ -49,6 +42,8 @@ import com.vincenthzr.locationspoofer.viewmodel.setGoogleApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setKeepLastMapPosition
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppTopBar
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun MapEngineSettingsScreen(
@@ -67,59 +62,18 @@ fun MapEngineSettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
-                        .border(
-                            width = 1.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(
-                                0xFFE5E8EC
-                            ),
-                            shape = CircleShape
-                        )
-                        .noRippleClickable(onClick = onClose),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
-
-                Spacer(Modifier.width(14.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.map_config),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.map_engine_and_keys),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    )
-                }
-            }
+            AppTopBar(
+                title = stringResource(R.string.map_config),
+                subtitle = stringResource(R.string.map_engine_and_keys),
+                onBack = onClose
+            )
 
             Box(modifier = Modifier
                 .weight(1f)
@@ -177,38 +131,20 @@ fun MapEngineSettingsScreen(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                         Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            val engines = listOf(
+                        val engines = listOf(
                                 MapEngine.AUTO to stringResource(R.string.engine_auto_short),
                                 MapEngine.AMAP to stringResource(R.string.engine_amap_short),
                                 MapEngine.BAIDU to stringResource(R.string.engine_baidu_short),
                                 MapEngine.GOOGLE to stringResource(R.string.engine_google_short)
                             )
-                            engines.forEach { (engine, label) ->
-                                val isSelected = uiState.mapEngine == engine
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(
-                                            if (isSelected) AccentBlue
-                                            else if (isDark) Color.White.copy(alpha = 0.05f)
-                                            else Color.Black.copy(alpha = 0.04f)
-                                        )
-                                        .noRippleClickable { viewModel.setMapEngine(engine) }
-                                        .padding(vertical = 9.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = label,
-                                        color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 12.5.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                }
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                            engines.forEachIndexed { index, (engine, label) ->
+                                SegmentedButton(
+                                    selected = uiState.mapEngine == engine,
+                                    onClick = { viewModel.setMapEngine(engine) },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = engines.size),
+                                    label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
 
@@ -319,9 +255,9 @@ fun MapEngineSettingsScreen(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    AppColors.background(isDark),
-                                    AppColors.background(isDark).copy(alpha = 0.85f),
-                                    AppColors.background(isDark).copy(alpha = 0.40f),
+                                    MaterialTheme.colorScheme.background,
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
                                     Color.Transparent
                                 )
                             )

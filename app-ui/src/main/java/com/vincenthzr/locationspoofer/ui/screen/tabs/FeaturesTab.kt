@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +28,6 @@ import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.screen.AppCoordinateConfigCard
-import com.vincenthzr.locationspoofer.ui.screen.FooterLinks
 import com.vincenthzr.locationspoofer.ui.screen.ImportExportDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ManageDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ScannerMapCard
@@ -38,7 +36,6 @@ import com.vincenthzr.locationspoofer.ui.components.ImportExportSelectionDialog
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.applyImportPackage
 import com.vincenthzr.locationspoofer.viewmodel.collectExportCounts
@@ -55,7 +52,6 @@ fun FeaturesTab(
     onNavigateToManageData: () -> Unit,
     onNavigateToSystemHookApps: () -> Unit
 ) {
-    val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
 
     // 导出：先让用户选内容，再拉起系统选择器（SAF 必须在拉起前就知道要写什么）
@@ -140,7 +136,7 @@ fun FeaturesTab(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -185,7 +181,6 @@ fun FeaturesTab(
                 item {
                     ScannerMapCard(
                         uiState = uiState,
-                        isDark = isDark,
                         onClick = onNavigateToScanner
                     )
                 }
@@ -193,7 +188,6 @@ fun FeaturesTab(
                 // 2. 管理本地数据
                 item {
                     ManageDataCard(
-                        isDark = isDark,
                         onClick = onNavigateToManageData
                     )
                 }
@@ -201,7 +195,6 @@ fun FeaturesTab(
                 // 3. 配置应用坐标系
                 item {
                     AppCoordinateConfigCard(
-                        isDark = isDark,
                         onClick = onNavigateToCoordinate
                     )
                 }
@@ -211,7 +204,6 @@ fun FeaturesTab(
                     item {
                         SystemHookAppsConfigCard(
                             uiState = uiState,
-                            isDark = isDark,
                             onClick = onNavigateToSystemHookApps
                         )
                     }
@@ -220,7 +212,6 @@ fun FeaturesTab(
                 // 5. 导入与导出数据
                 item {
                     ImportExportDataCard(
-                        isDark = isDark,
                         onImportClick = {
                             importLauncher.launch(arrayOf("application/json", "*/*"))
                         },

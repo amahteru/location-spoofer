@@ -2,15 +2,11 @@ package com.vincenthzr.locationspoofer.ui.screen.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Shuffle
@@ -20,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
@@ -32,11 +27,8 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.GaitRecordingState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
-import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -49,12 +41,13 @@ import com.vincenthzr.locationspoofer.viewmodel.setUseGaitTemplate
 import com.vincenthzr.locationspoofer.viewmodel.startGaitRecording
 import kotlin.math.roundToInt
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppTopBar
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun MotionRealismScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     BackHandler(onBack = onClose)
@@ -71,55 +64,18 @@ fun MotionRealismScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
-                        .border(
-                            width = 1.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
-                            shape = CircleShape
-                        )
-                        .noRippleClickable(onClick = onClose),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
-                Spacer(Modifier.width(14.dp))
-                Column {
-                    Text(
-                        text = stringResource(R.string.motion_realism_title),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.motion_realism_desc),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    )
-                }
-            }
+            AppTopBar(
+                title = stringResource(R.string.motion_realism_title),
+                subtitle = stringResource(R.string.motion_realism_desc),
+                onBack = onClose
+            )
 
             Column(
                 modifier = Modifier
@@ -129,10 +85,10 @@ fun MotionRealismScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                RealismLevelCard(uiState, isDark) { viewModel.setRealismLevel(it) }
+                RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
                 SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
-                GaitCard(viewModel, uiState, isDark)
-                HintRow(stringResource(R.string.realism_next_session_hint), isDark)
+                GaitCard(viewModel, uiState)
+                HintRow(stringResource(R.string.realism_next_session_hint))
                 Spacer(Modifier.height(16.dp))
             }
         }
@@ -169,7 +125,7 @@ private fun CardHeader(icon: ImageVector, tint: Color, title: String, desc: Stri
 }
 
 @Composable
-private fun RealismLevelCard(uiState: AppState, isDark: Boolean, onSelect: (Int) -> Unit) {
+private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.Rounded.Shuffle,
@@ -184,29 +140,14 @@ private fun RealismLevelCard(uiState: AppState, isDark: Boolean, onSelect: (Int)
             MotionRealism.Level.MEDIUM to stringResource(R.string.realism_level_medium),
             MotionRealism.Level.HIGH to stringResource(R.string.realism_level_high)
         )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            levels.forEach { (level, label) ->
-                val selected = uiState.realismLevel == level.id
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            if (selected) AccentBlue
-                            else if (isDark) Color.White.copy(alpha = 0.05f)
-                            else Color.Black.copy(alpha = 0.04f)
-                        )
-                        .noRippleClickable { onSelect(level.id) }
-                        .padding(vertical = 9.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = label,
-                        color = if (selected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
-                        fontSize = 12.5.sp,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                    )
-                }
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            levels.forEachIndexed { index, (level, label) ->
+                SegmentedButton(
+                    selected = uiState.realismLevel == level.id,
+                    onClick = { onSelect(level.id) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = levels.size),
+                    label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                )
             }
         }
     }
@@ -246,7 +187,7 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
 }
 
 @Composable
-private fun GaitCard(viewModel: MainViewModel, uiState: AppState, isDark: Boolean) {
+private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
     AppCard(modifier = Modifier.fillMaxWidth(), cornerRadius = 18.dp, insideMargin = PaddingValues(16.dp)) {
         CardHeader(
             Icons.AutoMirrored.Rounded.DirectionsWalk,
@@ -343,17 +284,17 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState, isDark: Boolea
         }
 
         Spacer(Modifier.height(12.dp))
-        HintRow(stringResource(R.string.gait_scope_hint), isDark)
+        HintRow(stringResource(R.string.gait_scope_hint))
     }
 }
 
 @Composable
-private fun HintRow(text: String, isDark: Boolean) {
+private fun HintRow(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.Top
     ) {

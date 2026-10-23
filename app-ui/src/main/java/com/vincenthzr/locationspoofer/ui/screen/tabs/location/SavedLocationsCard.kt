@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,7 +26,6 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.util.Locale
 import com.vincenthzr.locationspoofer.ui.components.AppCard
@@ -38,14 +36,13 @@ fun SavedLocationsCard(
     modifier: Modifier = Modifier,
     savedLocations: List<SavedLocation>,
     panelState: LocationPanelState,
-    isDark: Boolean,
     onSelect: (SavedLocation) -> Unit,
     onDelete: (SavedLocation) -> Unit,
     onToggleExpand: () -> Unit,
     onOpenManageDialog: () -> Unit,
     dragGestureModifier: Modifier = Modifier
 ) {
-    val textSecondary = AppColors.textSecondary(isDark)
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     AppCard(
         modifier = modifier.fillMaxWidth(),
@@ -89,7 +86,7 @@ fun SavedLocationsCard(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
                         .background(
-                            if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+                            MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
@@ -137,7 +134,7 @@ fun SavedLocationsCard(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (isDark) Color.White.copy(alpha = 0.03f) else Color.Black.copy(alpha = 0.02f)
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                         .padding(vertical = 14.dp, horizontal = 12.dp)
                         .then(dragGestureModifier),
@@ -173,7 +170,6 @@ fun SavedLocationsCard(
                     ) { loc ->
                         SavedLocationItemRow(
                             location = loc,
-                            isDark = isDark,
                             onSelect = { onSelect(loc) },
                             onDelete = { onDelete(loc) }
                         )
@@ -187,7 +183,6 @@ fun SavedLocationsCard(
 @Composable
 fun SavedLocationItemRow(
     location: SavedLocation,
-    isDark: Boolean,
     onSelect: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -196,7 +191,7 @@ fun SavedLocationItemRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(
-                if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(alpha = 0.03f)
+                MaterialTheme.colorScheme.surfaceContainerHigh
             )
             .noRippleClickable(onClick = onSelect)
             .padding(horizontal = 12.dp, vertical = 8.dp),

@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.ui.screen.tabs.route
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -18,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -31,7 +29,6 @@ import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.saveRoute
@@ -41,13 +38,12 @@ import com.vincenthzr.locationspoofer.ui.components.AppCard
 fun SaveRouteDialog(
     routePoints: List<RoutePoint>,
     viewModel: MainViewModel,
-    isDark: Boolean = isSystemInDarkTheme(),
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var routeName by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
-    val textSecondary = AppColors.textSecondary(isDark)
+    val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -111,7 +107,7 @@ fun SaveRouteDialog(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
                         .background(
-                            if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f)
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                         )
                         .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
@@ -189,7 +185,7 @@ fun SaveRouteDialog(
                             .height(44.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
@@ -218,7 +214,7 @@ fun SaveRouteDialog(
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = AccentBlue,
-                            disabledContainerColor = if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(alpha = 0.08f),
+                            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                             disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                         ),
                         modifier = Modifier

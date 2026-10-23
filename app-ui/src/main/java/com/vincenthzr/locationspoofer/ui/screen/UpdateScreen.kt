@@ -4,22 +4,17 @@ import android.app.DownloadManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -32,7 +27,6 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
@@ -40,12 +34,12 @@ import com.vincenthzr.locationspoofer.viewmodel.UpdateViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setCheckBetaUpdates
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppBackButton
 
 @Composable
 fun UpdateScreen(
     updateViewModel: UpdateViewModel,
     viewModel: MainViewModel,
-    isDark: Boolean = isSystemInDarkTheme(),
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -96,7 +90,7 @@ fun UpdateScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // 主内容列表
         LazyColumn(
@@ -136,7 +130,6 @@ fun UpdateScreen(
                     hasNewVersion = hasNewVersion,
                     currentVersion = currentVersion,
                     latestRelease = latestRelease,
-                    isDark = isDark,
                     onCheckAgain = { updateViewModel.fetchReleases() },
                     onDownload = { url, version -> updateViewModel.startDownload(url, version) },
                     onInstall = { updateViewModel.installApk() },
@@ -225,9 +218,9 @@ fun UpdateScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            AppColors.background(isDark),
-                            AppColors.background(isDark).copy(alpha = 0.92f),
-                            AppColors.background(isDark).copy(alpha = 0.45f),
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.92f),
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.45f),
                             Color.Transparent
                         )
                     )
@@ -244,27 +237,7 @@ fun UpdateScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 独立的圆形立体纯白返回按钮
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                    .clip(CircleShape)
-                    .background(if (isDark) Color(0xFF22272E) else Color.White)
-                    .border(
-                        width = 1.dp,
-                        color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
-                        shape = CircleShape
-                    )
-                    .noRippleClickable(onClick = onBack),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
-                    tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                    modifier = Modifier.size(21.dp)
-                )
-            }
+            AppBackButton(onClick = onBack)
         }
     }
 }
@@ -275,7 +248,6 @@ private fun CurrentVersionHeroCard(
     hasNewVersion: Boolean,
     currentVersion: String,
     latestRelease: GithubRelease?,
-    isDark: Boolean,
     onCheckAgain: () -> Unit,
     onDownload: (String, String) -> Unit,
     onInstall: () -> Unit,
@@ -323,7 +295,7 @@ private fun CurrentVersionHeroCard(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f)
+                                MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
@@ -374,13 +346,13 @@ private fun CurrentVersionHeroCard(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE53935))
+                            .background(MaterialTheme.colorScheme.error)
                     )
                     Text(
                         text = stringResource(R.string.new_version_found_format, cleanLatestVersion),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFE53935)
+                        color = MaterialTheme.colorScheme.error
                     )
                     if (latestRelease.isPrerelease) {
                         Spacer(Modifier.width(4.dp))

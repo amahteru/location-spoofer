@@ -26,6 +26,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import java.util.Locale
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun EditBluetoothDialog(
@@ -94,7 +95,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {
@@ -120,7 +121,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -159,7 +160,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -198,7 +199,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -209,28 +210,20 @@ fun EditBluetoothDialog(
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(-45 to "-45 极近", -60 to "-60 良好", -75 to "-75 一般", -90 to "-90 较远").forEach { (lvl, lbl) ->
-                                val isChosen = rssi == lvl
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) Color(0xFF9C27B0) else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
-                                        .noRippleClickable { rssi = lvl }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = lbl,
-                                        fontSize = 10.5.sp,
-                                        fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                                    )
-                                }
+                        val options = listOf(-45 to "-45 极近", -60 to "-60 良好", -75 to "-75 一般", -90 to "-90 较远")
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                            options.forEachIndexed { index, (lvl, lbl) ->
+                                SegmentedButton(
+                                    selected = rssi == lvl,
+                                    onClick = { rssi = lvl },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                    colors = SegmentedButtonDefaults.colors(
+                                        activeContainerColor = Color(0xFF9C27B0),
+                                        activeContentColor = Color.White
+                                    ),
+                                    icon = {},
+                                    label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -240,7 +233,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -279,7 +272,7 @@ fun EditBluetoothDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
@@ -319,7 +312,7 @@ fun EditBluetoothDialog(
                             .weight(1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {

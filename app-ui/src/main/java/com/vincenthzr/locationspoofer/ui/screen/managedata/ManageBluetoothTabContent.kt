@@ -37,7 +37,7 @@ fun ManageBluetoothTabContent(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .border(
                 0.8.dp,
                 MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f),
@@ -158,9 +158,7 @@ fun ManageBluetoothTabContent(
                             .clip(RoundedCornerShape(12.dp))
                             .background(
                                 if (isSelected) tabColor.copy(alpha = 0.09f)
-                                else if (isDark) Color.White.copy(alpha = 0.03f) else Color.Black.copy(
-                                    alpha = 0.02f
-                                )
+                                else MaterialTheme.colorScheme.surfaceContainerHigh
                             )
                             .border(
                                 0.8.dp,
@@ -258,14 +256,14 @@ fun ManageBluetoothTabContent(
                                 modifier = Modifier
                                     .size(28.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFE53935).copy(alpha = 0.08f))
+                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.08f))
                                     .noRippleClickable { onDeleteBluetooth(bt.address) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Rounded.DeleteOutline,
                                     contentDescription = null,
-                                    tint = Color(0xFFE53935),
+                                    tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(14.dp)
                                 )
                             }

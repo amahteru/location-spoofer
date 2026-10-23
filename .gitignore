@@ -2,6 +2,8 @@
 *.DS_Store
 .idea/
 *.iml
+# IDE（如 VS Code Java/Kotlin 插件）生成的源码副本与编译输出
+bin/
 local.properties
 local.yml
 

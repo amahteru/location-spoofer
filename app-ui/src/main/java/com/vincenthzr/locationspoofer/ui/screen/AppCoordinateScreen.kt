@@ -13,14 +13,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -35,12 +33,11 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setAppCoordinateSystem
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 
 private enum class CoordinateFilterTab {
     All,
@@ -102,7 +99,7 @@ fun AppCoordinateScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -110,53 +107,11 @@ fun AppCoordinateScreen(
                 .statusBarsPadding()
         ) {
             // 顶部导航栏（独立圆形返回按键 + 标题）
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 独立立体圆形返回胶囊
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                        .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
-                        .border(
-                            width = 1.dp,
-                            color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(
-                                0xFFE5E8EC
-                            ),
-                            shape = CircleShape
-                        )
-                        .noRippleClickable(onClick = onBack),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                        modifier = Modifier.size(21.dp)
-                    )
-                }
-
-                Spacer(Modifier.width(14.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.custom_coordinate_algo),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(R.string.app_coord_subtitle),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    )
-                }
-            }
+            AppTopBar(
+                title = stringResource(R.string.custom_coordinate_algo),
+                subtitle = stringResource(R.string.app_coord_subtitle),
+                onBack = onBack
+            )
 
             // 搜索胶囊栏
             Box(
@@ -169,7 +124,7 @@ fun AppCoordinateScreen(
                         .fillMaxWidth()
                         .height(44.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(if (isDark) Color(0xFF22272E) else Color.White)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                         .border(
                             width = 0.8.dp,
                             color = if (isDark) Color.White.copy(alpha = 0.10f) else Color.Black.copy(
@@ -240,26 +195,11 @@ fun AppCoordinateScreen(
                     val isSelected = selectedFilter == tab
                     val label = tab.getLabel(customConfiguredCount)
 
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                if (isSelected) AccentBlue
-                                else if (isDark) Color.White.copy(alpha = 0.06f)
-                                else Color.Black.copy(alpha = 0.04f)
-                            )
-                            .noRippleClickable { selectedFilter = tab }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = label,
-                            fontSize = 12.5.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.7f
-                            )
-                        )
-                    }
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedFilter = tab },
+                        label = { Text(text = label) }
+                    )
                 }
             }
 
@@ -280,9 +220,7 @@ fun AppCoordinateScreen(
                                 .size(64.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(
-                                    if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(
-                                        alpha = 0.03f
-                                    )
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -342,9 +280,9 @@ fun AppCoordinateScreen(
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        AppColors.background(isDark),
-                                        AppColors.background(isDark).copy(alpha = 0.85f),
-                                        AppColors.background(isDark).copy(alpha = 0.40f),
+                                        MaterialTheme.colorScheme.background,
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
                                         Color.Transparent
                                     )
                                 )
@@ -397,9 +335,7 @@ private fun AppItemCard(
                     .size(46.dp)
                     .clip(RoundedCornerShape(13.dp))
                     .background(
-                        if (isDark) Color.White.copy(alpha = 0.05f) else Color.Black.copy(
-                            alpha = 0.03f
-                        )
+                        MaterialTheme.colorScheme.surfaceContainerHigh
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -430,9 +366,7 @@ private fun AppItemCard(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
-                                    if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(
-                                        alpha = 0.05f
-                                    )
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
                                 )
                                 .padding(horizontal = 5.dp, vertical = 1.dp)
                         ) {

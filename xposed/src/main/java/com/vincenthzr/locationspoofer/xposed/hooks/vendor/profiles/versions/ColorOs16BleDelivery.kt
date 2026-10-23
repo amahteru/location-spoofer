@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.Handler
 import android.os.SystemClock
-import android.os.WorkSource
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
 import com.vincenthzr.locationspoofer.xposed.hooks.network.buildScanRecordBytes
 import com.vincenthzr.locationspoofer.xposed.hooks.network.createBluetoothDevice

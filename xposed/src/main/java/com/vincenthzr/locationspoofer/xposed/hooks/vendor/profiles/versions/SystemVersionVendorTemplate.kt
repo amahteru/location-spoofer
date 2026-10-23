@@ -2,8 +2,6 @@
 
 package com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.versions
 
-import com.vincenthzr.locationspoofer.xposed.LocationHooker
-import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemComponent
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.SystemVersionVendor
 import com.vincenthzr.locationspoofer.vendor.VendorProfile
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.HyperOsVendor

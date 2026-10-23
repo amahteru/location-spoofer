@@ -17,9 +17,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// 品牌种子色：Android 12 以下无系统动态取色时，用它按 MD3 Tonal Spot 算法生成整套配色
-val SeedBlue = Color(0xFF388BFD)
-
 // 强调色跟随当前配色方案的 primary（动态取色时即系统壁纸色）
 val AccentBlue: Color
     @Composable @ReadOnlyComposable
@@ -34,7 +31,7 @@ val OnAccentBlue: Color
 val AccentGreen = Color(0xFF2EA043)
 val AccentOrange = Color(0xFFD29922)
 
-// 由 SeedBlue 通过 material-color-utilities（Tonal Spot，2021 规范）生成
+// Android 12 以下无系统动态取色时的回退配色：由品牌种子色 #388BFD 通过 material-color-utilities（Tonal Spot，2021 规范）生成
 val AppColorSchemeLight = lightColorScheme(
     primary = Color(0xFF415E91),
     onPrimary = Color(0xFFFFFFFF),
@@ -122,23 +119,6 @@ fun appColorScheme(isDark: Boolean): ColorScheme {
         isDark -> AppColorSchemeDark
         else -> AppColorSchemeLight
     }
-}
-
-object AppColors {
-    @Composable @ReadOnlyComposable
-    fun textSecondary(@Suppress("UNUSED_PARAMETER") isDark: Boolean) = MaterialTheme.colorScheme.onSurfaceVariant
-
-    @Composable @ReadOnlyComposable
-    fun surface(@Suppress("UNUSED_PARAMETER") isDark: Boolean) = MaterialTheme.colorScheme.surface
-
-    @Composable @ReadOnlyComposable
-    fun cardBackground(@Suppress("UNUSED_PARAMETER") isDark: Boolean) = MaterialTheme.colorScheme.surfaceContainer
-
-    @Composable @ReadOnlyComposable
-    fun topBarBackground(@Suppress("UNUSED_PARAMETER") isDark: Boolean) = MaterialTheme.colorScheme.surfaceContainer
-
-    @Composable @ReadOnlyComposable
-    fun background(@Suppress("UNUSED_PARAMETER") isDark: Boolean) = MaterialTheme.colorScheme.background
 }
 
 /**

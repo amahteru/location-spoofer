@@ -2,15 +2,11 @@ package com.vincenthzr.locationspoofer.ui.screen.settings
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Info
@@ -20,11 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vincenthzr.locationspoofer.data.model.HookStatusReport
@@ -39,19 +33,20 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.OnAccentBlue
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setVendorScheme
 import kotlinx.coroutines.launch
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppBackButton
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VendorSchemeScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean = isSystemInDarkTheme(),
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
@@ -96,7 +91,6 @@ fun VendorSchemeScreen(
             onRefresh = { refreshHookStatus() },
             debugDump = uiState.debugDumpSystemServices,
             onDebugDumpChange = { viewModel.setDebugDumpSystemServices(it) },
-            isDark = isDark,
             onClose = { showHookStatus = false }
         )
         return
@@ -107,7 +101,6 @@ fun VendorSchemeScreen(
             document = document,
             loading = loading,
             onRefresh = { refresh() },
-            isDark = isDark,
             onClose = { showFullProgress = false }
         )
         return
@@ -118,7 +111,7 @@ fun VendorSchemeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -128,7 +121,6 @@ fun VendorSchemeScreen(
             SettingsPageHeader(
                 title = stringResource(R.string.system_adaptation_title),
                 subtitle = null,
-                isDark = isDark,
                 onBack = onClose
             )
 
@@ -188,42 +180,16 @@ fun VendorSchemeScreen(
                         VendorScheme.ONEUI to stringResource(R.string.vendor_scheme_oneui),
                         VendorScheme.AOSP to stringResource(R.string.vendor_scheme_aosp)
                     )
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        schemes.chunked(3).forEach { rowItems ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                rowItems.forEach { (scheme, label) ->
-                                    val isSelected = uiState.vendorScheme == scheme
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .background(
-                                                if (isSelected) AccentBlue
-                                                else if (isDark) Color.White.copy(alpha = 0.05f)
-                                                else Color.Black.copy(alpha = 0.04f)
-                                            )
-                                            .noRippleClickable { viewModel.setVendorScheme(scheme) }
-                                            .padding(vertical = 9.dp, horizontal = 4.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = label,
-                                            color = if (isSelected) OnAccentBlue else MaterialTheme.colorScheme.onSurface,
-                                            fontSize = 11.5.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                                // 补齐最后一行未占满的格子，保持每格等宽
-                                repeat(3 - rowItems.size) {
-                                    Spacer(Modifier.weight(1f))
-                                }
-                            }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        schemes.forEach { (scheme, label) ->
+                            FilterChip(
+                                selected = uiState.vendorScheme == scheme,
+                                onClick = { viewModel.setVendorScheme(scheme) },
+                                label = { Text(text = label) }
+                            )
                         }
                     }
 
@@ -234,7 +200,7 @@ fun VendorSchemeScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f)
+                                MaterialTheme.colorScheme.surfaceContainerHigh
                             )
                             .padding(horizontal = 12.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.Top
@@ -325,7 +291,6 @@ private fun NavigationRowCard(
 internal fun SettingsPageHeader(
     title: String,
     subtitle: String?,
-    isDark: Boolean,
     onBack: () -> Unit,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -335,27 +300,7 @@ internal fun SettingsPageHeader(
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                .clip(CircleShape)
-                .background(if (isDark) Color(0xFF22272E) else Color.White)
-                .border(
-                    width = 1.dp,
-                    color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
-                    shape = CircleShape
-                )
-                .noRippleClickable(onClick = onBack),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = stringResource(R.string.back),
-                tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                modifier = Modifier.size(21.dp)
-            )
-        }
+        AppBackButton(onClick = onBack)
 
         Spacer(Modifier.width(14.dp))
 

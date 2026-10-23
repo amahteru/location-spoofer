@@ -10,17 +10,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.MyLocation
-import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +33,6 @@ import com.vincenthzr.locationspoofer.ui.components.AppMapView
 import com.vincenthzr.locationspoofer.ui.components.MapTypeDialog
 import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentGreen
-import com.vincenthzr.locationspoofer.ui.theme.AppColors
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
 import com.vincenthzr.locationspoofer.ui.components.MapCoverageHelper
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -44,14 +40,13 @@ import com.vincenthzr.locationspoofer.viewmodel.fetchCurrentLocation
 import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.viewmodel.setMapType
-import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.components.AppBackButton
 
 @Composable
 fun ScannerMapScreen(
     viewModel: MainViewModel,
     uiState: AppState,
-    isDark: Boolean,
     onClose: () -> Unit
 ) {
     BackHandler(onBack = onClose)
@@ -97,7 +92,7 @@ fun ScannerMapScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.background(isDark))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         AppMapView(
             mapEngine = uiState.mapEngine,
@@ -123,27 +118,7 @@ fun ScannerMapScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 独立立体圆形返回按钮（替换原先的 x 图标）
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
-                    .clip(CircleShape)
-                    .background(if (isDark) Color(0xFF22272E) else Color.White)
-                    .border(
-                        width = 1.dp,
-                        color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
-                        shape = CircleShape
-                    )
-                    .noRippleClickable(onClick = onClose),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = stringResource(R.string.back),
-                    tint = if (isDark) Color.White else Color(0xFF1A1D20),
-                    modifier = Modifier.size(21.dp)
-                )
-            }
+            AppBackButton(onClick = onClose)
 
             // 状态指示胶囊
             Box(
@@ -151,10 +126,10 @@ fun ScannerMapScreen(
                     .height(44.dp)
                     .shadow(elevation = 6.dp, shape = RoundedCornerShape(22.dp), clip = false)
                     .clip(RoundedCornerShape(22.dp))
-                    .background(if (isDark) Color(0xFF22272E) else Color.White)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .border(
                         width = 1.dp,
-                        color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
+                        color = MaterialTheme.colorScheme.outlineVariant,
                         shape = RoundedCornerShape(22.dp)
                     )
                     .padding(horizontal = 16.dp),
@@ -252,10 +227,10 @@ fun ScannerMapScreen(
                     .size(44.dp)
                     .shadow(elevation = 6.dp, shape = CircleShape, clip = false)
                     .clip(CircleShape)
-                    .background(if (isDark) Color(0xFF22272E) else Color.White)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     .border(
                         width = 1.dp,
-                        color = if (isDark) Color.White.copy(alpha = 0.14f) else Color(0xFFE5E8EC),
+                        color = MaterialTheme.colorScheme.outlineVariant,
                         shape = CircleShape
                     )
                     .noRippleClickable { showMapTypeDialog = true },

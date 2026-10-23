@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.ui.theme.AccentBlue
 import com.vincenthzr.locationspoofer.ui.theme.AccentOrange
 import com.vincenthzr.locationspoofer.ui.theme.noRippleClickable
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun EditCellDialog(
@@ -113,7 +113,7 @@ fun EditCellDialog(
                         modifier = Modifier
                             .size(28.dp)
                             .clip(CircleShape)
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {
@@ -139,7 +139,7 @@ fun EditCellDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -160,7 +160,7 @@ fun EditCellDialog(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) AccentOrange else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
+                                        .background(if (isChosen) AccentOrange else MaterialTheme.colorScheme.surfaceContainerHigh)
                                         .noRippleClickable { type = t }
                                         .padding(vertical = 6.dp),
                                     contentAlignment = Alignment.Center
@@ -185,7 +185,7 @@ fun EditCellDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
@@ -213,7 +213,7 @@ fun EditCellDialog(
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
@@ -243,7 +243,7 @@ fun EditCellDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -276,7 +276,7 @@ fun EditCellDialog(
                             modifier = Modifier
                                 .weight(1.2f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
@@ -304,7 +304,7 @@ fun EditCellDialog(
                             modifier = Modifier
                                 .weight(0.8f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
@@ -334,7 +334,7 @@ fun EditCellDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -345,28 +345,20 @@ fun EditCellDialog(
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(Modifier.height(6.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            listOf(-65 to "-65 极强", -80 to "-80 良好", -95 to "-95 一般", -110 to "-110 微弱").forEach { (lvl, lbl) ->
-                                val isChosen = dbm == lvl
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isChosen) AccentOrange else if (isDark) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.04f))
-                                        .noRippleClickable { dbm = lvl }
-                                        .padding(vertical = 6.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = lbl,
-                                        fontSize = 10.5.sp,
-                                        fontWeight = if (isChosen) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isChosen) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
-                                    )
-                                }
+                        val options = listOf(-65 to "-65 极强", -80 to "-80 良好", -95 to "-95 一般", -110 to "-110 微弱")
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                            options.forEachIndexed { index, (lvl, lbl) ->
+                                SegmentedButton(
+                                    selected = dbm == lvl,
+                                    onClick = { dbm = lvl },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                    colors = SegmentedButtonDefaults.colors(
+                                        activeContainerColor = AccentOrange,
+                                        activeContentColor = Color.White
+                                    ),
+                                    icon = {},
+                                    label = { Text(text = lbl, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -376,7 +368,7 @@ fun EditCellDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.04f) else Color.Black.copy(alpha = 0.03f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                             .border(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = if (isDark) 0.12f else 0.06f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
@@ -436,7 +428,7 @@ fun EditCellDialog(
                             .weight(1f)
                             .height(42.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isDark) Color.White.copy(alpha = 0.08f) else Color.Black.copy(alpha = 0.05f))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .noRippleClickable(onClick = onDismiss),
                         contentAlignment = Alignment.Center
                     ) {
