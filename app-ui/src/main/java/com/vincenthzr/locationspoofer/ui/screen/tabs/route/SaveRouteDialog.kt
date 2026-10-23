@@ -74,7 +74,7 @@ fun SaveRouteDialog(
         },
         confirmButton = {
             TextButton(onClick = save, enabled = routeName.isNotBlank()) {
-                Text(stringResource(R.string.save))
+                Text(stringResource(R.string.bookmark))
             }
         },
         dismissButton = {

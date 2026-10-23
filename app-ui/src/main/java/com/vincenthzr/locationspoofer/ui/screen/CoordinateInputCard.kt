@@ -51,7 +51,7 @@ fun CoordinateInputCard(
                 ) {
                     Icon(Icons.Rounded.StarBorder, null, modifier = Modifier.size(ButtonDefaults.IconSize))
                     Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.save))
+                    Text(stringResource(R.string.bookmark))
                 }
             }
         }

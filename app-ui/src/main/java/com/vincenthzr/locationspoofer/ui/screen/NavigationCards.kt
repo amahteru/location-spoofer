@@ -46,7 +46,7 @@ fun AppCoordinateConfigCard(onClick: () -> Unit) {
 @Composable
 fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
     val statusDesc = if (uiState.isSystemHookGlobalMode) {
-        stringResource(R.string.system_hook_global_mode_title) + "（所有应用生效）"
+        stringResource(R.string.system_hook_global_mode_summary)
     } else if (uiState.systemHookPackages.isNotEmpty()) {
         stringResource(R.string.selected_count_format, uiState.systemHookPackages.size)
     } else {

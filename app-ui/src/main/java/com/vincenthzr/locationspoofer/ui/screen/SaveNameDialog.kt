@@ -62,7 +62,7 @@ fun SaveNameDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.save))
+                Text(stringResource(R.string.bookmark))
             }
         },
         dismissButton = {

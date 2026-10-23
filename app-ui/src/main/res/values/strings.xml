@@ -14,7 +14,7 @@
     <string name="save_current_location">Save Current Location</string>
     <string name="name">Name</string>
     <string name="save">Save</string>
-    <string name="saved_locations">Collection List</string>
+    <string name="saved_locations">Saved Locations</string>
     <string name="target_coordinates">Target Coordinates</string>
     <string name="longitude">Longitude</string>
     <string name="latitude">Latitude</string>
@@ -27,7 +27,7 @@
     <string name="delete">Delete</string>
     <string name="search">Search</string>
     <string name="root_required">Root Access Required</string>
-    <string name="root_message">This application requires KernelSU Root access to run.\nPlease authorize in KernelSU and restart the app.</string>
+    <string name="root_message">This app requires root access.\nPlease grant it in your root manager and restart the app.</string>
     <string name="root_solution_title">Root Solution</string>
     <string name="root_solution_desc">Record your root solution for troubleshooting; configuration is delivered by the framework</string>
     <string name="root_solution_auto">Auto</string>
@@ -226,7 +226,7 @@
     <string name="brand_telegram">Telegram</string>
     <string name="route_name">Route Name</string>
     <string name="save_success">Saved successfully!</string>
-    <string name="route_library">Route Library</string>
+    <string name="route_library">Saved Routes</string>
     <string name="no_saved_routes">No saved routes</string>
     <string name="route_nodes_count">%d points</string>
     <string name="custom_wigle_token">WiGLE API Token (Basic Auth Base64)</string>
@@ -356,7 +356,7 @@
     <string name="go_to_settings">Go to Settings</string>
     <string name="app_info_settings_title">Autostart &amp; permissions</string>
     <string name="app_info_settings_desc">Recommend enabling Autostart and setting Battery Saver to Unrestricted</string>
-    <string name="env_datasource_tokens_title">Environment Data Source Tokens</string>
+    <string name="env_datasource_tokens_title">Environment Data Source Keys</string>
     <string name="env_datasource_tokens_desc">Used for online retrieval of nearby cell tower and Wi-Fi signals</string>
     <string name="map_layers">Map Layers</string>
     <string name="local_collected_datasource">Local Collected Data</string>
@@ -535,4 +535,6 @@ Error details: %s</string>
     <string name="collection_route_delete_title">Delete collected route</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
     <string name="local_collection_records_count">%1$d points · %2$d routes</string>
+    <string name="system_hook_global_mode_summary">Global mode (all apps)</string>
+    <string name="cadence_value_format">%1$d spm (≈%2$s steps/s)</string>
 </resources>

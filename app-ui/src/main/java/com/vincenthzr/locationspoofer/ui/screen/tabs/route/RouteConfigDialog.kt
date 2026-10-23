@@ -189,7 +189,7 @@ fun RouteConfigDialog(
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            "${cadenceSlider.toInt()} 步/分 (约 ${String.format(Locale.US, "%.1f", cadenceSlider / 60.0)} 步/秒)",
+                            stringResource(R.string.cadence_value_format, cadenceSlider.toInt(), String.format(Locale.US, "%.1f", cadenceSlider / 60.0)),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
