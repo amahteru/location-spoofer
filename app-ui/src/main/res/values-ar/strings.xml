@@ -75,7 +75,7 @@
     <string name="env_data_sharing_desc">تصدير الخريطة أو استيراد ودمج بيانات الآخرين</string>
     <string name="import_data">استيراد</string>
     <string name="export_data">تصدير</string>
-    <string name="no_hooked_apps">لم يتم العثور على تطبيقات مستهدفة مع Hook أو لم يتم تحديدها</string>
+    <string name="no_hooked_apps">لا توجد تطبيقات مستهدفة مع Hook</string>
     <string name="gcj02_desc">إحداثيات المريخ (الافتراضية لخرائط البر الرئيسي للصين، مثل AMap/WeChat)</string>
     <string name="wgs84_desc">معيار GPS الدولي (الافتراضي للخرائط الأجنبية، مثل Google Maps)</string>
     <string name="bd09_desc">إحداثيات بايدو (حصرية لخرائط بايدو)</string>
@@ -218,10 +218,10 @@
     <string name="reading_signature">جارٍ قراءة التوقيع...</string>
     <string name="background_keep_alive_title">المحاكاة في الخلفية والبقاء نشطًا</string>
     <string name="background_keep_alive_desc">يضمن استمرار المحاكاة في الخلفية وشاشة القفل</string>
-    <string name="ignore_battery_optimizations_title">تشغيل غير مقيد في الخلفية (تجاهل تحسين البطارية)</string>
+    <string name="ignore_battery_optimizations_title">تجاهل تحسين البطارية</string>
     <string name="ignore_battery_optimizations_desc">يمنع النظام من تجميد عملية المحاكاة عند قفل الشاشة أو تبديل التطبيقات</string>
     <string name="go_to_settings">الانتقال إلى الإعدادات</string>
-    <string name="app_info_settings_title">إعدادات التطبيق في النظام (الأذونات والتشغيل التلقائي)</string>
+    <string name="app_info_settings_title">التشغيل التلقائي والأذونات</string>
     <string name="app_info_settings_desc">يُوصى بتمكين التشغيل التلقائي وضبط توفير البطارية إلى غير مقيد</string>
     <string name="env_datasource_tokens_title">رموز مصادر بيانات البيئة</string>
     <string name="env_datasource_tokens_desc">تُستخدم للبحث عبر الإنترنت عن أبراج الاتصال وإشارات Wi-Fi القريبة</string>

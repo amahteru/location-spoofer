@@ -267,7 +267,8 @@ fun ModernEditDataDialog(
                 OutlinedTextField(
                     value = placeName,
                     onValueChange = { placeName = it },
-                    label = { Text(stringResource(R.string.set_place_name_hint)) },
+                    label = { Text(stringResource(R.string.collection_location_name)) },
+                    placeholder = { Text(stringResource(R.string.set_place_name_hint)) },
                     leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null) },
                     trailingIcon = if (placeName.isNotEmpty()) {
                         { IconButton(onClick = { placeName = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = null) } }
@@ -278,7 +279,8 @@ fun ModernEditDataDialog(
                 OutlinedTextField(
                     value = remark,
                     onValueChange = { remark = it },
-                    label = { Text(stringResource(R.string.add_remark_hint)) },
+                    label = { Text(stringResource(R.string.remark_note)) },
+                    placeholder = { Text(stringResource(R.string.add_remark_hint)) },
                     leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Notes, contentDescription = null) },
                     trailingIcon = if (remark.isNotEmpty()) {
                         { IconButton(onClick = { remark = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = null) } }

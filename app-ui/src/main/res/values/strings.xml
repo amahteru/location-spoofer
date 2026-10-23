@@ -183,7 +183,7 @@
     <string name="custom_coordinate_algo">Custom Coordinate Algorithm</string>
     <string name="config_app_coordinate">Configure App Coordinate System</string>
     <string name="config_app_coordinate_desc">Fix static offsets and customize underlying coordinates per app</string>
-    <string name="system_hook_apps_title">System-Level Mock (Global / Selected)</string>
+    <string name="system_hook_apps_title">System-level mock</string>
     <string name="system_hook_apps_card_desc">Only system framework hook needed, supports global spoofing or app whitelist</string>
     <string name="system_hook_apps_subtitle">Spoofs location and radio environment at system_server layer</string>
     <string name="system_hook_apps_warning">System Framework Solution: Intercepts and dispatches fake location, GNSS satellites, and Wi-Fi/Cell directly at system services. You only need to keep \"System Framework\" in LSPosed scope — target app processes stay 100% clean with zero Xposed footprint, completely bypassing anti-cheat detections!</string>
@@ -200,7 +200,7 @@
     <string name="env_data_sharing_desc">Backup or merge local environmental data in JSON format</string>
     <string name="import_data">Import</string>
     <string name="export_data">Export</string>
-    <string name="no_hooked_apps">No hooked target apps found or selected</string>
+    <string name="no_hooked_apps">No hooked target apps</string>
     <string name="gcj02_desc">Mars Coordinate (Default for Mainland China maps, e.g., AMap/WeChat)</string>
     <string name="wgs84_desc">International Standard GPS (Default for foreign maps, e.g., Google Maps)</string>
     <string name="bd09_desc">Baidu Coordinate (Baidu Maps exclusive)</string>
@@ -214,7 +214,7 @@
     <string name="mock_cell_data">Mock Cell Tower Data</string>
     <string name="mock_bluetooth_data">Mock Bluetooth Data</string>
     <string name="enable_slight_jitter">Enable Slight Jitter</string>
-    <string name="restart_apps_on_spoof">Restart Target Apps on Start</string>
+    <string name="restart_apps_on_spoof">Restart target apps</string>
     <string name="app_package_name">App Package Name</string>
     <string name="no_data_collected">No data collected.</string>
     <string name="edit_location_data">Edit Location Data</string>
@@ -351,10 +351,10 @@
     <string name="reading_signature">Reading signature...</string>
     <string name="background_keep_alive_title">Background Simulation &amp; Keep-Alive</string>
     <string name="background_keep_alive_desc">Ensures continuous simulation in background, lock screen, and full screen</string>
-    <string name="ignore_battery_optimizations_title">Unrestricted Background Running (Ignore Battery Optimizations)</string>
+    <string name="ignore_battery_optimizations_title">Ignore battery optimization</string>
     <string name="ignore_battery_optimizations_desc">Prevents the system from freezing simulation process when screen is locked or switching apps</string>
     <string name="go_to_settings">Go to Settings</string>
-    <string name="app_info_settings_title">System App Settings (Permissions &amp; Autostart)</string>
+    <string name="app_info_settings_title">Autostart &amp; permissions</string>
     <string name="app_info_settings_desc">Recommend enabling Autostart and setting Battery Saver to Unrestricted</string>
     <string name="env_datasource_tokens_title">Environment Data Source Tokens</string>
     <string name="env_datasource_tokens_desc">Used for online retrieval of nearby cell tower and Wi-Fi signals</string>
@@ -482,7 +482,7 @@ Error details: %s</string>
     <string name="category_saved_locations">Saved locations</string>
     <string name="category_saved_routes">Saved routes</string>
     <string name="category_app_coordinates">Per-app coordinate systems</string>
-    <string name="category_app_settings">App settings (simulation params, map preferences)</string>
+    <string name="category_app_settings">App settings</string>
     <string name="category_api_keys">API keys</string>
     <string name="category_api_keys_warning">Personal credentials. Do not include when sharing with others</string>
     <string name="category_with_count">%1$s (%2$d)</string>
