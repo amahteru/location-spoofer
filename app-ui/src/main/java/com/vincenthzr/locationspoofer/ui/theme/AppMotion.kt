@@ -1,7 +1,13 @@
 package com.vincenthzr.locationspoofer.ui.theme
 
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.ui.Modifier
 
 /**
  * M3 标准动效方案（Standard MotionScheme）的弹簧参数，数值取自 Compose Material3 的 StandardMotionTokens。
@@ -12,8 +18,20 @@ import androidx.compose.animation.core.spring
 object AppMotion {
     fun <T> defaultSpatialSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 0.9f, stiffness = 700f)
     fun <T> fastSpatialSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 0.9f, stiffness = 1400f)
-    fun <T> slowSpatialSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 0.9f, stiffness = 300f)
+    // 整页左右滑动专用：临界阻尼不回弹，避免页面滑过头时在屏幕边缘露出底下的地图或页面
+    fun <T> pageSlideSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 700f)
     fun <T> defaultEffectsSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 1600f)
     fun <T> fastEffectsSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 3800f)
-    fun <T> slowEffectsSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 800f)
+
+    /** 同级页面整页左右切换：direction 为 1 时新页从右侧滑入，为 -1 时从左侧滑入 */
+    fun pageSlideTransition(direction: Int): ContentTransform =
+        slideInHorizontally(pageSlideSpec()) { width -> width * direction } togetherWith
+            slideOutHorizontally(pageSlideSpec()) { width -> -width * direction }
 }
+
+/** 列表项增删、重排的统一动画 */
+fun LazyItemScope.animateListItem(): Modifier = Modifier.animateItem(
+    fadeInSpec = AppMotion.defaultEffectsSpec(),
+    placementSpec = AppMotion.defaultSpatialSpec(),
+    fadeOutSpec = AppMotion.fastEffectsSpec()
+)

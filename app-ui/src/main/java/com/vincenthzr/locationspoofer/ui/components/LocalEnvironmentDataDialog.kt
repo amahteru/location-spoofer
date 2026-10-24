@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.AnimatedContent
 import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import com.vincenthzr.locationspoofer.ui.theme.animateListItem
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -196,12 +197,12 @@ fun LocalEnvironmentDataDialog(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                            Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            Box(animateListItem()) {
                                 CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
                             }
                         }
                         items(filteredList, key = { it.location.id }) { item ->
-                            Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                            Box(animateListItem()) {
                                 LocalDataItem(
                                     item = item,
                                     timeStr = timeFormat.format(Date(item.location.timestamp)),

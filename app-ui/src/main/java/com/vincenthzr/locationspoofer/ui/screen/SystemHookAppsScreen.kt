@@ -1,6 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import com.vincenthzr.locationspoofer.ui.theme.animateListItem
 import com.vincenthzr.locationspoofer.ui.theme.onWarningContainer
 import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
@@ -256,7 +256,7 @@ fun SystemHookAppsScreen(
                 }
             } else {
                 items(appsToShow, key = { it.packageName }) { app ->
-                    Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                    Box(animateListItem()) {
                         SystemHookAppItemCard(
                             appInfo = app,
                             isSelected = uiState.systemHookPackages.contains(app.packageName),

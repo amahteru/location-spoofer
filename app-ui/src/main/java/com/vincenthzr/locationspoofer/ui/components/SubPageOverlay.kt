@@ -19,8 +19,8 @@ import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 fun SubPageOverlay(visible: Boolean, content: @Composable () -> Unit) {
     AnimatedVisibility(
         visible = visible,
-        enter = slideInHorizontally(AppMotion.defaultSpatialSpec()) { width -> width },
-        exit = slideOutHorizontally(AppMotion.defaultSpatialSpec()) { width -> width }
+        enter = slideInHorizontally(AppMotion.pageSlideSpec()) { width -> width },
+        exit = slideOutHorizontally(AppMotion.pageSlideSpec()) { width -> width }
     ) {
         Box(
             modifier = Modifier

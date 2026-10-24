@@ -1,7 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
 import androidx.compose.foundation.layout.Box
-import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import com.vincenthzr.locationspoofer.ui.theme.animateListItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,7 +39,7 @@ fun SavedLocationsDialog(
         } else {
             LazyColumn {
                 items(savedLocations, key = { "${it.name}_${it.lat}_${it.lng}" }) { loc ->
-                    Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                    Box(animateListItem()) {
                         SavedLocationRow(loc, onSelect = { onSelect(loc) }, onDelete = { onDelete(loc) })
                     }
                 }

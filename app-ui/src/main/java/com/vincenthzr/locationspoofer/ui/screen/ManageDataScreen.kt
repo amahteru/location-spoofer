@@ -1,6 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
-import com.vincenthzr.locationspoofer.ui.theme.AppMotion
+import com.vincenthzr.locationspoofer.ui.theme.animateListItem
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
@@ -199,7 +199,7 @@ fun ManageDataScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                        Box(animateListItem()) {
                             com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
                                 route,
                                 onClick = {
@@ -212,7 +212,7 @@ fun ManageDataScreen(
                         }
                     }
                     items(dataList, key = { it.location.id }) { item ->
-                        Box(Modifier.animateItem(fadeInSpec = AppMotion.defaultEffectsSpec(), placementSpec = AppMotion.defaultSpatialSpec(), fadeOutSpec = AppMotion.fastEffectsSpec())) {
+                        Box(animateListItem()) {
                             DataListItem(
                                 item = item,
                                 isFavorited = favoritedLocationIds.contains(item.location.id) ||

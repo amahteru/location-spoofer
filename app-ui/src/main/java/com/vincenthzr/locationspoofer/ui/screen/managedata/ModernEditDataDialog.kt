@@ -1,9 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.managedata
 
 import com.vincenthzr.locationspoofer.ui.theme.AppMotion
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.AnimatedContent
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.automirrored.rounded.Notes
@@ -315,13 +312,11 @@ fun ModernEditDataDialog(
                     }
                 }
 
-                // 选项卡内容区：同级内容，按选项卡顺序左右滑动（M3 标准位移弹簧）
+                // 选项卡内容区：同级内容，按选项卡顺序左右滑动
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
-                        val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
-                        slideInHorizontally(AppMotion.defaultSpatialSpec()) { width -> width * direction }
-                            .togetherWith(slideOutHorizontally(AppMotion.defaultSpatialSpec()) { width -> -width * direction })
+                        AppMotion.pageSlideTransition(if (targetState.ordinal > initialState.ordinal) 1 else -1)
                     },
                     label = "edit_data_tab"
                 ) { tab ->

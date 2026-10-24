@@ -224,13 +224,11 @@ fun MainScaffoldScreen(
                     }
                 }
 
-                // 底部 Tab 内容切换：整页左右滑动，按 Tab 顺序决定方向，使用 M3 标准位移弹簧
+                // 底部 Tab 内容切换：整页左右滑动，按 Tab 顺序决定方向
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
-                        val direction = if (targetState > initialState) 1 else -1
-                        slideInHorizontally(motion.defaultSpatialSpec()) { width -> width * direction }
-                            .togetherWith(slideOutHorizontally(motion.defaultSpatialSpec()) { width -> -width * direction })
+                        motion.pageSlideTransition(if (targetState > initialState) 1 else -1)
                     },
                     label = "main_tabs_transition"
                 ) { targetTab ->
