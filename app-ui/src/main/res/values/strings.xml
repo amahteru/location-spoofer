@@ -144,7 +144,6 @@
     <string name="lsposed_not_active">LSPosed module not active</string>
     <string name="lsposed_message">Enable this module in LSPosed Manager,
 select the apps to simulate, then restart them.</string>
-    <string name="initializing_env">Initializing…</string>
     <string name="select_language">Language</string>
     <string name="walking">Walking</string>
     <string name="running">Running</string>

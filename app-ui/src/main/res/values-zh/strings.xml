@@ -147,7 +147,6 @@
     <string name="data_collection_permission_missing">采集数据需要定位、电话状态、蓝牙权限。</string>
     <string name="lsposed_not_active">LSPosed 模块未激活</string>
     <string name="lsposed_message">请在 LSPosed 管理器中启用本模块，\n勾选需要模拟的应用后重启目标应用。</string>
-    <string name="initializing_env">正在初始化环境…</string>
     <string name="select_language">选择语言</string>
     <string name="walking">步行</string>
     <string name="running">跑步</string>

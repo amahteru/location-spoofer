@@ -24,7 +24,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.screen.BlockingScreen
-import com.vincenthzr.locationspoofer.ui.screen.InitializingScreen
 import com.vincenthzr.locationspoofer.ui.screen.LanguageSelectionScreen
 import com.vincenthzr.locationspoofer.ui.theme.AppTheme
 import com.vincenthzr.locationspoofer.utils.LocaleUtils
@@ -210,7 +209,8 @@ fun MainScreen(
     uiState: com.vincenthzr.locationspoofer.data.model.AppState
 ) {
     when {
-        uiState.isInitializing -> InitializingScreen()
+        // 初始化期间只显示背景，不再有开屏画面
+        uiState.isInitializing -> Unit
         !uiState.isLanguageSet -> LanguageSelectionScreen(viewModel)
         !uiState.hasRootAccess -> com.vincenthzr.locationspoofer.ui.screen.DataCollectionAssistScreen(
             viewModel = viewModel,
