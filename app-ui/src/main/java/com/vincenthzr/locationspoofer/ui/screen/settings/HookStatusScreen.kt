@@ -27,7 +27,7 @@ import com.vincenthzr.locationspoofer.data.model.HookStatusReport.State
 import com.vincenthzr.locationspoofer.ui.R
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
@@ -91,6 +91,7 @@ fun HookStatusScreen(
 
 @Composable
 private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Long) {
+    val locale = LocalConfiguration.current.locales[0]
     AppCard(
         modifier = Modifier.fillMaxWidth(),
         insideMargin = PaddingValues(AppSpacing.lg)
@@ -108,7 +109,7 @@ private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Lo
                 Hint(
                     stringResource(
                         R.string.hook_status_updated_at,
-                        SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(report.updatedAt))
+                        SimpleDateFormat("HH:mm:ss", locale).format(Date(report.updatedAt))
                     )
                 )
                 Hint(
@@ -116,7 +117,7 @@ private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Lo
                     else stringResource(
                         R.string.hook_status_config,
                         report.configPath,
-                        SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(report.configModified))
+                        SimpleDateFormat("MM-dd HH:mm", locale).format(Date(report.configModified))
                     )
                 )
                 Spacer(Modifier.height(AppSpacing.md))

@@ -31,6 +31,8 @@ class LSPosedManager {
      * 配置项，由 system_server 里的 Hook 自己按 Binder 调用方 UID 反查包名做匹配，
      * 完全不依赖这些 App 本身有没有被加入 LSPosed 模块作用域。
      */
+    // app 模块的清单声明了 QUERY_ALL_PACKAGES，库模块单独检查时看不到
+    @android.annotation.SuppressLint("QueryPermissionsNeeded")
     fun getAllInstalledApps(context: Context): List<AppInfoItem> {
         val pm = context.packageManager
         val selfPackage = context.packageName

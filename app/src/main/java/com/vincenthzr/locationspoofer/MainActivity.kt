@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer
 
+import androidx.core.net.toUri
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -153,7 +154,7 @@ class MainActivity : ComponentActivity() {
             startActivity(
                 android.content.Intent(
                     android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    android.net.Uri.parse("package:$packageName")
+                    "package:$packageName".toUri()
                 )
             )
         } catch (_: Exception) {
@@ -168,21 +169,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // 后台保活是本应用的核心需求（模拟期间要持续下发配置），且不上架 Play，按需申请忽略电池优化
+    @android.annotation.SuppressLint("BatteryLife")
     private fun requestIgnoreBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
-            if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-                try {
-                    val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                        data = android.net.Uri.parse("package:$packageName")
-                    }
-                    startActivity(intent)
-                } catch (_: Exception) {
-                    try {
-                        val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                        startActivity(intent)
-                    } catch (_: Exception) {}
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            try {
+                val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = "package:$packageName".toUri()
                 }
+                startActivity(intent)
+            } catch (_: Exception) {
+                try {
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                    startActivity(intent)
+                } catch (_: Exception) {}
             }
         }
     }

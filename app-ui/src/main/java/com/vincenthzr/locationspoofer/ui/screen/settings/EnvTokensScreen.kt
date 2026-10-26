@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
@@ -38,6 +39,7 @@ fun EnvTokensScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var localWigleToken by remember(uiState.wigleToken) { mutableStateOf(uiState.wigleToken) }
     var localOpencellidToken by remember(uiState.opencellidToken) { mutableStateOf(uiState.opencellidToken) }
 
@@ -75,7 +77,7 @@ fun EnvTokensScreen(
                 viewModel.setOpencellidApiToken(localOpencellidToken)
                 Toast.makeText(
                     context,
-                    context.getString(R.string.restart_required_hint),
+                    resources.getString(R.string.restart_required_hint),
                     Toast.LENGTH_SHORT
                 ).show()
             },

@@ -1,7 +1,8 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.data.db.EnvironmentDao
@@ -43,8 +44,9 @@ class MainViewModel(
     internal val wifiRepository: WifiRepository,
     internal val opencellidClient: OpenCellIdClient,
     internal val motionController: MotionController,
-    internal val context: Context
-) : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
+    internal val context: Context get() = getApplication()
     internal var lastMapMoveTime = 0L
     internal var mapMoveJob: Job? = null
     internal var mockCapabilitiesJob: Job? = null

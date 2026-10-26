@@ -256,7 +256,7 @@ fun SystemHookAppsScreen(
                 }
             } else {
                 items(appsToShow, key = { it.packageName }) { app ->
-                    Box(animateListItem()) {
+                    Box(Modifier.animateListItem(this)) {
                         SystemHookAppItemCard(
                             appInfo = app,
                             isSelected = uiState.systemHookPackages.contains(app.packageName),

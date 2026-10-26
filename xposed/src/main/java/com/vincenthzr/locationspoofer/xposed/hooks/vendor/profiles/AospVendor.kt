@@ -58,6 +58,8 @@ object AospVendor : SystemHookVendor {
         )
         SystemComponent.BLUETOOTH_SCAN_SERVICE -> listOf(
             "com.android.bluetooth.le_scan.ScanBinder",
+            // Android 15/16：GattService 只转发，registerScanner / startScan 的实现在这里
+            "com.android.bluetooth.le_scan.TransitionalScanHelper",
             "com.android.bluetooth.gatt.GattService",
             "com.android.bluetooth.btservice.AdapterService",
         )

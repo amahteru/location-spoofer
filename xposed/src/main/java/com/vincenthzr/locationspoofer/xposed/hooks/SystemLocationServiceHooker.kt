@@ -81,6 +81,10 @@ private val activePendingIntents = ConcurrentHashMap<android.app.PendingIntent, 
 private val globalModeListenerBinders: MutableSet<IBinder> =
     Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
 
+// 注册时判定为目标应用的 GNSS 测量 / 导航电文监听者，模拟进行中投递给它们的真实原始数据会被吞掉
+private val suppressedGnssRawBinders: MutableSet<IBinder> =
+    Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
+
 // 全局模式下 provider 的上报会在 onReportLocation 就地改写成模拟位置（走 GMS 融合定位的 App 靠这一层才能被模拟），
 // 系统的"最近位置"缓存也随之变成模拟位置。改写前留一份真实上报：分发给本 App、电话、系统内部等豁免方时换回真实位置，
 // 它们查询最近位置时也返回真实位置；停止模拟后缓存里残留的模拟位置也不再交给任何人。
@@ -136,6 +140,7 @@ internal fun clearSystemLocationReloadState() {
     activePendingIntents.clear()
     spoofedListenerInstances.clear()
     globalModeListenerBinders.clear()
+    suppressedGnssRawBinders.clear()
     lastRealLocations.clear()
     spoofedCacheProviders.clear()
 }
@@ -267,7 +272,7 @@ private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader
     }
 
     val timer = ownReloadTimer(Timer("LocationSpoofer-SysHeartbeat", true))
-    timer.scheduleAtFixedRate(object : TimerTask() {
+    timer.schedule(object : TimerTask() {
         override fun run() {
             try {
                 try {
@@ -567,15 +572,12 @@ private fun createDummyRemoteCallback(): Any {
     }
 }
 
-private fun createDummyCancellationSignal(): Any {
-    return object : android.os.Binder(), android.os.IInterface {
-        override fun asBinder(): android.os.IBinder = this
-        override fun onTransact(code: Int, data: android.os.Parcel, reply: android.os.Parcel?, flags: Int): Boolean {
-            reply?.writeNoException()
-            return true
-        }
-    }
-}
+/**
+ * 已主动投递定位、跳过原方法时 getCurrentLocation 的返回值：系统声明的是 ICancellationSignal（可为 null），
+ * 不能返回其它类型。位置已经投递完，没有可取消的请求，返回 null 即可；更老的版本声明的是 boolean。
+ */
+private fun cancellationResultFor(method: java.lang.reflect.Executable): Any? =
+    if ((method as? java.lang.reflect.Method)?.returnType == Boolean::class.javaPrimitiveType) true else null
 
 internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) {
     val serviceClazz = SystemClassLocator.locate(SystemComponent.LOCATION_MANAGER_SERVICE, classLoader)
@@ -767,7 +769,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
     // 4. getCurrentLocation：单次定位回调拦截与主动投递
     // =========================================================================
     try {
-        XposedHelpers.hookAllMethods(serviceClazz, "getCurrentLocation") { chain, _ ->
+        XposedHelpers.hookAllMethods(serviceClazz, "getCurrentLocation") { chain, method ->
             try {
                 val config = readConfig()
                 if (config != null) {
@@ -823,7 +825,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                             onLocationMethod.invoke(callback, fakeLoc)
                                             logLoc("[SysLoc] Proactively dispatched fake location to getCurrentLocation callback for $pkgName (lat=${motion.lat}, lng=${motion.lng}, provider=$provider)"
                                             )
-                                            return@hookAllMethods createDummyCancellationSignal()
+                                            return@hookAllMethods cancellationResultFor(method)
                                         } catch (t: Throwable) {
                                             logLoc("[SysLoc] proactive callback invoke failed: $t")
                                         }
@@ -1028,22 +1030,34 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
     } catch (_: Throwable) {}
 
     // 屏蔽目标应用的底层伪距与导航电文回调，防止泄露真实原始测量特征
-    val suppressCallbackMethods = arrayOf("registerGnssMeasurementsCallback", "registerGnssNavigationMessageCallback")
+    // 服务端方法名是 add…Listener（register…Callback 是客户端 LocationManager 的叫法，留着兼容定制 ROM）
+    val suppressCallbackMethods = arrayOf("addGnssMeasurementsListener", "addGnssNavigationMessageListener",
+        "registerGnssMeasurementsCallback", "registerGnssNavigationMessageCallback")
     for (mName in suppressCallbackMethods) {
         try {
             XposedHelpers.hookAllMethods(serviceClazz, mName) { chain, _ ->
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false)) {
                     val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
-                    if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
-                        val cb = chain.args.firstOrNull { arg ->
-                            arg != null && arg !is String && arg !is Int
-                        }
+                    val overrideUid = SystemHookUtils.extractCallerUid(chain.args)
+                    if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config, overrideUid)) {
+                        // Android 12+ 第一个参数是 GnssMeasurementRequest，监听者要按 IInterface 找
+                        val cb = chain.args.firstOrNull { it is IInterface } as? IInterface
                         if (cb != null) {
-                            suppressCallbackMethods(cb, "onGnssMeasurementsReceived", "onGnssNavigationMessageReceived")
+                            suppressedGnssRawBinders.add(cb.asBinder())
+                            suppressRawGnssCallbacks(cb, "onGnssMeasurementsReceived", "onGnssNavigationMessageReceived")
                         }
                     }
                 }
+                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+            }
+        } catch (_: Throwable) {}
+    }
+    for (mName in arrayOf("removeGnssMeasurementsListener", "removeGnssNavigationMessageListener",
+        "unregisterGnssMeasurementsCallback", "unregisterGnssNavigationMessageCallback")) {
+        try {
+            XposedHelpers.hookAllMethods(serviceClazz, mName) { chain, _ ->
+                (chain.args.firstOrNull { it is IInterface } as? IInterface)?.let { suppressedGnssRawBinders.remove(it.asBinder()) }
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
         } catch (_: Throwable) {}
@@ -1093,7 +1107,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         }
 
         try {
-            XposedHelpers.hookAllMethods(providerManagerClazz, "getCurrentLocation") { chain, _ ->
+            XposedHelpers.hookAllMethods(providerManagerClazz, "getCurrentLocation") { chain, method ->
                 try {
                     val config = readConfig()
                     if (config != null) {
@@ -1139,7 +1153,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                         }
                                         onLocMethod?.invoke(callback, fakeLoc)
                                         logLoc("[SysLoc] LocationProviderManager.getCurrentLocation proactive dispatch for $targetPkg (lat=${motion.lat}, lng=${motion.lng}, provider=$provider)")
-                                        return@hookAllMethods createDummyCancellationSignal()
+                                        return@hookAllMethods cancellationResultFor(method)
                                     }
                                 }
                             }
@@ -1156,7 +1170,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                 callback.javaClass.methods.firstOrNull { it.name == "onLocation" && it.parameterTypes.size == 1 }
                                     ?.invoke(callback, android.location.Location(real))
                                 logLoc("[SysLoc] LocationProviderManager.getCurrentLocation kept real location for $pkgName (provider=$provider)")
-                                return@hookAllMethods createDummyCancellationSignal()
+                                return@hookAllMethods cancellationResultFor(method)
                             }
                         }
                     }
@@ -1633,13 +1647,22 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     } catch (_: Throwable) {}
 }
 
-/** 吞掉真实 GNSS 测量回调 */
-private fun suppressCallbackMethods(callback: Any, vararg methodNames: String) {
+/**
+ * 吞掉目标应用的真实 GNSS 测量 / 导航电文回调。回调代理类被所有客户端共用，每个类只 Hook 一次，
+ * 投递时按实例判断：只有模拟进行中、且注册时判定为目标应用的监听者才吞掉，其余照常投递。
+ */
+private fun LocationHooker.suppressRawGnssCallbacks(callback: Any, vararg methodNames: String) {
     val clazz = callback.javaClass
+    if (hookedCallbackClasses.putIfAbsent(clazz, true) != null) return
     for (mName in methodNames) {
         try {
             XposedHelpers.hookAllMethods(clazz, mName) { innerChain, _ ->
-                return@hookAllMethods null
+                val binder = (innerChain.thisObject as? IInterface)?.asBinder()
+                if (binder != null && suppressedGnssRawBinders.contains(binder) &&
+                    readConfig()?.optBoolean("active", false) == true) {
+                    return@hookAllMethods null
+                }
+                return@hookAllMethods innerChain.proceed(innerChain.args.toTypedArray())
             }
         } catch (_: Throwable) {}
     }

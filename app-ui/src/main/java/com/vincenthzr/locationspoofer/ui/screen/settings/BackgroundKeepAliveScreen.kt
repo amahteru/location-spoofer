@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.settings
 
+import androidx.core.net.toUri
 import com.vincenthzr.locationspoofer.ui.components.NavigationListItem
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.rounded.AppSettingsAlt
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
@@ -30,6 +32,8 @@ import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
+// 本页就是引导用户关闭电池优化的保活设置页，且应用不上架 Play
+@android.annotation.SuppressLint("BatteryLife")
 @Composable
 fun BackgroundKeepAliveScreen(
     viewModel: MainViewModel,
@@ -37,6 +41,7 @@ fun BackgroundKeepAliveScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     BackHandler(onBack = onClose)
 
@@ -54,13 +59,12 @@ fun BackgroundKeepAliveScreen(
                     summary = stringResource(R.string.ignore_battery_optimizations_desc),
                     tone = LabelTone.Warning,
                     onClick = {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                         try {
                             val intent =
                                 android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                                     .apply {
                                         data =
-                                            android.net.Uri.parse("package:${context.packageName}")
+                                            "package:${context.packageName}".toUri()
                                     }
                             context.startActivity(intent)
                         } catch (_: Exception) {
@@ -71,12 +75,11 @@ fun BackgroundKeepAliveScreen(
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.open_battery_opt_failed, e.message ?: ""),
+                                    resources.getString(R.string.open_battery_opt_failed, e.message ?: ""),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
                         }
-                    }
                     }
                 )
                 // 允许应用自启动与后台活动
@@ -91,13 +94,13 @@ fun BackgroundKeepAliveScreen(
                             android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                                 .apply {
                                     data =
-                                        android.net.Uri.parse("package:${context.packageName}")
+                                        "package:${context.packageName}".toUri()
                                 }
                         context.startActivity(intent)
                     } catch (e: Exception) {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.open_app_info_failed, e.message ?: ""),
+                            resources.getString(R.string.open_app_info_failed, e.message ?: ""),
                             Toast.LENGTH_SHORT
                         ).show()
                     }

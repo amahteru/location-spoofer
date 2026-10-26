@@ -171,7 +171,8 @@ class LocationHooker : XposedModule() {
         if (param.isSystemServer) {
             // Hook handles belong to the framework; their declaring classes retain the real
             // system-service loader even when an older module did not save lifecycle state.
-            param.oldHookHandles.forEach { handle ->
+            // 热重载回调本身只在 API 102 框架上出现，这里的判断只是把这一前提写明
+            if (apiVersion >= io.github.libxposed.api.XposedInterface.API_102) param.oldHookHandles.forEach { handle ->
                 val clazz = handle.executable.declaringClass
                 if (clazz.name.startsWith("com.android.server.")) {
                     val loader = clazz.classLoader

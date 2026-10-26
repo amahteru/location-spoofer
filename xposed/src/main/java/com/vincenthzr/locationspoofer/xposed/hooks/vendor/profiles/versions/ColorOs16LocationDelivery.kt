@@ -27,6 +27,7 @@ import java.util.function.Predicate
  * Only per-request copies enter the existing framework delivery path. Provider caches,
  * Binder permission checks, coarse-location filtering and cancellation remain Android's job.
  */
+@androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 internal class ColorOs16LocationDelivery(
     private val module: LocationHooker,
     private val loader: ClassLoader

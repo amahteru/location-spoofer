@@ -1,5 +1,7 @@
 package com.vincenthzr.locationspoofer.ui.components.map
 
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toColorInt
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -55,14 +57,14 @@ object GaodeMarkerHelper {
         val width = (32 * density).toInt().coerceAtLeast(1)
         val height = (44 * density).toInt().coerceAtLeast(1)
 
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
         val mainColor = when (type) {
-            MarkerType.GREEN -> android.graphics.Color.parseColor("#00B578")  // 高德起点绿
-            MarkerType.RED -> android.graphics.Color.parseColor("#FA5151")    // 高德终点红
-            MarkerType.ORANGE -> android.graphics.Color.parseColor("#FF7A00") // 高德导航橙
-            MarkerType.DEFAULT -> android.graphics.Color.parseColor("#388BFD")// 高德经典蓝
+            MarkerType.GREEN -> "#00B578".toColorInt()  // 高德起点绿
+            MarkerType.RED -> "#FA5151".toColorInt()    // 高德终点红
+            MarkerType.ORANGE -> "#FF7A00".toColorInt() // 高德导航橙
+            MarkerType.DEFAULT -> "#388BFD".toColorInt()// 高德经典蓝
         }
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -73,7 +75,7 @@ object GaodeMarkerHelper {
 
         // 绘制阴影
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = android.graphics.Color.parseColor("#33000000")
+            color = "#33000000".toColorInt()
             style = Paint.Style.FILL
         }
         canvas.drawOval(

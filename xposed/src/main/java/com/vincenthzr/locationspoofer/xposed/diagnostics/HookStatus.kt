@@ -116,7 +116,6 @@ object HookStatus {
                 val file = File(path)
                 val tmp = File(file.parentFile, "${file.name}.tmp")
                 tmp.writeText(json.toString())
-                tmp.setReadable(true, false)
                 if (tmp.renameTo(file)) return
             } catch (_: Throwable) {
                 // 该目录不可写，尝试下一个位置

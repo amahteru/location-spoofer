@@ -8,6 +8,21 @@ import com.vincenthzr.locationspoofer.xposed.utils.XposedHelpers
 
 private fun sysLog(msg: String) = XposedBridge.log(msg)
 
+private const val OP_MOCK_LOCATION = 58
+private const val MODE_IGNORED = 1
+
+/** 把 noteOperation 的原始结果改成 MODE_IGNORED；SyncNotedAppOp 每次调用都是新对象，就地改字段不影响别人 */
+private fun withIgnoredMode(result: Any?): Any? {
+    if (result is Int) return MODE_IGNORED
+    if (result == null) return null
+    try {
+        XposedHelpers.setIntField(result, "mOpMode", MODE_IGNORED)
+    } catch (t: Throwable) {
+        sysLog("[SysHook] rewrite SyncNotedAppOp mode failed: $t")
+    }
+    return result
+}
+
 /**
  * system_server 级 AppOps 与系统设置（AppOpsService / Settings）反检测模块
  *
@@ -26,14 +41,18 @@ internal fun LocationHooker.hookSystemAppOpsService(classLoader: ClassLoader) {
         val opMethods = arrayOf("checkOperation", "noteOperation", "checkAudioOperation")
         for (methodName in opMethods) {
             try {
-                XposedHelpers.hookAllMethods(appOpsServiceClass, methodName) { chain, _ ->
+                XposedHelpers.hookAllMethods(appOpsServiceClass, methodName) { chain, method ->
                     val config = readConfig()
                     if (config != null && config.optBoolean("active", false)) {
                         val codeArg = chain.args.firstOrNull { it is Int } as? Int
-                        if (codeArg == 58) { // OP_MOCK_LOCATION
+                        if (codeArg == OP_MOCK_LOCATION) {
                             val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
                             if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
-                                return@hookAllMethods 1 // MODE_IGNORED
+                                val returnType = (method as? java.lang.reflect.Method)?.returnType
+                                if (returnType == Int::class.javaPrimitiveType) return@hookAllMethods MODE_IGNORED
+                                // Android 12 起 noteOperation 返回 SyncNotedAppOp：照常记录这次调用，只把结果改成 MODE_IGNORED
+                                val result = chain.proceed(chain.args.toTypedArray())
+                                return@hookAllMethods withIgnoredMode(result)
                             }
                         }
                     }

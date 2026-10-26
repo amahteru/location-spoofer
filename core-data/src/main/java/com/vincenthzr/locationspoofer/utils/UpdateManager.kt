@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.utils
 
+import androidx.core.net.toUri
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
@@ -8,7 +9,7 @@ import android.os.Environment
 
 class UpdateManager(private val context: Context) {
     fun downloadApk(url: String, fileName: String): Long {
-        val request = DownloadManager.Request(Uri.parse(url))
+        val request = DownloadManager.Request(url.toUri())
             .setTitle("LocationSpoofer $fileName")
             .setDescription("Downloading update...")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)

@@ -21,6 +21,11 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    lint {
+        // 本模块只在 system_server / com.android.phone / com.android.bluetooth 里运行，Hook 系统内部实现
+        // 本来就要反射隐藏 API；平台进程不受隐藏 API 限制，这几项检查针对的是普通 App，这里统一关闭
+        disable += setOf("PrivateApi", "DiscouragedPrivateApi", "BlockedPrivateApi", "SoonBlockedPrivateApi")
+    }
 }
 
 kotlin {
@@ -32,6 +37,7 @@ kotlin {
 dependencies {
     implementation(project(":core-geo"))
     compileOnly(libs.xposed.api)
+    compileOnly(libs.androidx.annotation)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)

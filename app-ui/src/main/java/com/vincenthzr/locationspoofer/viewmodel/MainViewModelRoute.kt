@@ -107,8 +107,8 @@ internal fun MainViewModel.joystickMaxSpeedMs(): Float =
 internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging: Boolean = false) {
     _uiState.update {
         it.copy(
-            latitudeInput = String.format("%.6f", lat),
-            longitudeInput = String.format("%.6f", lng),
+            latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
+            longitudeInput = String.format(java.util.Locale.US, "%.6f", lng),
             mapConfirmedPoint = Pair(lat, lng),
             showCoordinateError = false
         )
@@ -289,8 +289,8 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
 
     _uiState.update {
         it.copy(
-            latitudeInput = String.format("%.6f", startPoint.lat),
-            longitudeInput = String.format("%.6f", startPoint.lng),
+            latitudeInput = String.format(java.util.Locale.US, "%.6f", startPoint.lat),
+            longitudeInput = String.format(java.util.Locale.US, "%.6f", startPoint.lng),
             routePlanStage = RoutePlanStage.RUNNING,
             routePoints = pointsToRun
         )
@@ -551,8 +551,8 @@ internal fun MainViewModel.observeMotionController() {
 private fun MainViewModel.updatePosition(lat: Double, lng: Double, bearing: Float) {
     _uiState.update {
         it.copy(
-            latitudeInput = String.format("%.6f", lat),
-            longitudeInput = String.format("%.6f", lng),
+            latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
+            longitudeInput = String.format(java.util.Locale.US, "%.6f", lng),
             simBearing = bearing,
             showCoordinateError = false
         )

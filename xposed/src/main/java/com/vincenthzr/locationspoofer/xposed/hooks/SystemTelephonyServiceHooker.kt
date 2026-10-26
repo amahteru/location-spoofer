@@ -143,7 +143,7 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                     if (returnType.name.contains("CellIdentity")) {
                         try {
                             val cellIdentityGsmClass = XposedHelpers.findClassIfExists("android.telephony.CellIdentityGsm", classLoader)
-                                ?: XposedHelpers.findClassIfExists("android.telephony.CellIdentityGsm", android.telephony.CellIdentity::class.java.classLoader)
+                                ?: XposedHelpers.findClassIfExists("android.telephony.CellIdentityGsm", android.telephony.CellInfo::class.java.classLoader)
                             if (cellIdentityGsmClass != null) {
                                 val fakeIdentity = this@hookSystemTelephonyService.constructCellIdentityByType(
                                     "GSM", cellIdentityGsmClass, 460, "460", 0, "00", lac, cid, 0

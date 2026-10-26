@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.utils
 
+import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
 import com.vincenthzr.locationspoofer.data.BuildConfig
@@ -20,155 +21,155 @@ class SettingsManager(context: Context) {
         // 必须默认保持开启以彻底杜绝高德/阿里/抖音等通过物理 Wi-Fi BSSID 与基站反查真实位置。
         // 同时确保系统级全局模拟模式（is_system_hook_global_mode）默认开启。
         if (!prefs.getBoolean("mock_switches_migrated_v3", false)) {
-            prefs.edit()
-                .putBoolean("mock_wifi", true)
-                .putBoolean("mock_cell", true)
-                .putBoolean("mock_bluetooth", true)
-                .putBoolean("is_system_hook_global_mode", true)
-                .putBoolean("mock_switches_migrated_v3", true)
-                .apply()
+            prefs.edit {
+                putBoolean("mock_wifi", true)
+                putBoolean("mock_cell", true)
+                putBoolean("mock_bluetooth", true)
+                putBoolean("is_system_hook_global_mode", true)
+                putBoolean("mock_switches_migrated_v3", true)
+            }
         }
     }
 
     var isDarkMode: Boolean
         get() = prefs.getBoolean("is_dark_mode", true)
-        set(value) = prefs.edit().putBoolean("is_dark_mode", value).apply()
+        set(value) = prefs.edit { putBoolean("is_dark_mode", value) }
 
     var language: String
         get() = LocaleUtils.normalizeLanguage(prefs.getString("language", "") ?: "")
-        set(value) = prefs.edit().putString("language", value).apply()
+        set(value) = prefs.edit { putString("language", value) }
 
     var isLanguageSet: Boolean
         get() = prefs.getBoolean("is_language_set", false)
-        set(value) = prefs.edit().putBoolean("is_language_set", value).apply()
+        set(value) = prefs.edit { putBoolean("is_language_set", value) }
 
     var amapApiKey: String
         get() = prefs.getString("amap_api_key", "") ?: ""
-        set(value) = prefs.edit().putString("amap_api_key", value).apply()
+        set(value) = prefs.edit { putString("amap_api_key", value) }
 
     var baiduApiKey: String
         get() = prefs.getString("baidu_api_key", "") ?: ""
-        set(value) = prefs.edit().putString("baidu_api_key", value).apply()
+        set(value) = prefs.edit { putString("baidu_api_key", value) }
 
     var googleApiKey: String
         get() = prefs.getString("google_api_key", "") ?: ""
-        set(value) = prefs.edit().putString("google_api_key", value).apply()
+        set(value) = prefs.edit { putString("google_api_key", value) }
 
     var wigleApiToken: String
         get() = prefs.getString("wigle_api_token", "") ?: ""
-        set(value) = prefs.edit().putString("wigle_api_token", value).apply()
+        set(value) = prefs.edit { putString("wigle_api_token", value) }
 
     var opencellidApiToken: String
         get() = prefs.getString("opencellid_api_token", "") ?: ""
-        set(value) = prefs.edit().putString("opencellid_api_token", value).apply()
+        set(value) = prefs.edit { putString("opencellid_api_token", value) }
 
     var mapType: String
         get() = prefs.getString("map_type", "NORMAL") ?: "NORMAL"
-        set(value) = prefs.edit().putString("map_type", value).apply()
+        set(value) = prefs.edit { putString("map_type", value) }
 
     var mapEngine: String
         get() = prefs.getString("map_engine", "AUTO") ?: "AUTO"
-        set(value) = prefs.edit().putString("map_engine", value).apply()
+        set(value) = prefs.edit { putString("map_engine", value) }
 
     var rootSolution: String
         get() = prefs.getString("root_solution", "AUTO") ?: "AUTO"
-        set(value) = prefs.edit().putString("root_solution", value).apply()
+        set(value) = prefs.edit { putString("root_solution", value) }
 
     /** 用户在"厂商适配方案"设置页手动选中的 [com.vincenthzr.locationspoofer.vendor.VendorScheme.id]；"auto" 表示走自动识别。 */
     var vendorOverride: String
         get() = prefs.getString("vendor_override", "auto") ?: "auto"
-        set(value) = prefs.edit().putString("vendor_override", value).apply()
+        set(value) = prefs.edit { putString("vendor_override", value) }
 
     /** 适配新系统用：开机时把各系统服务候选类的方法 / 字段列表写进 Xposed 日志（全局方案，需重启生效） */
     var debugDumpSystemServices: Boolean
         get() = prefs.getBoolean("debug_dump_system_services", false)
-        set(value) = prefs.edit().putBoolean("debug_dump_system_services", value).apply()
+        set(value) = prefs.edit { putBoolean("debug_dump_system_services", value) }
 
     var ignoredVersion: String
         get() = prefs.getString("ignored_version", "") ?: ""
-        set(value) = prefs.edit().putString("ignored_version", value).apply()
+        set(value) = prefs.edit { putString("ignored_version", value) }
 
     var checkBetaUpdates: Boolean
         get() = prefs.getBoolean("check_beta_updates", false)
-        set(value) = prefs.edit().putBoolean("check_beta_updates", value).apply()
+        set(value) = prefs.edit { putBoolean("check_beta_updates", value) }
 
     var isSpoofingActive: Boolean
         get() = prefs.getBoolean("is_spoofing_active", false)
-        set(value) = prefs.edit().putBoolean("is_spoofing_active", value).apply()
+        set(value) = prefs.edit { putBoolean("is_spoofing_active", value) }
 
     var lastSpoofedLat: String
         get() = prefs.getString("last_spoofed_lat", "0") ?: "0"
-        set(value) = prefs.edit().putString("last_spoofed_lat", value).apply()
+        set(value) = prefs.edit { putString("last_spoofed_lat", value) }
 
     var lastSpoofedLng: String
         get() = prefs.getString("last_spoofed_lng", "0") ?: "0"
-        set(value) = prefs.edit().putString("last_spoofed_lng", value).apply()
+        set(value) = prefs.edit { putString("last_spoofed_lng", value) }
 
     var mockWifi: Boolean
         get() = prefs.getBoolean("mock_wifi", true)
-        set(value) = prefs.edit().putBoolean("mock_wifi", value).apply()
+        set(value) = prefs.edit { putBoolean("mock_wifi", value) }
 
     var mockCell: Boolean
         get() = prefs.getBoolean("mock_cell", true)
-        set(value) = prefs.edit().putBoolean("mock_cell", value).apply()
+        set(value) = prefs.edit { putBoolean("mock_cell", value) }
 
     var mockBluetooth: Boolean
         get() = prefs.getBoolean("mock_bluetooth", true)
-        set(value) = prefs.edit().putBoolean("mock_bluetooth", value).apply()
+        set(value) = prefs.edit { putBoolean("mock_bluetooth", value) }
 
     var enableJitter: Boolean
         get() = prefs.getBoolean("enable_jitter", true)
-        set(value) = prefs.edit().putBoolean("enable_jitter", value).apply()
+        set(value) = prefs.edit { putBoolean("enable_jitter", value) }
 
     /** 开始模拟时是否强制重启已勾选作用域的目标 App，让它们加载当前模块并订阅框架配置 */
     var restartAppsOnSpoof: Boolean
         get() = prefs.getBoolean("restart_apps_on_spoof", true)
-        set(value) = prefs.edit().putBoolean("restart_apps_on_spoof", value).apply()
+        set(value) = prefs.edit { putBoolean("restart_apps_on_spoof", value) }
 
     var altitude: String
         get() = prefs.getString("altitude", "0.0") ?: "0.0"
-        set(value) = prefs.edit().putString("altitude", value).apply()
+        set(value) = prefs.edit { putString("altitude", value) }
 
     /** 海拔相对基准值的最大起伏（±米），0 表示固定海拔 */
     var altitudeVariationM: Int
         get() = prefs.getInt("altitude_variation_m", AltitudeModel.DEFAULT_VARIATION_M)
-        set(value) = prefs.edit().putInt("altitude_variation_m", value).apply()
+        set(value) = prefs.edit { putInt("altitude_variation_m", value) }
 
     /** 运动真实度随机强度，取值见 MotionRealism.Level.id */
     var realismLevel: Int
         get() = prefs.getInt("realism_level", MotionRealism.DEFAULT_LEVEL_ID)
-        set(value) = prefs.edit().putInt("realism_level", value).apply()
+        set(value) = prefs.edit { putInt("realism_level", value) }
 
     /** 路线模拟速度浮动范围（±百分比） */
     var speedFluctuationPct: Int
         get() = prefs.getInt("speed_fluctuation_pct", MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT)
-        set(value) = prefs.edit().putInt("speed_fluctuation_pct", value).apply()
+        set(value) = prefs.edit { putInt("speed_fluctuation_pct", value) }
 
     /** 录制的个人步态模板（GaitTemplate.encode() 的结果），空串表示未录制 */
     var gaitTemplate: String
         get() = prefs.getString("gait_template", "") ?: ""
-        set(value) = prefs.edit().putString("gait_template", value).apply()
+        set(value) = prefs.edit { putString("gait_template", value) }
 
     var useGaitTemplate: Boolean
         get() = prefs.getBoolean("use_gait_template", false)
-        set(value) = prefs.edit().putBoolean("use_gait_template", value).apply()
+        set(value) = prefs.edit { putBoolean("use_gait_template", value) }
 
     /** 打开 App 时地图停留在上次选定的位置，而不是自动跳到真实位置 */
     var keepLastMapPosition: Boolean
         get() = prefs.getBoolean("keep_last_map_position", true)
-        set(value) = prefs.edit().putBoolean("keep_last_map_position", value).apply()
+        set(value) = prefs.edit { putBoolean("keep_last_map_position", value) }
 
     var lastMapLat: String
         get() = prefs.getString("last_map_lat", "") ?: ""
-        set(value) = prefs.edit().putString("last_map_lat", value).apply()
+        set(value) = prefs.edit { putString("last_map_lat", value) }
 
     var lastMapLng: String
         get() = prefs.getString("last_map_lng", "") ?: ""
-        set(value) = prefs.edit().putString("last_map_lng", value).apply()
+        set(value) = prefs.edit { putString("last_map_lng", value) }
 
     var satelliteCount: String
         get() = prefs.getString("satellite_count", "10") ?: "10"
-        set(value) = prefs.edit().putString("satellite_count", value).apply()
+        set(value) = prefs.edit { putString("satellite_count", value) }
 
     fun getSavedLocations(): List<SavedLocation> {
         val jsonString = prefs.getString("saved_locations", "[]") ?: "[]"
@@ -237,7 +238,7 @@ class SettingsManager(context: Context) {
             }
             jsonArray.put(obj)
         }
-        prefs.edit().putString("saved_locations", jsonArray.toString()).apply()
+        prefs.edit { putString("saved_locations", jsonArray.toString()) }
     }
 
     fun getSavedRoutes(): List<SavedRoute> {
@@ -287,7 +288,7 @@ class SettingsManager(context: Context) {
             obj.put("points", pointsArray)
             jsonArray.put(obj)
         }
-        prefs.edit().putString("saved_routes", jsonArray.toString()).apply()
+        prefs.edit { putString("saved_routes", jsonArray.toString()) }
     }
 
     fun getAppCoordinateSystems(): Map<String, String> {
@@ -307,7 +308,7 @@ class SettingsManager(context: Context) {
     fun setAppCoordinateSystems(map: Map<String, String>) {
         val jsonObj = JSONObject()
         map.forEach { (k, v) -> jsonObj.put(k, v) }
-        prefs.edit().putString("app_coordinate_systems", jsonObj.toString()).apply()
+        prefs.edit { putString("app_coordinate_systems", jsonObj.toString()) }
     }
 
     /** system_server 级定位 Hook（实验性）里被勾选生效的目标 App 包名集合 */
@@ -328,14 +329,14 @@ class SettingsManager(context: Context) {
     fun setSystemHookPackages(packages: Set<String>) {
         val jsonArray = JSONArray()
         packages.forEach { jsonArray.put(it) }
-        prefs.edit().putString("system_hook_packages", jsonArray.toString()).apply()
+        prefs.edit { putString("system_hook_packages", jsonArray.toString()) }
     }
 
     /** 是否开启全局模拟模式（除本应用与系统基础核心外对所有应用生效） */
     var isSystemHookGlobalMode: Boolean
         get() = prefs.getBoolean("is_system_hook_global_mode", true)
-        set(value) = prefs.edit().putBoolean("is_system_hook_global_mode", value).apply()
+        set(value) = prefs.edit { putBoolean("is_system_hook_global_mode", value) }
     var forceLocationEnabled: Boolean
         get() = prefs.getBoolean("force_location_enabled", false)
-        set(value) = prefs.edit().putBoolean("force_location_enabled", value).apply()
+        set(value) = prefs.edit { putBoolean("force_location_enabled", value) }
 }

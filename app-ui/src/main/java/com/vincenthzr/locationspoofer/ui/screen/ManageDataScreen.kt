@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
@@ -50,6 +51,7 @@ fun ManageDataScreen(
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
     var editingItem by remember { mutableStateOf<CompleteLocation?>(null) }
     var itemToDelete by remember { mutableStateOf<CompleteLocation?>(null) }
@@ -200,7 +202,7 @@ fun ManageDataScreen(
                     verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
                     items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                        Box(animateListItem()) {
+                        Box(Modifier.animateListItem(this)) {
                             com.vincenthzr.locationspoofer.ui.components.CollectionRouteListItem(
                                 route,
                                 onClick = {
@@ -213,7 +215,7 @@ fun ManageDataScreen(
                         }
                     }
                     items(dataList, key = { it.location.id }) { item ->
-                        Box(animateListItem()) {
+                        Box(Modifier.animateListItem(this)) {
                             DataListItem(
                                 item = item,
                                 isFavorited = favoritedLocationIds.contains(item.location.id) ||
@@ -231,17 +233,17 @@ fun ManageDataScreen(
                                 onFavorite = {
                                     viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
                                         val message = when (result) {
-                                            is FavoriteToggleResult.Added -> context.getString(
+                                            is FavoriteToggleResult.Added -> resources.getString(
                                                 R.string.favorited_toast,
                                                 result.name
                                             )
 
-                                            is FavoriteToggleResult.Removed -> context.getString(
+                                            is FavoriteToggleResult.Removed -> resources.getString(
                                                 R.string.unfavorited_toast,
                                                 result.name
                                             )
 
-                                            FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
+                                            FavoriteToggleResult.Failed -> resources.getString(R.string.favorite_failed)
                                         }
                                         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }

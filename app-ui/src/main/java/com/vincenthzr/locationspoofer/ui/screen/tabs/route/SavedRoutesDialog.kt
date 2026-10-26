@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -35,6 +36,7 @@ fun SavedRoutesDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val density = LocalDensity.current
 
     AppBottomSheet(
@@ -82,7 +84,7 @@ fun SavedRoutesDialog(
                             onDismiss()
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.loaded_route, route.name),
+                                resources.getString(R.string.loaded_route, route.name),
                                 Toast.LENGTH_SHORT
                             ).show()
                         },

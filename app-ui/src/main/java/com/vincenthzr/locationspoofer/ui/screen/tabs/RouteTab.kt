@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen.tabs
 
+import androidx.core.graphics.toColorInt
 import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
 import android.widget.Toast
@@ -183,7 +184,7 @@ fun RouteTab(
         if (routePoints.size >= 2) {
             map.addPolyline(
                 routePoints.map { Pair(it.lat, it.lng) },
-                android.graphics.Color.parseColor("#FF388BFD"),
+                "#FF388BFD".toColorInt(),
                 8f
             )
         }

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.vincenthzr.locationspoofer.ui.R
@@ -42,6 +43,7 @@ fun MapEngineSettingsScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var localAmapApiKey by remember(uiState.amapApiKey) { mutableStateOf(uiState.amapApiKey) }
     var localBaiduApiKey by remember(uiState.baiduApiKey) { mutableStateOf(uiState.baiduApiKey) }
     var localGoogleApiKey by remember(uiState.googleApiKey) { mutableStateOf(uiState.googleApiKey) }
@@ -118,7 +120,7 @@ fun MapEngineSettingsScreen(
                 viewModel.setGoogleApiKey(localGoogleApiKey)
                 Toast.makeText(
                     context,
-                    context.getString(R.string.restart_required_hint),
+                    resources.getString(R.string.restart_required_hint),
                     Toast.LENGTH_SHORT
                 ).show()
             },

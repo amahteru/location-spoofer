@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
+import androidx.core.net.toUri
 import com.vincenthzr.locationspoofer.ui.BuildConfig
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
@@ -138,7 +139,7 @@ internal fun MainViewModel.ensureOverlayPermission(): Boolean {
     context.startActivity(
         android.content.Intent(
             android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            android.net.Uri.parse("package:${context.packageName}")
+            "package:${context.packageName}".toUri()
         ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
     )
     return false

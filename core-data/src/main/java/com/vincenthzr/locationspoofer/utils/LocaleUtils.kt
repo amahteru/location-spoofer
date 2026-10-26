@@ -17,6 +17,8 @@ class LocaleUtils {
             else -> "en"
         }
 
+        // 应用内切换语言；APK 直接分发，app 模块已关闭按语言拆分，不需要 Play Core 按需下载语言包
+        @android.annotation.SuppressLint("AppBundleLocaleChanges")
         fun wrap(context: Context, language: String): Context {
             val locale = if (language.isEmpty()) {
                 // 如果没有设置，使用系统默认

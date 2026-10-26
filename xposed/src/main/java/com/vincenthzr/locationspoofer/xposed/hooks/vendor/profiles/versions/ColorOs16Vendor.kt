@@ -28,7 +28,8 @@ object ColorOs16Vendor : SystemVersionVendor(ColorOsVendor) {
 
     override fun installExtraHooks(hooker: LocationHooker, classLoader: ClassLoader) {
         super.installExtraHooks(hooker, classLoader)
-        if (hooker.isBluetoothProcessInstance) {
+        // ColorOS 16 基于 Android 16；SDK 判断只是把投递类各自依赖的最低 API 写明
+        if (hooker.isBluetoothProcessInstance && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val pendingIntent = ColorOs16BleDelivery(hooker, classLoader)
             hooker.vendorExtraHooks.add(pendingIntent)
             pendingIntent.install()
@@ -37,9 +38,11 @@ object ColorOs16Vendor : SystemVersionVendor(ColorOsVendor) {
             val extra = ColorOs16LocationAvailability(hooker, classLoader)
             hooker.vendorExtraHooks.add(extra)
             extra.install()
-            val delivery = ColorOs16LocationDelivery(hooker, classLoader)
-            hooker.vendorExtraHooks.add(delivery)
-            delivery.install()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                val delivery = ColorOs16LocationDelivery(hooker, classLoader)
+                hooker.vendorExtraHooks.add(delivery)
+                delivery.install()
+            }
         }
     }
 }

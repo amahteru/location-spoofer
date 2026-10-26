@@ -34,24 +34,18 @@ class EnvironmentScanner(private val context: Context) {
         val resultObj = JSONObject()
         try {
             var isWifiConnected = false
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                val networks = connectivityManager.allNetworks
-                for (network in networks) {
-                    val caps = connectivityManager.getNetworkCapabilities(network)
-                    if (caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) {
-                        // 确保这个 Wi-Fi 网络具备基础的连接能力
-                        if (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
-                            caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                        ) {
-                            isWifiConnected = true
-                            break
-                        }
+            val networks = connectivityManager.allNetworks
+            for (network in networks) {
+                val caps = connectivityManager.getNetworkCapabilities(network)
+                if (caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) {
+                    // 确保这个 Wi-Fi 网络具备基础的连接能力
+                    if (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
+                        caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    ) {
+                        isWifiConnected = true
+                        break
                     }
                 }
-            } else {
-                val activeNetwork = connectivityManager.activeNetworkInfo
-                isWifiConnected =
-                    activeNetwork != null && activeNetwork.type == android.net.ConnectivityManager.TYPE_WIFI && activeNetwork.isConnected
             }
 
             resultObj.put("isConnected", isWifiConnected)
@@ -90,10 +84,8 @@ class EnvironmentScanner(private val context: Context) {
                 connObj.put("frequency", connectionInfo.frequency)
                 connObj.put("channel", MacVendorHelper.frequencyToChannel(connectionInfo.frequency))
                 connObj.put("capabilities", match?.capabilities ?: "[WPA2-PSK-CCMP][ESS]")
-                try {
-                    connObj.put("macAddress", connectionInfo.macAddress)
-                } catch (e: Throwable) {
-                }
+                // 普通 App 自 Android 6 起只能拿到占位值 02:00:00:00:00:00，直接写占位值，不再调用 getMacAddress
+                connObj.put("macAddress", "02:00:00:00:00:00")
                 try {
                     connObj.put("linkSpeed", connectionInfo.linkSpeed)
                 } catch (e: Throwable) {

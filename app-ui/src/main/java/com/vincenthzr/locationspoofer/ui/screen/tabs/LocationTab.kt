@@ -48,6 +48,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -109,6 +110,7 @@ fun LocationTab(
 ) {
     val motion = AppMotion
     val context = LocalContext.current
+    val resources = LocalResources.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
@@ -155,7 +157,7 @@ fun LocationTab(
     ) { uri ->
         uri?.let {
             viewModel.importEnvironmentData(it) {
-                Toast.makeText(context, context.getString(R.string.import_merge_success), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, resources.getString(R.string.import_merge_success), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -319,7 +321,7 @@ fun LocationTab(
                         mapController?.animateCamera(location.lat, location.lng, 17.5f)
                         Toast.makeText(
                             context,
-                            context.getString(R.string.located_to_saved_point, location.name),
+                            resources.getString(R.string.located_to_saved_point, location.name),
                             Toast.LENGTH_SHORT
                         ).show()
                     },
@@ -460,24 +462,24 @@ fun LocationTab(
                 }
                 Toast.makeText(
                     context,
-                    context.getString(R.string.pinned_collected_location_toast, label),
+                    resources.getString(R.string.pinned_collected_location_toast, label),
                     Toast.LENGTH_SHORT
                 ).show()
             },
             onFavorite = { item ->
                 viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
                     val message = when (result) {
-                        is FavoriteToggleResult.Added -> context.getString(
+                        is FavoriteToggleResult.Added -> resources.getString(
                             R.string.favorited_toast,
                             result.name
                         )
 
-                        is FavoriteToggleResult.Removed -> context.getString(
+                        is FavoriteToggleResult.Removed -> resources.getString(
                             R.string.unfavorited_toast,
                             result.name
                         )
 
-                        FavoriteToggleResult.Failed -> context.getString(R.string.favorite_failed)
+                        FavoriteToggleResult.Failed -> resources.getString(R.string.favorite_failed)
                     }
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
@@ -499,7 +501,7 @@ fun LocationTab(
                 onIntent(SpoofingIntent.SetSavedLocationsVisible(false))
                 Toast.makeText(
                     context,
-                    context.getString(R.string.located_to_saved_point, location.name),
+                    resources.getString(R.string.located_to_saved_point, location.name),
                     Toast.LENGTH_SHORT
                 ).show()
             },

@@ -153,17 +153,15 @@ class SpoofingService : Service() {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.spoofing_service_channel_name),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = getString(R.string.spoofing_bg_notification_title)
-                setShowBadge(false)
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            getString(R.string.spoofing_service_channel_name),
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = getString(R.string.spoofing_bg_notification_title)
+            setShowBadge(false)
         }
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

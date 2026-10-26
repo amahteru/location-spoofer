@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
@@ -43,6 +44,7 @@ fun RootDiagnosticsScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     BackHandler(onBack = onClose)
 
@@ -114,7 +116,7 @@ fun RootDiagnosticsScreen(
                 viewModel.confirmRestartHookedApps { count ->
                     Toast.makeText(
                         context,
-                        context.getString(R.string.restart_hooked_apps_done, count),
+                        resources.getString(R.string.restart_hooked_apps_done, count),
                         Toast.LENGTH_SHORT
                     ).show()
                 }

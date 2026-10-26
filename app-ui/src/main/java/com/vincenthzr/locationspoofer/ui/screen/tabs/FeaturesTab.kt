@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ fun FeaturesTab(
     onNavigateToSystemHookApps: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     // 导出：先让用户选内容，再拉起系统选择器（SAF 必须在拉起前就知道要写什么）
     var exportCounts by remember { mutableStateOf<ImportExportCounts?>(null) }
@@ -61,7 +63,7 @@ fun FeaturesTab(
             viewModel.exportEnvironmentData(it, exportSelection) { success ->
                 Toast.makeText(
                     context,
-                    context.getString(if (success) R.string.export_success else R.string.export_failed),
+                    resources.getString(if (success) R.string.export_success else R.string.export_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -75,7 +77,7 @@ fun FeaturesTab(
                 if (pkg == null) {
                     Toast.makeText(
                         context,
-                        context.getString(R.string.import_parse_failed),
+                        resources.getString(R.string.import_parse_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
@@ -116,7 +118,7 @@ fun FeaturesTab(
                 viewModel.applyImportPackage(pkg, selection) {
                     Toast.makeText(
                         context,
-                        context.getString(R.string.import_merge_success),
+                        resources.getString(R.string.import_merge_success),
                         Toast.LENGTH_SHORT
                     ).show()
                 }

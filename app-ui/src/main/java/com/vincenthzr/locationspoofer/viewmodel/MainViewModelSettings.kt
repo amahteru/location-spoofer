@@ -338,10 +338,10 @@ internal suspend fun MainViewModel.performLocalSearch(): List<AppPoiItem> {
             title = "$baseTitle$tagStr",
             snippet = "$recordsSnippet (${
                 String.format(
-                    "%.4f",
+                    java.util.Locale.US, "%.4f",
                     cluster.center.lat
                 )
-            }, ${String.format("%.4f", cluster.center.lng)})",
+            }, ${String.format(java.util.Locale.US, "%.4f", cluster.center.lng)})",
             lat = cluster.center.lat,
             lng = cluster.center.lng
         )

@@ -198,12 +198,12 @@ fun LocalEnvironmentDataDialog(
                         verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
                         items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                            Box(animateListItem()) {
+                            Box(Modifier.animateListItem(this)) {
                                 CollectionRouteListItem(route, onClick = { onSelectRoute(route) })
                             }
                         }
                         items(filteredList, key = { it.location.id }) { item ->
-                            Box(animateListItem()) {
+                            Box(Modifier.animateListItem(this)) {
                                 LocalDataItem(
                                     item = item,
                                     timeStr = timeFormat.format(Date(item.location.timestamp)),

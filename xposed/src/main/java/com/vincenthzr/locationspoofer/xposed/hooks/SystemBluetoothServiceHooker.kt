@@ -23,7 +23,7 @@ private fun sysLog(msg: String) = XposedBridge.log(msg)
  * 全设备所有应用通过 BluetoothLeScanner 进行 BLE 扫描时，均会经由 IBluetoothGatt
  * 远程 IPC 路由至 com.android.bluetooth 进程中的 GattService。
  *
- * 本模块在 com.android.bluetooth 进程内拦截 BLE 扫描入口（Android 17 起是 le_scan.ScanBinder，更早是 GattService）：
+ * 本模块在 com.android.bluetooth 进程内拦截 BLE 扫描入口（Android 17 起是 le_scan.ScanBinder，Android 15/16 是 le_scan.TransitionalScanHelper，更早是 GattService）：
  * 1. 当目标应用调用 registerScanner / startScan / registerAndStartScan 时，记录其 IScannerCallback 监听句柄；
  * 2. 绑定 IBinder.linkToDeath，客户端退出时自动移除；
  * 3. 启动系统级 BLE 周期性主动派发定时器：当配置开启 mock_bluetooth 且包含虚拟蓝牙设备（如打卡信标）时，
@@ -69,7 +69,7 @@ internal fun LocationHooker.hookSystemBluetoothService(classLoader: ClassLoader)
     if (isBluetoothServiceHooked) return
     if (com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.active.usesFrameworkBleDelivery) return
 
-    // 扫描入口类：Android 17 的 le_scan.ScanBinder，或更早版本的 GattService（可能在 bluetooth APEX 里）；
+    // 扫描入口类：Android 17 的 le_scan.ScanBinder、Android 15/16 的 le_scan.TransitionalScanHelper，或更早版本的 GattService（可能在 bluetooth APEX 里）；
     // 都找不到时从 ServiceManager 里已注册的 GATT 服务实例拿真实类
     var scanServiceClass = SystemClassLocator.locate(
         SystemComponent.BLUETOOTH_SCAN_SERVICE, classLoader,
@@ -194,7 +194,7 @@ private fun LocationHooker.startSystemBleHeartbeat(classLoader: ClassLoader) {
     }
 
     val timer = ownReloadTimer(Timer("LocationSpoofer-SysBleHeartbeat", true))
-    timer.scheduleAtFixedRate(object : TimerTask() {
+    timer.schedule(object : TimerTask() {
         override fun run() {
             try {
                 if (activeBleScanners.isEmpty()) return

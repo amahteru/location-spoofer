@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.screen
 
+import androidx.core.net.toUri
 import androidx.compose.material.icons.rounded.PauseCircle
 import com.vincenthzr.locationspoofer.ui.components.onContainerOf
 import com.vincenthzr.locationspoofer.ui.components.containerOf
@@ -28,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -60,6 +62,7 @@ fun DataCollectionAssistScreen(
     viewModel: MainViewModel,
     uiState: AppState) {
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     var missingPermissions by remember {
         mutableStateOf(REQUIRED_PERMISSIONS.filter {
@@ -92,7 +95,7 @@ fun DataCollectionAssistScreen(
             ) { success ->
                 Toast.makeText(
                     context,
-                    context.getString(if (success) R.string.export_success else R.string.export_failed),
+                    resources.getString(if (success) R.string.export_success else R.string.export_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -164,7 +167,7 @@ fun DataCollectionAssistScreen(
                                     context.startActivity(
                                         Intent(
                                             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                            Uri.parse("package:${context.packageName}")
+                                            "package:${context.packageName}".toUri()
                                         )
                                     )
                                 } catch (_: Exception) {

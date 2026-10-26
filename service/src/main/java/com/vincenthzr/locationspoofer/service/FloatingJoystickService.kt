@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -64,7 +65,6 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -315,7 +315,7 @@ private fun FloatingJoystickOverlay(
 }
 
 @Composable
-private fun CollapsedBubble(state: MotionController.State, palette: Palette, dragModifier: Modifier, onExpand: () -> Unit) {
+private fun CollapsedBubble(state: MotionController.State, palette: Palette, modifier: Modifier, onExpand: () -> Unit) {
     Box(modifier = Modifier.padding(AppSpacing.md)) {
         Box(
             modifier = Modifier
@@ -324,7 +324,7 @@ private fun CollapsedBubble(state: MotionController.State, palette: Palette, dra
                 .clip(CircleShape)
                 .background(palette.card)
                 .border(2.dp, statusColor(state, palette), CircleShape)
-                .then(dragModifier)
+                .then(modifier)
                 .pointerInput(Unit) { detectTapGestures(onTap = { onExpand() }) },
             contentAlignment = Alignment.Center
         ) {
@@ -532,7 +532,7 @@ private fun RowScope.TabButton(
 private fun SaveRecordingForm(palette: Palette, onSave: (String) -> Unit, onDiscard: () -> Unit) {
     val defaultName = stringResource(
         R.string.fj_default_route_name,
-        SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date())
+        SimpleDateFormat("MM-dd HH:mm", LocalConfiguration.current.locales[0]).format(Date())
     )
     var name by remember { mutableStateOf(defaultName) }
     OutlinedTextField(

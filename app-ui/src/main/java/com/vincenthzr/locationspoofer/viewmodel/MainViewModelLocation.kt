@@ -36,8 +36,8 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
                 if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty() || forceCallback != null) {
                     _uiState.update {
                         it.copy(
-                            latitudeInput = String.format("%.6f", loc.latitude),
-                            longitudeInput = String.format("%.6f", loc.longitude),
+                            latitudeInput = String.format(java.util.Locale.US, "%.6f", loc.latitude),
+                            longitudeInput = String.format(java.util.Locale.US, "%.6f", loc.longitude),
                             showCoordinateError = false
                         )
                     }
@@ -145,8 +145,8 @@ private fun MainViewModel.applyNativeLocation(
     if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty() || forceCallback != null) {
         _uiState.update {
             it.copy(
-                latitudeInput = String.format("%.6f", finalLat),
-                longitudeInput = String.format("%.6f", finalLng),
+                latitudeInput = String.format(java.util.Locale.US, "%.6f", finalLat),
+                longitudeInput = String.format(java.util.Locale.US, "%.6f", finalLng),
                 showCoordinateError = false
             )
         }
@@ -546,9 +546,9 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
                         lat,
                         lng,
                         context.getString(R.string.wigle_import),
-                        "$latLngPrefix (${String.format("%.6f", lat)}, ${
+                        "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
                             String.format(
-                                "%.6f",
+                                java.util.Locale.US, "%.6f",
                                 lng
                             )
                         })",
@@ -619,9 +619,9 @@ internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng:
                         lat,
                         lng,
                         context.getString(R.string.opencellid_import),
-                        "$latLngPrefix (${String.format("%.6f", lat)}, ${
+                        "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
                             String.format(
-                                "%.6f",
+                                java.util.Locale.US, "%.6f",
                                 lng
                             )
                         })",

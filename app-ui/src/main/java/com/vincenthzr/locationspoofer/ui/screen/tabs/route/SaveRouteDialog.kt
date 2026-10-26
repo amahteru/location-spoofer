@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import com.vincenthzr.locationspoofer.ui.R
@@ -32,6 +33,7 @@ fun SaveRouteDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var routeName by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
@@ -42,7 +44,7 @@ fun SaveRouteDialog(
     val save = {
         if (routeName.isNotBlank()) {
             viewModel.saveRoute(routeName, routePoints)
-            Toast.makeText(context, context.getString(R.string.save_success), Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, resources.getString(R.string.save_success), Toast.LENGTH_SHORT).show()
             onDismiss()
         }
     }

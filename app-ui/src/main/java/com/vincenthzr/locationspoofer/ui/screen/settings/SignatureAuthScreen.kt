@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,6 +42,7 @@ fun SignatureAuthScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val clipboardManager = LocalClipboardManager.current
 
     BackHandler(onBack = onClose)
@@ -58,7 +60,7 @@ fun SignatureAuthScreen(
                     value = context.packageName,
                     onCopy = {
                         clipboardManager.setText(AnnotatedString(context.packageName))
-                        Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
                     }
                 )
                 CopyableListItem(
@@ -66,7 +68,7 @@ fun SignatureAuthScreen(
                     value = uiState.appSha1.ifBlank { stringResource(R.string.reading_signature) },
                     onCopy = {
                         clipboardManager.setText(AnnotatedString(uiState.appSha1))
-                        Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
                     }
                 )
             }

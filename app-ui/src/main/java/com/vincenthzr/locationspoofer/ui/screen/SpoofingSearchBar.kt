@@ -57,9 +57,9 @@ fun HomeSearchBar(
     onSearchModeChange: (com.vincenthzr.locationspoofer.data.model.SearchMode) -> Unit,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
+    modifier: Modifier = Modifier,
     onFocus: () -> Unit = {},
     onBack: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null
 ) {
     // M3 Search Bar 输入框：full 形状、surfaceContainerHigh 底色，悬浮在地图上加一级阴影

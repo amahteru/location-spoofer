@@ -1,5 +1,6 @@
 package com.vincenthzr.locationspoofer.utils
 
+import androidx.core.content.edit
 import android.content.Context
 import android.location.Geocoder
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
@@ -248,6 +249,8 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
 
     private suspend fun write(json: JSONObject): Boolean = writeMutex.withLock { writeLocked(json) }
 
+    // 要用 commit() 的返回值判断是否落盘，KTX 的 edit {} 拿不到
+    @android.annotation.SuppressLint("UseKtx")
     private fun writeLocked(json: JSONObject): Boolean {
         // Remember the desired state even if a stop/pause happens while the service is disconnected.
         // Reconnection must never replay an older active session over a newer stop request.
@@ -274,6 +277,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         return try {
             val prefs = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
             publisher.publish(json.toString(), object : FrameworkConfigStore {
+                @android.annotation.SuppressLint("UseKtx") // 返回值即框架是否接受了这次发布
                 override fun commit(snapshot: String): Boolean =
                     prefs.edit().putString(FrameworkConfigChannel.SNAPSHOT_KEY, snapshot).commit()
 
@@ -300,7 +304,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
                 // Root authorization/cleanup must not delay subsequent stop or coordinate updates.
                 scope.launch {
                     if (rootManager.executeCommand(SystemFileCommands.removeLegacyConfigs()) != "ERROR") {
-                        transportPrefs.edit().putBoolean("legacy_files_removed", true).apply()
+                        transportPrefs.edit { putBoolean("legacy_files_removed", true) }
                     }
                 }
             }

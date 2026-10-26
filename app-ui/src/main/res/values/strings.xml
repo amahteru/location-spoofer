@@ -4,7 +4,7 @@
     <string name="map_type_standard">Standard</string>
     <string name="map_type_satellite">Satellite</string>
     <string name="map_type_3d">3D</string>
-    <string name="app_description" translatable="false">Location simulation module</string>
+    <string name="app_description">Location simulation module</string>
     <string name="current_location">Current location</string>
     <string name="cancel">Cancel</string>
     <string name="start_simulation">Start simulation</string>
@@ -56,7 +56,7 @@
     <string name="adaptation_progress_full">Full adaptation progress</string>
     <string name="config_write_failed">Configuration could not be published. Check the module and framework connection; the latest settings will retry automatically</string>
     <string name="hook_status_title">Hook status</string>
-    <string name="hook_status_summary">%1$d/%2$d components hooked</string>
+    <string name="hook_status_summary">Components hooked: %1$d/%2$d</string>
     <string name="hook_status_summary_none">No report</string>
     <string name="hook_status_adapter_auto">Adapter: %1$s (auto)</string>
     <string name="hook_status_adapter_manual">Adapter: %1$s (manual)</string>
@@ -113,9 +113,9 @@
     <string name="restart_hooked_apps_title">Restart target apps</string>
     <string name="restart_hooked_apps_desc">Force-stop to reload the module</string>
     <string name="restart_hooked_apps_confirm_title">Restart apps?</string>
-    <string name="restart_hooked_apps_confirm_message">This will force-stop the following %1$d app(s). Unsaved content in them may be lost.</string>
+    <string name="restart_hooked_apps_confirm_message">This will force-stop the following apps (%1$d). Unsaved content in them may be lost.</string>
     <string name="restart_hooked_apps_confirm_button">Restart</string>
-    <string name="restart_hooked_apps_done">Restarted %1$d app(s). Please reopen them to verify.</string>
+    <string name="restart_hooked_apps_done">Apps restarted: %1$d. Please reopen them to verify.</string>
     <string name="restart_hooked_apps_empty">No apps are currently in scope for this module.</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
     <string name="data_collection_assist_intro">Without root, the main simulation features are unavailable, but you can still help collect real Wi-Fi/cell data at this location. Export it when done and send the file to be imported on another device.</string>
@@ -164,7 +164,7 @@ select the apps to simulate, then restart them.</string>
     <string name="system_hook_apps_title">System-level simulation</string>
     <string name="system_hook_apps_card_desc">Only the system framework needs to be in scope; simulate all apps or a whitelist</string>
     <string name="system_hook_apps_subtitle">Takes over location and radio at the system_server layer</string>
-    <string name="system_hook_apps_warning">System framework scheme: intercepts and dispatches virtual location, GNSS satellites and Wi-Fi/cell data directly in system services. Keep only “System Framework” in the LSPosed scope (no target apps needed); target app processes stay 100% free of Xposed code, avoiding anti-cheat detection.</string>
+    <string name="system_hook_apps_warning" formatted="false">System framework scheme: intercepts and dispatches virtual location, GNSS satellites and Wi-Fi/cell data directly in system services. Keep only “System Framework” in the LSPosed scope (no target apps needed); target app processes stay 100% free of Xposed code, avoiding anti-cheat detection.</string>
     <string name="system_hook_global_mode_title">Global mode</string>
     <string name="system_hook_global_mode_desc">Applies to all apps except system core</string>
     <string name="system_hook_global_mode_active_hint">Global simulation is on, so all apps are covered. Turn it off to use the whitelist below.</string>
@@ -172,7 +172,7 @@ select the apps to simulate, then restart them.</string>
     <string name="system_hook_clear_all">Clear selection</string>
     <string name="selected_count_format">Selected (%d)</string>
     <string name="env_map_scan">Collect local data</string>
-    <string name="scanning_reference_points">Collecting… %1$d reference points</string>
+    <string name="scanning_reference_points">Collecting… reference points: %1$d</string>
     <string name="view_heatmap_start_scan">Collect cell and Wi-Fi signals</string>
     <string name="env_data_sharing">Import &amp; export data</string>
     <string name="env_data_sharing_desc">Back up or merge local data as JSON</string>
@@ -205,7 +205,7 @@ select the apps to simulate, then restart them.</string>
     <string name="save_success">Saved</string>
     <string name="route_library">Favorite routes</string>
     <string name="no_saved_routes">No favorite routes</string>
-    <string name="route_nodes_count">%d waypoints</string>
+    <string name="route_nodes_count">Waypoints: %d</string>
     <string name="custom_wigle_token">WiGLE API key (Basic Auth Base64)</string>
     <string name="custom_wigle_token_hint">Enter your WiGLE API key…</string>
     <string name="custom_opencellid_token">OpenCellID API key</string>
@@ -236,8 +236,8 @@ select the apps to simulate, then restart them.</string>
     <string name="route_end_badge">End</string>
     <string name="planning_route_trajectory">Planning route…</string>
     <string name="bookmark_current_route">Favorite this route</string>
-    <string name="selected_waypoints_count">%d waypoints selected</string>
-    <string name="total_saved_routes">%d favorite routes</string>
+    <string name="selected_waypoints_count">Waypoints selected: %d</string>
+    <string name="total_saved_routes">Favorite routes: %d</string>
     <string name="add_points_save_hint">Add waypoints, then tap “Favorite” to save the route</string>
     <string name="loaded_route">Loaded route “%s”</string>
     <string name="add_start_point">Start point</string>
@@ -278,7 +278,7 @@ select the apps to simulate, then restart them.</string>
     <string name="update_now">Update now</string>
     <string name="download_32_compat">32-bit compatible package</string>
     <string name="recheck">Check again</string>
-    <string name="merged_count_badge">Merged %d updates</string>
+    <string name="merged_count_badge">Updates merged: %d</string>
     <string name="download_64">Download (64-bit)</string>
     <string name="download_32">Download 32-bit</string>
     <string name="new_version_found">New version available</string>
@@ -299,7 +299,7 @@ select the apps to simulate, then restart them.</string>
     <string name="wgs84_title">WGS-84 (GPS)</string>
     <string name="bd09_title">BD-09 (Baidu)</string>
     <string name="app_coordinate_setting">Apply</string>
-    <string name="total_collected_data_count">%d records collected</string>
+    <string name="total_collected_data_count">Records collected: %d</string>
     <string name="manage_data_empty_desc">Data collected from the Features tab appears here</string>
     <string name="delete_data_title">Delete collected data</string>
     <string name="delete_data_confirm_format">Delete “%s”? Its cell, Wi-Fi and Bluetooth data will also be removed and can’t be restored.</string>
@@ -339,7 +339,7 @@ select the apps to simulate, then restart them.</string>
     <string name="import_external_data_json">Import data (JSON)</string>
     <string name="no_matching_collected_points">No matching points</string>
     <string name="search_place_building_coord_hint">Search places or coordinates…</string>
-    <string name="saved_locations_count_format">%d favorite locations</string>
+    <string name="saved_locations_count_format">Favorite locations: %d</string>
     <string name="map_save_location_hint">Pick a point on the map and tap “Favorite” to save it</string>
     <string name="altitude_meter">Altitude (m)</string>
     <string name="altitude_simulation">Altitude</string>
@@ -348,7 +348,7 @@ select the apps to simulate, then restart them.</string>
     <string name="altitude_variation">Variation</string>
     <string name="altitude_variation_off">Fixed</string>
     <string name="altitude_variation_value">±%1$d m</string>
-    <string name="altitude_variation_desc">Rises and falls gently like terrain: the same spot always has the same altitude and slopes stay under 8%, so larger ranges change more gradually</string>
+    <string name="altitude_variation_desc" formatted="false">Rises and falls gently like terrain: the same spot always has the same altitude and slopes stay under 8%, so larger ranges change more gradually</string>
     <string name="satellite_count">Satellite count</string>
     <string name="tag_bluetooth">Bluetooth</string>
     <string name="tag_cell">Cell</string>
@@ -356,7 +356,7 @@ select the apps to simulate, then restart them.</string>
     <string name="local_collected_hotspot">Locally collected hotspot</string>
     <string name="wigle_import">WiGLE import</string>
     <string name="opencellid_import">OpenCellID import</string>
-    <string name="contains_records_format">Contains %d records</string>
+    <string name="contains_records_format">Records: %d</string>
     <string name="lat_lng_format_prefix">Coordinates:</string>
     <string name="route_plan_failed_fallback_straight">Route planning failed, falling back to straight-line simulation</string>
     <string name="route_request_exception">Route request error: %s</string>
@@ -476,7 +476,7 @@ Error details: %s</string>
 
     <string name="collection_info_title">Point details</string>
     <string name="collection_info_description">Data has been saved. Add a location name and note so you can find this point later.</string>
-    <string name="collection_info_remaining">%d points remain to be described.</string>
+    <string name="collection_info_remaining">Points left to describe: %d</string>
     <string name="collection_location_name">Location name</string>
     <string name="collection_info_skip">Skip</string>
     <string name="collection_info_saving">Saving…</string>
@@ -497,12 +497,12 @@ Error details: %s</string>
     <string name="collection_route_center">Waypoint crosshair</string>
     <string name="collection_route_default_name">Collected route %1$s</string>
     <string name="collection_route_unnamed">Unnamed route</string>
-    <string name="collection_route_summary">%1$d samples · %2$d m on each side</string>
+    <string name="collection_route_summary">Samples: %1$d · Width each side: %2$d m</string>
     <string name="collection_route_details">Route information</string>
     <string name="collection_route_name">Route name</string>
     <string name="collection_route_save_description">Save a name and notes for this route and its collected samples.</string>
     <string name="collection_route_delete_title">Delete collected route</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
-    <string name="local_collection_records_count">%1$d points · %2$d routes</string>
+    <string name="local_collection_records_count">Points: %1$d · Routes: %2$d</string>
     <string name="system_hook_global_mode_summary">Global mode (all apps)</string>
 </resources>

@@ -167,7 +167,7 @@
     <string name="system_hook_apps_title">系统级模拟</string>
     <string name="system_hook_apps_card_desc">仅需勾选系统框架，支持全局模拟所有应用或指定应用白名单</string>
     <string name="system_hook_apps_subtitle">在 system_server 层接管定位与无线电</string>
-    <string name="system_hook_apps_warning">系统框架级方案：直接在系统服务层拦截并派发虚拟定位、GNSS 卫星与 Wi-Fi/基站。您只需在 LSPosed 作用域中保留【系统框架】（无需勾选具体应用），目标应用进程内 100% 纯净无 Xposed 代码，彻底免除反作弊检测！</string>
+    <string name="system_hook_apps_warning" formatted="false">系统框架级方案：直接在系统服务层拦截并派发虚拟定位、GNSS 卫星与 Wi-Fi/基站。您只需在 LSPosed 作用域中保留【系统框架】（无需勾选具体应用），目标应用进程内 100% 纯净无 Xposed 代码，彻底免除反作弊检测！</string>
     <string name="system_hook_global_mode_title">全局模拟模式</string>
     <string name="system_hook_global_mode_desc">所有应用生效，排除系统核心</string>
     <string name="system_hook_global_mode_active_hint">当前已开启全局模拟，无需逐个勾选应用；关闭此开关后将按下方列表白名单生效</string>
@@ -346,7 +346,7 @@
     <string name="altitude_variation">变化范围</string>
     <string name="altitude_variation_off">固定</string>
     <string name="altitude_variation_value">±%1$d 米</string>
-    <string name="altitude_variation_desc">按地形平缓起伏，同一地点海拔一致，坡度不超过 8%；范围越大起伏越舒缓</string>
+    <string name="altitude_variation_desc" formatted="false">按地形平缓起伏，同一地点海拔一致，坡度不超过 8%；范围越大起伏越舒缓</string>
     <string name="satellite_count">卫星数</string>
     <string name="tag_bluetooth">蓝牙</string>
     <string name="tag_cell">基站</string>

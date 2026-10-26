@@ -2,7 +2,8 @@ package com.vincenthzr.locationspoofer.viewmodel
 
 import android.app.DownloadManager
 import android.content.Context
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
 import com.vincenthzr.locationspoofer.ui.BuildConfig
@@ -29,7 +30,8 @@ data class UpdateUiState(
     val downloadStatus: Int = DownloadManager.STATUS_PENDING
 )
 
-class UpdateViewModel(private val context: Context) : ViewModel() {
+class UpdateViewModel(application: Application) : AndroidViewModel(application) {
+    private val context: Context get() = getApplication()
     private val _uiState = MutableStateFlow(UpdateUiState())
     val uiState: StateFlow<UpdateUiState> = _uiState.asStateFlow()
 

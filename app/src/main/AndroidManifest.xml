@@ -35,6 +35,7 @@
         android:roundIcon="@android:drawable/ic_menu_mylocation"
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="false"
+        tools:targetApi="33"
         android:description="@string/app_description"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         

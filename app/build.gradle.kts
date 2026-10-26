@@ -13,6 +13,18 @@ android {
     namespace = "com.vincenthzr.locationspoofer"
     compileSdk = 37
 
+    // 应用内可切换语言，打成 App Bundle 时不能按语言拆分资源
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
+    lint {
+        // 只发布 arm64 手机包：模块依赖 root + LSPosed，ChromeOS 上无法使用
+        disable += "ChromeOsAbiSupport"
+    }
+
     fun getLocalConfig(key: String): String? {
         val localYml = file("../local.yml")
         if (localYml.exists()) {

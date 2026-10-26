@@ -29,9 +29,11 @@ object AppMotion {
             slideOutHorizontally(pageSlideSpec()) { width -> -width * direction }
 }
 
-/** 列表项增删、重排的统一动画 */
-fun LazyItemScope.animateListItem(): Modifier = Modifier.animateItem(
-    fadeInSpec = AppMotion.defaultEffectsSpec(),
-    placementSpec = AppMotion.defaultSpatialSpec(),
-    fadeOutSpec = AppMotion.fastEffectsSpec()
-)
+/** 列表项增删、重排的统一动画；[scope] 传列表项所在的 LazyItemScope */
+fun Modifier.animateListItem(scope: LazyItemScope): Modifier = with(scope) {
+    this@animateListItem.animateItem(
+        fadeInSpec = AppMotion.defaultEffectsSpec(),
+        placementSpec = AppMotion.defaultSpatialSpec(),
+        fadeOutSpec = AppMotion.fastEffectsSpec()
+    )
+}

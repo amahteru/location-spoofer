@@ -39,7 +39,7 @@ fun SavedLocationsDialog(
         } else {
             LazyColumn {
                 items(savedLocations, key = { "${it.name}_${it.lat}_${it.lng}" }) { loc ->
-                    Box(animateListItem()) {
+                    Box(Modifier.animateListItem(this)) {
                         SavedLocationRow(loc, onSelect = { onSelect(loc) }, onDelete = { onDelete(loc) })
                     }
                 }

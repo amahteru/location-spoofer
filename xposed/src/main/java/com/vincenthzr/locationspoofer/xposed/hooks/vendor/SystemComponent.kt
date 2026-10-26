@@ -60,7 +60,7 @@ enum class SystemComponent(val process: SystemProcess) {
 
     /**
      * BLE 扫描入口：Android 17 起是 le_scan.ScanBinder（注册与启动合并为 registerAndStartScan），
-     * 更早的版本是 gatt.GattService（registerScanner + startScan 两步）
+     * Android 15/16 是 le_scan.TransitionalScanHelper，更早的版本是 gatt.GattService（后两者都是 registerScanner + startScan 两步）
      */
     BLUETOOTH_SCAN_SERVICE(SystemProcess.BLUETOOTH),
 }
