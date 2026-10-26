@@ -153,6 +153,18 @@ class FrameworkConfigReceiverTest {
         }
     }
 
+    @Test fun preferencesUpdateAppliesEvenAfterTheClockMovedBackwards() {
+        val prefs = Preferences().apply { snapshot = snapshot("{\"active\":true}", publishedAt = 500L) }
+        val configs = mutableListOf<FrameworkConfigSnapshot>()
+        FrameworkConfigReceiver({ prefs.notifyingPrefs }, { error("Unexpected file") }, configs::add,
+            { throw AssertionError(it) }).use {
+            it.refresh()
+            prefs.snapshot = snapshot("{\"active\":false}", publishedAt = 400L)
+            it.refresh()
+            assertFalse(configs.last().config.getBoolean("active"))
+        }
+    }
+
     @Test fun tornHeadReadIsRetried() {
         val prefs = Preferences()
         var head: String? = snapshot("{\"active\":false}", publishedAt = 200L).take(20)

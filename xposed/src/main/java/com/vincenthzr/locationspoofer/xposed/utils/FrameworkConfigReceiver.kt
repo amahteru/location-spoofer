@@ -47,7 +47,7 @@ internal class FrameworkConfigReceiver(
             }
             val text = prefs.getString(FrameworkConfigChannel.SNAPSHOT_KEY, null)
             if (text != null && text != lastSnapshot) {
-                deliver(FrameworkConfigSnapshot.decode(text, readFile))
+                deliver(FrameworkConfigSnapshot.decode(text, readFile), requireNewer = false)
                 lastSnapshot = text
             }
         } catch (error: Exception) {
@@ -62,18 +62,24 @@ internal class FrameworkConfigReceiver(
             val head = readHead() ?: return
             if (head == lastHead) return
             // A torn read of a head being rewritten fails to decode and is simply retried next tick.
-            deliver(FrameworkConfigSnapshot.decode(head, readFile).copy(source = HEAD_SOURCE))
+            deliver(FrameworkConfigSnapshot.decode(head, readFile).copy(source = HEAD_SOURCE), requireNewer = true)
             lastHead = head
         } catch (error: Exception) {
             report(error)
         }
     }
 
-    /** Both channels carry the same snapshots; only a newer one than what is in memory is delivered. */
-    private fun deliver(snapshot: FrameworkConfigSnapshot) {
+    /**
+     * Both channels carry the same snapshots, so one already in memory is skipped. A changed preferences
+     * value is always a new publication and is applied as is: comparing timestamps there would drop a
+     * stop request published after the device clock moved backwards. Only the head copy, the fallback,
+     * must be strictly newer, so it can never roll back what preferences delivered.
+     */
+    private fun deliver(snapshot: FrameworkConfigSnapshot, requireNewer: Boolean) {
         if (closed) return
         val current = applied
-        if (current != null && (snapshot.publishedAt < current.publishedAt || snapshot.id == current.id)) return
+        if (current != null && snapshot.id == current.id) return
+        if (requireNewer && current != null && snapshot.publishedAt <= current.publishedAt) return
         onConfig(snapshot)
         applied = snapshot
     }

@@ -7,7 +7,7 @@ internal data class FrameworkConfigSnapshot(
     val config: JSONObject,
     val source: String,
     val publishedAt: Long,
-    val id: String = ""
+    val id: String
 ) {
     companion object {
         fun decode(text: String, readFile: (String) -> String): FrameworkConfigSnapshot {
