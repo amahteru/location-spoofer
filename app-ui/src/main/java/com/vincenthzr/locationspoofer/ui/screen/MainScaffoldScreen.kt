@@ -124,6 +124,13 @@ fun MainScaffoldScreen(
         }
     }
 
+    // 底层地图被子页面盖住时不跟着切换引擎：切到百度 / 谷歌要在主线程销毁并新建地图视图，
+    // 在地图配置页里每点一次都会卡一下。等回到主界面再换成新引擎，期间只换一次。
+    var mapEngineOnScreen by remember { mutableStateOf(uiState.mapEngine) }
+    LaunchedEffect(currentSubScreen, uiState.mapEngine) {
+        if (currentSubScreen == MainSubScreen.None) mapEngineOnScreen = uiState.mapEngine
+    }
+
     // 针对非首页 Tab（路线/功能/信息）的系统返回拦截：返回到定位首页
     BackHandler(enabled = currentSubScreen == MainSubScreen.None && selectedTab != BottomTab.Location.ordinal) {
         selectedTab = BottomTab.Location.ordinal
@@ -174,7 +181,7 @@ fun MainScaffoldScreen(
                 Box(modifier = Modifier.fillMaxSize()) {
                     AppMapView(
                         modifier = Modifier.fillMaxSize(),
-                        mapEngine = uiState.mapEngine,
+                        mapEngine = mapEngineOnScreen,
                         isDomestic = viewModel.isDomesticEnvironment(),
                         onMapReady = { controller ->
                             mapController = controller

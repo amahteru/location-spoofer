@@ -4,8 +4,10 @@ import com.vincenthzr.locationspoofer.ui.theme.AppMotion
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -71,44 +73,41 @@ fun MapEngineSettingsScreen(
                 }
             }
 
-            // 各引擎自定义 API Key 输入
+            // 各引擎自定义 API Key 输入。高度随显隐一起动画，否则淡出结束后区域一下子消失，下方的保存按钮会跳上来；
+            // 切回"自动"淡出期间继续显示刚才那个引擎的输入框，不至于先变空再收起
+            // 普通引用而非 State：只在本次组合里读写，不会在组合期间触发额外的重组
+            val lastKeyEngine = remember { arrayOf(uiState.mapEngine) }
+            if (uiState.mapEngine != MapEngine.AUTO) lastKeyEngine[0] = uiState.mapEngine
+            val keyEngine = lastKeyEngine[0]
             AnimatedVisibility(
-                visible = uiState.mapEngine == MapEngine.AMAP || uiState.mapEngine == MapEngine.BAIDU || uiState.mapEngine == MapEngine.GOOGLE,
-                enter = fadeIn(AppMotion.defaultEffectsSpec()),
-                exit = fadeOut(AppMotion.fastEffectsSpec())
+                visible = uiState.mapEngine != MapEngine.AUTO,
+                enter = fadeIn(AppMotion.defaultEffectsSpec()) + expandVertically(AppMotion.defaultSpatialSpec()),
+                exit = fadeOut(AppMotion.fastEffectsSpec()) + shrinkVertically(AppMotion.defaultSpatialSpec())
             ) {
-                Column(modifier = Modifier.padding(top = AppSpacing.lg)) {
-                    when (uiState.mapEngine) {
-                        MapEngine.AMAP -> {
-                            ModernSettingsInput(
-                                label = stringResource(R.string.custom_amap_key),
-                                value = localAmapApiKey,
-                                onValueChange = { localAmapApiKey = it },
-                                placeholder = stringResource(R.string.custom_amap_key_hint)
-                            )
-                        }
-
-                        MapEngine.BAIDU -> {
-                            ModernSettingsInput(
-                                label = stringResource(R.string.custom_baidu_key),
-                                value = localBaiduApiKey,
-                                onValueChange = { localBaiduApiKey = it },
-                                placeholder = stringResource(R.string.custom_baidu_key_hint)
-                            )
-                        }
-
-                        MapEngine.GOOGLE -> {
-                            ModernSettingsInput(
-                                label = stringResource(R.string.custom_google_key),
-                                value = localGoogleApiKey,
-                                onValueChange = { localGoogleApiKey = it },
-                                placeholder = stringResource(R.string.custom_google_key_hint)
-                            )
-                        }
-
-                        else -> Unit
-                    }
+                // 三个引擎共用同一个输入框，只换标题、内容和提示：每个引擎各写一个输入框时，
+                // 切换引擎会销毁旧输入框再新建一个，新建输入框开销较大，切换时会卡一下
+                val (label, hint) = when (keyEngine) {
+                    MapEngine.BAIDU -> R.string.custom_baidu_key to R.string.custom_baidu_key_hint
+                    MapEngine.GOOGLE -> R.string.custom_google_key to R.string.custom_google_key_hint
+                    else -> R.string.custom_amap_key to R.string.custom_amap_key_hint
                 }
+                ModernSettingsInput(
+                    modifier = Modifier.padding(top = AppSpacing.lg),
+                    label = stringResource(label),
+                    value = when (keyEngine) {
+                        MapEngine.BAIDU -> localBaiduApiKey
+                        MapEngine.GOOGLE -> localGoogleApiKey
+                        else -> localAmapApiKey
+                    },
+                    onValueChange = { value ->
+                        when (keyEngine) {
+                            MapEngine.BAIDU -> localBaiduApiKey = value
+                            MapEngine.GOOGLE -> localGoogleApiKey = value
+                            else -> localAmapApiKey = value
+                        }
+                    },
+                    placeholder = stringResource(hint)
+                )
             }
         }
 
