@@ -21,6 +21,7 @@ import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 导入 / 导出共用的分类选择对话框。
@@ -42,13 +43,13 @@ fun ImportExportSelectionDialog(
             Text(stringResource(if (isExport) R.string.export_select_title else R.string.import_select_title))
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 Text(stringResource(if (isExport) R.string.export_select_desc else R.string.import_select_desc))
                 Column(
                     modifier = Modifier
                         .heightIn(max = 380.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                 ) {
                     SelectionRow(
                         label = stringResource(R.string.category_collected_data),
@@ -124,7 +125,7 @@ private fun SelectionRow(
                 role = Role.Checkbox,
                 onValueChange = onCheckedChange
             )
-            .padding(vertical = 4.dp),
+            .padding(vertical = AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
@@ -132,7 +133,7 @@ private fun SelectionRow(
             onCheckedChange = null,
             enabled = enabled
         )
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(AppSpacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = if (showCount && enabled) {

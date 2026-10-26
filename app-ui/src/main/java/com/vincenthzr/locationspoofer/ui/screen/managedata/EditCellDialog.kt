@@ -12,10 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.listItemBleed
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun EditCellDialog(
@@ -61,7 +61,7 @@ fun EditCellDialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 // 制式选择
                 Text(
@@ -82,7 +82,7 @@ fun EditCellDialog(
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     OutlinedTextField(
                     value = mccStr,
                     onValueChange = { mccStr = it.filter { c -> c.isDigit() } },
@@ -108,7 +108,7 @@ fun EditCellDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     OutlinedTextField(
                     value = ciStr,
                     onValueChange = { ciStr = it.filter { c -> c.isDigit() } },

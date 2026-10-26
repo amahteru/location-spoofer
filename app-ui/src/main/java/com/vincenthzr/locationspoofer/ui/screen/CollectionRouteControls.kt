@@ -10,6 +10,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.AppMapController
 import com.vincenthzr.locationspoofer.viewmodel.*
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppMapController?, modifier: Modifier = Modifier) {
@@ -20,7 +21,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shadowElevation = 3.dp
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(AppSpacing.lg), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             if (!busy) {
                 // 采点 / 采路线 两种模式：M3 分段按钮
                 val modes = listOf(false to R.string.collection_point_mode, true to R.string.collection_route_mode)
@@ -40,7 +41,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                 Text(stringResource(if (state.isDrawingCollectionRoute) R.string.collection_route_draw_hint else R.string.collection_route_collect_hint), style = MaterialTheme.typography.bodySmall)
                 if (state.isDrawingCollectionRoute) {
                     Text(stringResource(R.string.selected_waypoints_count, state.collectionRoutePoints.size), style = MaterialTheme.typography.bodySmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                         TextButton(enabled = state.collectionRoutePoints.isNotEmpty(), onClick = viewModel::undoCollectionRoutePoint) {
                             Text(stringResource(R.string.collection_route_undo))
                         }

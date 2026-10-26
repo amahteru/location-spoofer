@@ -68,6 +68,7 @@ import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 悬浮摇杆：浮在其他 App 之上操作模拟位置，所有操作都转给进程级 [MotionController]，
@@ -276,15 +277,15 @@ private fun FloatingJoystickOverlay(
 
     Column(
         modifier = Modifier
-            .padding(12.dp) // 给阴影留出空间
+            .padding(AppSpacing.md) // 给阴影留出空间
             .width(208.dp)
             .shadow(6.dp, MaterialTheme.shapes.extraLarge) // M3 第 3 级阴影
             .clip(MaterialTheme.shapes.extraLarge)
             .background(palette.card)
             .border(1.dp, palette.border.copy(alpha = 0.6f), MaterialTheme.shapes.extraLarge)
-            .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+            .padding(start = AppSpacing.md, end = AppSpacing.md, bottom = AppSpacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
     ) {
         // 拖动条：按住整条区域即可移动悬浮窗
         Box(
@@ -315,7 +316,7 @@ private fun FloatingJoystickOverlay(
 
 @Composable
 private fun CollapsedBubble(state: MotionController.State, palette: Palette, dragModifier: Modifier, onExpand: () -> Unit) {
-    Box(modifier = Modifier.padding(12.dp)) {
+    Box(modifier = Modifier.padding(AppSpacing.md)) {
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -341,7 +342,7 @@ private fun CollapsedBubble(state: MotionController.State, palette: Palette, dra
                     .size(14.dp)
                     .clip(CircleShape)
                     .background(palette.card)
-                    .padding(2.dp)
+                    .padding(AppSpacing.xs)
                     .clip(CircleShape)
                     .background(palette.red)
             )
@@ -393,7 +394,7 @@ private fun Joystick(enabled: Boolean, palette: Palette, onJoystick: (Double, Fl
             Box(
                 modifier = Modifier
                     .align(align)
-                    .padding(6.dp)
+                    .padding(AppSpacing.sm)
                     .size(4.dp)
                     .clip(CircleShape)
                     .background(palette.textSecondary.copy(alpha = 0.45f))
@@ -434,8 +435,8 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .background(palette.variant)
-            .padding(3.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+            .padding(AppSpacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
     ) {
         presets.forEach { preset ->
             val selected = preset.name == state.preset.name
@@ -445,7 +446,7 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
                     .clip(MaterialTheme.shapes.small)
                     .background(if (selected) palette.segment else Color.Transparent)
                     .clickable(enabled = state.active) { onPreset(preset) }
-                    .padding(vertical = 6.dp),
+                    .padding(vertical = AppSpacing.sm),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -470,7 +471,7 @@ private fun ActionTabs(
     onStopRecording: () -> Unit,
     onCollapse: () -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
         if (state.hasRoute) {
             when {
                 state.paused -> TabButton(
@@ -549,7 +550,7 @@ private fun SaveRecordingForm(palette: Palette, onSave: (String) -> Unit, onDisc
         ),
         modifier = Modifier.fillMaxWidth()
     )
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
         TabButton(
             Icons.Rounded.Close, stringResource(R.string.fj_discard),
             container = palette.variant, content = palette.textSecondary, enabled = true, onClick = onDiscard

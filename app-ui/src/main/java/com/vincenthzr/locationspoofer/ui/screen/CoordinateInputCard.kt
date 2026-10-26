@@ -17,6 +17,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.clearPinnedCollectedLocation
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 
 // 坐标输入区域：直接放在定位抽屉的浮层里，不再自带卡片底色
@@ -56,11 +57,11 @@ fun CoordinateInputCard(
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
             modifier = Modifier.fillMaxWidth()
         ) {
             // Longitude Chip
@@ -71,7 +72,7 @@ fun CoordinateInputCard(
                     .background(
                         MaterialTheme.colorScheme.surfaceContainerHigh
                     )
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm)
             ) {
                 Column {
                     Text(
@@ -96,7 +97,7 @@ fun CoordinateInputCard(
                     .background(
                         MaterialTheme.colorScheme.surfaceContainerHigh
                     )
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm)
             ) {
                 Column {
                     Text(
@@ -115,7 +116,7 @@ fun CoordinateInputCard(
         }
 
         if (uiState.pinnedCollectedLocationId != null) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.md))
             InputChip(
                 selected = true,
                 onClick = { viewModel.clearPinnedCollectedLocation() },
@@ -143,7 +144,7 @@ fun CoordinateInputCard(
         }
 
         if (uiState.showCoordinateError) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(AppSpacing.md))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Outlined.ErrorOutline,
@@ -151,7 +152,7 @@ fun CoordinateInputCard(
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(14.dp)
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(AppSpacing.xs))
                 Text(
                     stringResource(R.string.invalid_coordinates),
                     color = MaterialTheme.colorScheme.error,

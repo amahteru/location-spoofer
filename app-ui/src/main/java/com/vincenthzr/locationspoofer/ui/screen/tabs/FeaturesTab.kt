@@ -34,6 +34,7 @@ import com.vincenthzr.locationspoofer.viewmodel.applyImportPackage
 import com.vincenthzr.locationspoofer.viewmodel.collectExportCounts
 import com.vincenthzr.locationspoofer.viewmodel.exportEnvironmentData
 import com.vincenthzr.locationspoofer.viewmodel.parseImportPackage
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun FeaturesTab(
@@ -140,9 +141,9 @@ fun FeaturesTab(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(bottom = tabBarHeight + 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = AppSpacing.lg),
+                contentPadding = PaddingValues(bottom = tabBarHeight + AppSpacing.xl),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 // 1. 采集本地数据
                 item {

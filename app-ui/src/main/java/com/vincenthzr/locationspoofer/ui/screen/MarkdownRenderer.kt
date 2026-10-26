@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 sealed class MarkdownBlock {
     data class Header(val level: Int, val text: String, val category: String) : MarkdownBlock()
@@ -150,12 +151,12 @@ fun RenderMarkdownContent(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
         blocks.forEach { block ->
             when (block) {
                 is MarkdownBlock.Header -> {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(AppSpacing.xs))
                     Text(
                         text = block.text.replace(Regex("""^[#🌟🛠📝\s]+"""), "").trim(),
                         style = when (block.level) {
@@ -172,12 +173,12 @@ fun RenderMarkdownContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 4.dp, top = 2.dp, bottom = 2.dp),
+                            .padding(start = AppSpacing.xs, top = AppSpacing.xs, bottom = AppSpacing.xs),
                         verticalAlignment = Alignment.Top
                     ) {
                         Box(
                             modifier = Modifier
-                                .padding(top = 7.dp, end = 8.dp)
+                                .padding(top = AppSpacing.sm, end = AppSpacing.sm)
                                 .size(5.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
@@ -195,7 +196,7 @@ fun RenderMarkdownContent(
                         text = parseInlineMarkdownString(block.text, MaterialTheme.colorScheme.primary),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 2.dp)
+                        modifier = Modifier.padding(vertical = AppSpacing.xs)
                     )
                 }
 
@@ -205,10 +206,10 @@ fun RenderMarkdownContent(
                         color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 2.dp)
+                            .padding(vertical = AppSpacing.xs)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
@@ -217,7 +218,7 @@ fun RenderMarkdownContent(
                                     .height(18.dp)
                                     .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraSmall)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(AppSpacing.sm))
                             Text(
                                 text = parseInlineMarkdownString(block.text, MaterialTheme.colorScheme.primary),
                                 style = MaterialTheme.typography.bodySmall,
@@ -235,14 +236,14 @@ fun RenderMarkdownContent(
                         color = MaterialTheme.colorScheme.surfaceContainerHighest,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 2.dp)
+                            .padding(vertical = AppSpacing.xs)
                     ) {
                         Text(
                             text = block.code,
                             fontFamily = FontFamily.Monospace,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(10.dp)
+                            modifier = Modifier.padding(AppSpacing.md)
                         )
                     }
                 }
@@ -261,7 +262,7 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
         val h = it.lowercase()
         h.contains("状态") || h.contains("status")
     }
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm), modifier = Modifier.padding(vertical = AppSpacing.xs)) {
         table.rows.forEach { row ->
             // 描边容器：放在任意底色的卡片 / 对话框里都能和外层区分开
             Surface(
@@ -271,8 +272,8 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                 ) {
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
@@ -282,7 +283,7 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
                             modifier = Modifier.weight(1f)
                         )
                         row.getOrNull(statusIndex)?.takeIf { it.isNotBlank() }?.let {
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(AppSpacing.sm))
                             Text(text = it, style = MaterialTheme.typography.bodyMedium)
                         }
                     }

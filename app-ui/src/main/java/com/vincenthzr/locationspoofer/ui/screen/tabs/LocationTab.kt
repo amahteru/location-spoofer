@@ -95,6 +95,7 @@ import org.koin.androidx.compose.koinViewModel
 import com.vincenthzr.locationspoofer.ui.screen.tabs.location.*
 import java.util.Locale
 import androidx.compose.foundation.clickable
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -264,8 +265,8 @@ fun LocationTab(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = fabBottomPadding),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                        .padding(end = AppSpacing.lg, bottom = fabBottomPadding),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
                     horizontalAlignment = Alignment.End
                 ) {
                     MapControlButton(
@@ -372,7 +373,7 @@ fun LocationTab(
                         modifier = Modifier
                             .fillMaxWidth()
                             .statusBarsPadding()
-                            .padding(top = 8.dp)
+                            .padding(top = AppSpacing.sm)
                     ) {
                         HomeSearchBar(
                             query = spoofingUiState.searchQuery,
@@ -384,7 +385,7 @@ fun LocationTab(
                             onBack = exitSearch,
                             modifier = searchModifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp),
+                                .padding(horizontal = AppSpacing.lg),
                             focusRequester = searchFocusRequester
                         )
 
@@ -397,7 +398,7 @@ fun LocationTab(
                                 shape = MaterialTheme.shapes.large,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
                                     .onGloballyPositioned { searchResultBounds = it.boundsInRoot() }
                             ) {
                                 LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {

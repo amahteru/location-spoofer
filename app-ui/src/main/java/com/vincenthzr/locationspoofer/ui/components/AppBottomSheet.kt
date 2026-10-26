@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 统一的 M3 Modal Bottom Sheet：拖动手柄 + 标题 / 副标题 + 可选的标题栏操作，内容区由调用方填充。
@@ -30,12 +31,12 @@ fun AppBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp)
+                .padding(bottom = AppSpacing.lg)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, end = 12.dp, bottom = 8.dp),
+                    .padding(start = AppSpacing.screenMargin, end = AppSpacing.md, bottom = AppSpacing.sm),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -67,9 +68,9 @@ fun EmptyState(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 32.dp),
+            .padding(horizontal = AppSpacing.screenMargin, vertical = AppSpacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
         Icon(
             imageVector = icon,
@@ -91,7 +92,7 @@ fun EmptyState(
             )
         }
         if (action != null) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(AppSpacing.sm))
             action()
         }
     }

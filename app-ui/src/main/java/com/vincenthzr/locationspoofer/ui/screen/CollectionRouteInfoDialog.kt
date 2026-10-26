@@ -6,9 +6,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.db.CollectionRouteRecord
 import com.vincenthzr.locationspoofer.ui.R
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
@@ -19,7 +19,7 @@ fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, onD
         onDismissRequest = { if (!saving) onDismiss() },
         title = { Text(stringResource(R.string.collection_route_details)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                 Text(stringResource(R.string.collection_route_save_description))
                 OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.collection_route_name)) },
                     singleLine = true, enabled = !saving, modifier = Modifier.fillMaxWidth())

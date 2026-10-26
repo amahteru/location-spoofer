@@ -37,6 +37,7 @@ import com.vincenthzr.locationspoofer.viewmodel.selectAllUserAppsForSystemHook
 import com.vincenthzr.locationspoofer.viewmodel.clearAllSystemHookApps
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 private enum class SystemHookFilterTab {
     All,
@@ -110,22 +111,22 @@ fun SystemHookAppsScreen(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = AppSpacing.xl)
         ) {
             // 实验性功能说明
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xs),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.warningContainer,
                         contentColor = MaterialTheme.colorScheme.onWarningContainer
                     )
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                    Row(modifier = Modifier.padding(AppSpacing.lg), verticalAlignment = Alignment.Top) {
                         Icon(Icons.Rounded.Info, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.width(AppSpacing.md))
                         Text(text = stringResource(R.string.system_hook_apps_warning), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
@@ -136,7 +137,7 @@ fun SystemHookAppsScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
                 ) {
                     SwitchListItem(
                         title = stringResource(R.string.system_hook_global_mode_title),
@@ -158,7 +159,7 @@ fun SystemHookAppsScreen(
                     }
                     if (uiState.isSystemHookGlobalMode) {
                         Row(
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                            modifier = Modifier.padding(start = AppSpacing.lg, end = AppSpacing.lg, bottom = AppSpacing.lg),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
@@ -167,7 +168,7 @@ fun SystemHookAppsScreen(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(AppSpacing.sm))
                             Text(
                                 text = stringResource(R.string.system_hook_global_mode_active_hint),
                                 style = MaterialTheme.typography.bodySmall,
@@ -184,7 +185,7 @@ fun SystemHookAppsScreen(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     placeholder = stringResource(R.string.search_app_hint),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xs)
                 )
             }
 
@@ -193,9 +194,9 @@ fun SystemHookAppsScreen(
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(vertical = AppSpacing.sm),
+                    contentPadding = PaddingValues(horizontal = AppSpacing.lg),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     items(SystemHookFilterTab.values()) { tab ->
                         FilterChip(
@@ -212,7 +213,7 @@ fun SystemHookAppsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 8.dp),
+                        .padding(start = AppSpacing.lg, end = AppSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -285,7 +286,7 @@ private fun SystemHookAppItemCard(
         headlineContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 Text(
                     text = appInfo.appName,

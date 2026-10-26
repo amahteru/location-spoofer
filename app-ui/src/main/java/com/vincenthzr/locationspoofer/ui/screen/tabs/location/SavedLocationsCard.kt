@@ -23,6 +23,7 @@ import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import java.util.Locale
 import androidx.compose.foundation.clickable
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 // 动态可滑动高度的收藏地点卡片（支持无限数量坐标平滑滚动，并支持抽拉下沉）
 @Composable
@@ -43,12 +44,12 @@ fun SavedLocationsCard(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shadowElevation = 3.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm)) {
             // 卡片头部（支持拖拽展开/折叠）
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 4.dp)
+                    .padding(start = AppSpacing.lg, end = AppSpacing.xs)
                     .then(dragGestureModifier),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -58,13 +59,13 @@ fun SavedLocationsCard(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(AppSpacing.sm))
                 Text(
                     text = stringResource(R.string.saved_locations_card_title),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(AppSpacing.sm))
                 Badge(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -93,10 +94,10 @@ fun SavedLocationsCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg)
                         .then(dragGestureModifier),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.CenterHorizontally)
                 ) {
                     Icon(
                         Icons.Rounded.StarOutline,

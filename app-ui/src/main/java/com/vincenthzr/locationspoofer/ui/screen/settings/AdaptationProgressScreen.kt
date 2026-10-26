@@ -24,6 +24,7 @@ import com.vincenthzr.locationspoofer.vendor.VendorProfile
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /** 系统适配页的二级页面：完整的适配进度文档 */
 @Composable
@@ -49,7 +50,7 @@ fun AdaptationProgressScreen(
         actions = {
             Crossfade(targetState = loading, animationSpec = AppMotion.defaultEffectsSpec(), label = "refresh_loading") { isLoading ->
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.padding(12.dp).size(24.dp))
+                    CircularProgressIndicator(modifier = Modifier.padding(AppSpacing.md).size(24.dp))
                 } else {
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.progress_refresh))
@@ -85,7 +86,7 @@ fun DeviceAdaptationCard(markdown: String) {
             )
             SchemeBadge()
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(AppSpacing.md))
         if (BuildConfig.GLOBAL_SCHEME) {
             StatusLine(entry?.status ?: AdaptationProgress.Status.UNVERIFIED, entry?.verifiedVersions.orEmpty())
         } else {
@@ -109,7 +110,7 @@ private fun StatusLine(status: AdaptationProgress.Status, verifiedVersions: Stri
     Row(verticalAlignment = Alignment.CenterVertically) {
         StatusLabel(text = stringResource(label), tone = tone)
         if (verifiedVersions.isNotBlank()) {
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(AppSpacing.sm))
             Text(
                 stringResource(R.string.progress_verified_versions, verifiedVersions),
                 style = MaterialTheme.typography.bodySmall,

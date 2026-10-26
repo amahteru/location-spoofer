@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.RootSetupTestResult
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.success
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null) {
@@ -31,7 +32,7 @@ private fun DiagnosticItemRow(label: String, ok: Boolean, detail: String? = null
             tint = if (ok) MaterialTheme.colorScheme.success else MaterialTheme.colorScheme.error,
             modifier = Modifier.size(20.dp)
         )
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(AppSpacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
@@ -73,7 +74,7 @@ fun RootSetupTestResultDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 DiagnosticItemRow(
                     label = stringResource(R.string.root_test_item_root),
@@ -139,7 +140,7 @@ fun RestartHookedAppsConfirmDialog(
             if (apps.isEmpty()) {
                 Text(stringResource(R.string.restart_hooked_apps_empty))
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     Text(stringResource(R.string.restart_hooked_apps_confirm_message, apps.size))
                     Text(
                         text = apps.joinToString("、") { it.appName },

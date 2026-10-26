@@ -16,6 +16,9 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
 import com.vincenthzr.locationspoofer.data.model.RouteRunMode
+import com.vincenthzr.locationspoofer.data.model.SimMode
+import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun RouteBottomPanel(
@@ -40,7 +43,7 @@ fun RouteBottomPanel(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             if (searchBar != null) {
                 searchBar(Modifier.fillMaxWidth())
@@ -52,12 +55,12 @@ fun RouteBottomPanel(
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 shadowElevation = 3.dp
             ) {
-                Box(modifier = Modifier.padding(16.dp)) {
+                Box(modifier = Modifier.padding(AppSpacing.lg)) {
                     when (stage) {
                         RoutePlanStage.IDLE, RoutePlanStage.SELECTING -> {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // 确认添加路点
@@ -65,7 +68,7 @@ fun RouteBottomPanel(
                                     onClick = onConfirmPoint,
                                     modifier = Modifier
                                         .weight(1.2f)
-                                        .height(48.dp)
+                                        .height(AppSpacing.actionButtonHeight)
                                 ) {
                                     Icon(
                                         Icons.Rounded.AddLocation,
@@ -84,7 +87,7 @@ fun RouteBottomPanel(
                                     enabled = routePoints.size >= 2,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(48.dp)
+                                        .height(AppSpacing.actionButtonHeight)
                                 ) {
                                     Icon(
                                         Icons.Rounded.CheckCircle,
@@ -102,15 +105,15 @@ fun RouteBottomPanel(
                         RoutePlanStage.READY -> {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 OutlinedButton(
                                     onClick = onRestartSelecting,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(48.dp),
-                                    contentPadding = PaddingValues(horizontal = 4.dp)
+                                        .height(AppSpacing.actionButtonHeight),
+                                    contentPadding = PaddingValues(horizontal = AppSpacing.xs)
                                 ) {
                                     Icon(
                                         Icons.Rounded.Refresh,
@@ -128,8 +131,8 @@ fun RouteBottomPanel(
                                     onClick = onSaveRoute,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(48.dp),
-                                    contentPadding = PaddingValues(horizontal = 4.dp)
+                                        .height(AppSpacing.actionButtonHeight),
+                                    contentPadding = PaddingValues(horizontal = AppSpacing.xs)
                                 ) {
                                     Icon(
                                         Icons.Rounded.BookmarkAdd,
@@ -147,8 +150,8 @@ fun RouteBottomPanel(
                                     onClick = onStartPlanning,
                                     modifier = Modifier
                                         .weight(1.35f)
-                                        .height(48.dp),
-                                    contentPadding = PaddingValues(horizontal = 8.dp)
+                                        .height(AppSpacing.actionButtonHeight),
+                                    contentPadding = PaddingValues(horizontal = AppSpacing.sm)
                                 ) {
                                     Icon(
                                         Icons.Rounded.PlayArrow,
@@ -172,7 +175,7 @@ fun RouteBottomPanel(
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 6.dp)
+                                    modifier = Modifier.padding(start = AppSpacing.sm)
                                 ) {
                                     Icon(
                                         Icons.Rounded.Navigation,
@@ -180,9 +183,15 @@ fun RouteBottomPanel(
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
                                     )
-                                    Spacer(Modifier.width(8.dp))
+                                    Spacer(Modifier.width(AppSpacing.sm))
                                     Text(
-                                        text = if (uiState.routeRunMode == RouteRunMode.MANUAL) stringResource(R.string.joystick_controlling_active) else stringResource(R.string.cruising_speed_format, uiState.routeSimMode.speedMs.toInt()),
+                                        text = if (uiState.routeRunMode == RouteRunMode.MANUAL) {
+                                        stringResource(R.string.joystick_controlling_active)
+                                    } else {
+                                        // 自定义档位本身的速度是 0，实际速度在 customSpeedMs；保留一位小数，避免 1.4、5.5 被截成整数
+                                        val speedMs = if (uiState.routeSimMode == SimMode.CUSTOM) uiState.customSpeedMs else uiState.routeSimMode.speedMs
+                                        stringResource(R.string.cruising_speed_format, String.format(Locale.US, "%.1f", speedMs))
+                                    },
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -190,6 +199,8 @@ fun RouteBottomPanel(
 
                                 Button(
                                     onClick = onStopRoute,
+                                    // 与选点、准备阶段的按钮同高，切换阶段时面板高度不跳动
+                                    modifier = Modifier.height(AppSpacing.actionButtonHeight),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.error,
                                         contentColor = MaterialTheme.colorScheme.onError

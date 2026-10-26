@@ -45,6 +45,7 @@ import com.vincenthzr.locationspoofer.ui.screen.isNewerVersion
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.UpdateUiState
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun InfoTab(
@@ -130,9 +131,9 @@ fun InfoTab(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(bottom = tabBarHeight + 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = AppSpacing.lg),
+            contentPadding = PaddingValues(bottom = tabBarHeight + AppSpacing.xl),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             // 顶部软件品牌与简介 Hero 区域（替换原先单调的信息图标与标题）
             item {
@@ -140,7 +141,7 @@ fun InfoTab(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(top = 18.dp, bottom = 12.dp),
+                        .padding(top = AppSpacing.lg, bottom = AppSpacing.md),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 软件图标（原生平滑圆角与柔和阴影，无外层黑边缝隙）
@@ -167,7 +168,7 @@ fun InfoTab(
                         )
                     }
 
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(AppSpacing.lg))
 
                     // 软件名称
                     Text(
@@ -176,7 +177,7 @@ fun InfoTab(
                         color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(AppSpacing.sm))
 
                     // 软件简介介绍
                     Text(
@@ -184,7 +185,7 @@ fun InfoTab(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 20.dp)
+                        modifier = Modifier.padding(horizontal = AppSpacing.xl)
                     )
                 }
             }
@@ -202,7 +203,7 @@ fun InfoTab(
             // 这里收进一个紧凑列表，避免变成 6 个各自占一屏高度的大卡片。
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                         SettingsEntryRow(
                             icon = Icons.Rounded.Language,
                             tone = LabelTone.Primary,
@@ -262,7 +263,7 @@ fun InfoTab(
 
             // 3. 底部开源协议与项目链接
             item {
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
                 FooterLinks()
             }
         }

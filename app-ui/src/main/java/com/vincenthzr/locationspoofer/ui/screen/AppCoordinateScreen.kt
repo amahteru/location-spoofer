@@ -30,6 +30,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setAppCoordinateSystem
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 private enum class CoordinateFilterTab {
     All,
@@ -109,16 +110,16 @@ fun AppCoordinateScreen(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
                 placeholder = stringResource(R.string.search_app_hint),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xs)
             )
 
             // 分类快捷过滤标签
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(vertical = AppSpacing.sm),
+                contentPadding = PaddingValues(horizontal = AppSpacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 items(CoordinateFilterTab.values()) { tab ->
                     val isSelected = selectedFilter == tab
@@ -146,7 +147,7 @@ fun AppCoordinateScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    contentPadding = PaddingValues(bottom = 24.dp)
+                    contentPadding = PaddingValues(bottom = AppSpacing.xl)
                 ) {
                     items(appsToShow, key = { it.packageName }) { app ->
                         Box(animateListItem()) {
@@ -190,7 +191,7 @@ private fun AppItemRow(
         headlineContent = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 Text(
                     text = appInfo.appName,

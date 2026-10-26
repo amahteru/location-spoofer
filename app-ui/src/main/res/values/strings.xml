@@ -269,7 +269,7 @@ select the apps to simulate, then restart them.</string>
     <string name="reselect">Reselect</string>
     <string name="bookmark">Favorite</string>
     <string name="joystick_controlling_active">Joystick active</string>
-    <string name="cruising_speed_format">Cruising (%d m/s)</string>
+    <string name="cruising_speed_format">Cruising (%s m/s)</string>
     <string name="route_sim_settings">Route simulation settings</string>
     <string name="run_mode">Run mode</string>
     <string name="loop_auto_cruise">Auto loop</string>

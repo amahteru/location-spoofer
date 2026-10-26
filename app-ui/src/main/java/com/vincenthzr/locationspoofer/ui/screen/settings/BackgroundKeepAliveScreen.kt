@@ -22,13 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun BackgroundKeepAliveScreen(
@@ -46,7 +46,7 @@ fun BackgroundKeepAliveScreen(
         onBack = onClose
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                 // 忽略电池优化
                 NavigationListItem(
                     icon = Icons.Rounded.BatteryChargingFull,

@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.db.CompleteLocation
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
@@ -18,6 +17,7 @@ import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 采集数据列表项：M3 Filled Card，点击定位到地图；收藏 / 编辑 / 删除收在右侧的溢出菜单里。
@@ -56,12 +56,12 @@ fun DataListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+                .padding(start = AppSpacing.lg, top = AppSpacing.md, bottom = AppSpacing.md, end = AppSpacing.xs),
             verticalAlignment = Alignment.Top
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
             ) {
                 Text(
                     text = primaryTitle,
@@ -86,8 +86,8 @@ fun DataListItem(
                 )
                 // 信号设备标签组（Wi-Fi、基站、蓝牙）
                 Row(
-                    modifier = Modifier.padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(top = AppSpacing.xs),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     SignalChip(Icons.Rounded.Wifi, "$wifiCount", LabelTone.Primary)
                     SignalChip(Icons.Rounded.CellTower, "$cellCount", LabelTone.Warning)

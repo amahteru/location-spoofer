@@ -15,6 +15,7 @@ import com.vincenthzr.locationspoofer.data.model.GithubRelease
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.screen.settings.SchemeBadge
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun StartupUpdateDialog(
@@ -32,9 +33,9 @@ fun StartupUpdateDialog(
         icon = { Icon(Icons.Rounded.SystemUpdate, contentDescription = null) },
         title = { Text(stringResource(R.string.new_version_found)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                 // 更新只会下载与当前安装一致的方案变体
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     StatusLabel(text = "v$cleanVersion")
                     SchemeBadge()
                 }

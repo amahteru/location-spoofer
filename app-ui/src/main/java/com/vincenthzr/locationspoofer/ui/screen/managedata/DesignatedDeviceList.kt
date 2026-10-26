@@ -15,10 +15,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /** 设备行上的只读标签（"首选"、"已连接"等） */
 data class DeviceBadge(val text: String, val tone: LabelTone)
@@ -49,7 +49,7 @@ fun <T> DesignatedDeviceList(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 8.dp),
+                .padding(start = AppSpacing.lg, end = AppSpacing.sm, top = AppSpacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -67,10 +67,10 @@ fun <T> DesignatedDeviceList(
             text = tip,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = AppSpacing.lg)
         )
 
-        Column(modifier = Modifier.selectableGroup().padding(vertical = 8.dp)) {
+        Column(modifier = Modifier.selectableGroup().padding(vertical = AppSpacing.sm)) {
             val autoSelected = items.none(isSelected)
             DeviceRow(
                 selected = autoSelected,
@@ -85,7 +85,7 @@ fun <T> DesignatedDeviceList(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(AppSpacing.lg)
                 )
             }
 
@@ -98,10 +98,10 @@ fun <T> DesignatedDeviceList(
                         Text(headline(item), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     },
                     supporting = {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                             details(item).forEach { line -> Text(line, maxLines = 2, overflow = TextOverflow.Ellipsis) }
                             if (itemBadges.isNotEmpty()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                                     itemBadges.forEach { StatusLabel(text = it.text, tone = it.tone) }
                                 }
                             }

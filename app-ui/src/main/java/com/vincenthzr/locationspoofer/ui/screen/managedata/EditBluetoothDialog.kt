@@ -10,11 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.listItemBleed
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun EditBluetoothDialog(
@@ -42,7 +42,7 @@ fun EditBluetoothDialog(
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 OutlinedTextField(
                     value = name,

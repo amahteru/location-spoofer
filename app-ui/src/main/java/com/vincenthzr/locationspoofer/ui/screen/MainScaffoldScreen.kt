@@ -37,6 +37,7 @@ import com.vincenthzr.locationspoofer.viewmodel.handleSpoofingIntent
 import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 enum class BottomTab(val icon: ImageVector) {
     Location(Icons.Rounded.MyLocation),
@@ -219,7 +220,7 @@ fun MainScaffoldScreen(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(36.dp)
-                                .padding(bottom = 16.dp)
+                                .padding(bottom = AppSpacing.lg)
                         )
                     }
                 }

@@ -16,6 +16,7 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.stopSpoofing
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun ActionButtons(
@@ -89,7 +90,7 @@ fun UpdateCheckCard(
                 // 发现新版本时用 M3 Badge 标出版本号
                 if (showNew) {
                     Badge { Text("v$cleanNewVersion") }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(AppSpacing.sm))
                 }
                 Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
             }

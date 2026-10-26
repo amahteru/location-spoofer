@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 全局通用卡片：Material3 Filled Card（surfaceContainerHighest 底色、medium 形状）
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 fun AppCard(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
-    insideMargin: PaddingValues = PaddingValues(16.dp),
+    insideMargin: PaddingValues = PaddingValues(AppSpacing.lg),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(modifier = modifier, shape = shape) {

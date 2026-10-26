@@ -38,6 +38,7 @@ import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.exportEnvironmentData
 import com.vincenthzr.locationspoofer.viewmodel.toggleContinuousScanning
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 private val REQUIRED_PERMISSIONS: List<String>
     get() = buildList {
@@ -108,17 +109,17 @@ fun DataCollectionAssistScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xl),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
         ) {
             // 说明卡：视觉呼应 BlockingScreen，同时说明依然能帮忙采集数据
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                insideMargin = PaddingValues(16.dp)
+                insideMargin = PaddingValues(AppSpacing.lg)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ToneIcon(Icons.Rounded.Lock, LabelTone.Error)
-                    Spacer(Modifier.width(16.dp))
+                    Spacer(Modifier.width(AppSpacing.lg))
                     Column {
                         Text(
                             text = stringResource(R.string.root_required),
@@ -132,7 +133,7 @@ fun DataCollectionAssistScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.md))
                 Text(
                     text = stringResource(R.string.data_collection_assist_intro),
                     style = MaterialTheme.typography.bodySmall,
@@ -144,14 +145,14 @@ fun DataCollectionAssistScreen(
             if (missingPermissions.isNotEmpty()) {
                 AppCard(
                     modifier = Modifier.fillMaxWidth(),
-                    insideMargin = PaddingValues(16.dp)
+                    insideMargin = PaddingValues(AppSpacing.lg)
                 ) {
                     Text(
                         text = stringResource(R.string.data_collection_permission_missing),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
                     Button(
                         onClick = {
                             val activity = context as? androidx.activity.ComponentActivity
@@ -182,7 +183,7 @@ fun DataCollectionAssistScreen(
             // 采集状态与操作卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                insideMargin = PaddingValues(16.dp)
+                insideMargin = PaddingValues(AppSpacing.lg)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -191,7 +192,7 @@ fun DataCollectionAssistScreen(
                         tint = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(AppSpacing.sm))
                     Text(
                         text = if (uiState.isContinuousScanning) {
                             stringResource(R.string.scanning_status_active, uiState.environmentRecordCount)
@@ -203,11 +204,11 @@ fun DataCollectionAssistScreen(
                     )
                 }
 
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(AppSpacing.lg))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
                     ScanCountBadge(
                         icon = Icons.Rounded.Wifi,
@@ -229,7 +230,7 @@ fun DataCollectionAssistScreen(
                     )
                 }
 
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(AppSpacing.lg))
 
                 Text(
                     text = stringResource(R.string.data_collection_assist_hint),
@@ -237,7 +238,7 @@ fun DataCollectionAssistScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(AppSpacing.lg))
 
                 Button(
                     onClick = { viewModel.toggleContinuousScanning() },
@@ -268,7 +269,7 @@ fun DataCollectionAssistScreen(
             // 导出卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
-                insideMargin = PaddingValues(16.dp)
+                insideMargin = PaddingValues(AppSpacing.lg)
             ) {
                 if (uiState.environmentRecordCount > 0) {
                     Button(
@@ -308,11 +309,11 @@ private fun ScanCountBadge(
         contentColor = colors.onContainerOf(tone)
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 12.dp),
+            modifier = Modifier.padding(vertical = AppSpacing.md),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(AppSpacing.xs))
             Text(text = text, style = MaterialTheme.typography.labelMedium)
         }
     }

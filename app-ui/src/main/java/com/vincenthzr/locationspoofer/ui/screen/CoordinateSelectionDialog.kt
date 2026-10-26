@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.AppInfoItem
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun CoordinateSelectionDialog(
@@ -60,7 +61,7 @@ fun CoordinateSelectionDialog(
             Column {
                 Text(
                     text = stringResource(R.string.select_coord_algo_title),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = AppSpacing.sm)
                 )
                 // 坐标系单选列表
                 Column(modifier = Modifier.selectableGroup()) {
@@ -75,15 +76,15 @@ fun CoordinateSelectionDialog(
                                     role = Role.RadioButton,
                                     onClick = { selectedOption = option.key }
                                 )
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = AppSpacing.sm),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(selected = isSelected, onClick = null)
-                            Spacer(Modifier.width(16.dp))
+                            Spacer(Modifier.width(AppSpacing.lg))
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                                 ) {
                                     Text(
                                         text = option.name,

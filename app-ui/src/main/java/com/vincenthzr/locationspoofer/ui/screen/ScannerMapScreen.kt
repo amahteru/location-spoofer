@@ -35,6 +35,7 @@ import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.viewmodel.setMapType
 import com.vincenthzr.locationspoofer.ui.components.AppBackButton
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun ScannerMapScreen(
@@ -106,7 +107,7 @@ fun ScannerMapScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -120,7 +121,7 @@ fun ScannerMapScreen(
                 shadowElevation = 3.dp
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -129,7 +130,7 @@ fun ScannerMapScreen(
                         tint = if (uiState.isContinuousScanning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppSpacing.sm))
                     Text(
                         text = if (uiState.isStoppingCollection) {
                             stringResource(R.string.collection_stopping)
@@ -156,7 +157,7 @@ fun ScannerMapScreen(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .statusBarsPadding()
-                .padding(top = 64.dp, end = 16.dp)
+                .padding(top = 64.dp, end = AppSpacing.lg)
         ) {
             Surface(
                 shape = MaterialTheme.shapes.medium,
@@ -164,8 +165,8 @@ fun ScannerMapScreen(
                 shadowElevation = 3.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.md),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.xs),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
@@ -200,7 +201,7 @@ fun ScannerMapScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 16.dp)
+                .padding(end = AppSpacing.lg)
         ) {
             // 图层切换按钮
             MapControlButton(
@@ -215,7 +216,7 @@ fun ScannerMapScreen(
                 tint = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.Center).size(32.dp))
         }
         CollectionRouteControls(viewModel, uiState, mapController,
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 16.dp))
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = AppSpacing.lg))
     }
 
     if (showMapTypeDialog) {

@@ -11,11 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.listItemBleed
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun StartSpoofingDialog(
@@ -43,7 +43,7 @@ fun StartSpoofingDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(text = stringResource(R.string.spoofing_options_desc))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
 
                 // 两种方案都根据当前点位的数据能力显示选项；在线数据源可在开始模拟时补齐数据。
                 val showWifiToggle = uiState.canMockWifi || uiState.wigleToken.isNotBlank()
@@ -92,14 +92,14 @@ fun StartSpoofingDialog(
                     onCheckedChange = { onToggleRestartApps() }
                 )
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
                 AltitudeSettingsCard(
                     altitudeInput = uiState.altitudeInput,
                     variationM = uiState.altitudeVariationM,
                     onAltitudeChange = onAltitudeChange,
                     onVariationChange = onAltitudeVariationChange
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
                 OutlinedTextField(
                     value = uiState.satelliteCountInput,
                     onValueChange = onSatelliteCountChange,

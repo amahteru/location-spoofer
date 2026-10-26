@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.vincenthzr.locationspoofer.ui.R
@@ -25,6 +24,7 @@ import java.util.Locale
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -213,8 +213,8 @@ fun ModernEditDataDialog(
                     .imePadding()
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
             ) {
                 // 坐标
                 Row(
@@ -235,7 +235,7 @@ fun ModernEditDataDialog(
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
                     OutlinedTextField(
                         value = latText,
@@ -259,7 +259,7 @@ fun ModernEditDataDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     SignalChip(Icons.Rounded.Wifi, "${wifiList.size} Wi-Fi", LabelTone.Primary)
                     SignalChip(Icons.Rounded.CellTower, "${cellList.size} ${stringResource(R.string.tag_cell)}", LabelTone.Warning)
                     SignalChip(Icons.Rounded.Bluetooth, "${btList.size} ${stringResource(R.string.tag_bluetooth)}", LabelTone.Tertiary)

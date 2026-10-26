@@ -24,6 +24,7 @@ import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +81,7 @@ fun LocalEnvironmentDataDialog(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, end = 12.dp),
+                    .padding(start = AppSpacing.screenMargin, end = AppSpacing.md),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -107,7 +108,7 @@ fun LocalEnvironmentDataDialog(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     placeholder = stringResource(R.string.search_remark_coord_hint),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
                 )
             }
 
@@ -141,7 +142,7 @@ fun LocalEnvironmentDataDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 24.dp),
+                            .padding(vertical = AppSpacing.xl),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -151,21 +152,21 @@ fun LocalEnvironmentDataDialog(
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(48.dp)
                         )
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(Modifier.height(AppSpacing.md))
                         Text(
                             text = stringResource(R.string.no_local_env_data),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(AppSpacing.xs))
                         Text(
                             text = stringResource(R.string.scan_or_import_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = AppSpacing.lg)
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(AppSpacing.lg))
                         FilledTonalButton(
                             onClick = onImportClick,
                             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
@@ -193,8 +194,8 @@ fun LocalEnvironmentDataDialog(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
                         items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
                             Box(animateListItem()) {
@@ -220,7 +221,7 @@ fun LocalEnvironmentDataDialog(
                 }
             }
         }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(AppSpacing.lg))
         }
     }
 }
@@ -254,12 +255,12 @@ private fun LocalDataItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+                .padding(start = AppSpacing.lg, top = AppSpacing.md, bottom = AppSpacing.md, end = AppSpacing.xs),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 // 主标题与时间。标题不再限死单行，但仍要设上限，
                 // 否则几百字的长备注会把卡片撑得很高；顶部对齐而不是垂直居中，
@@ -277,7 +278,7 @@ private fun LocalDataItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .weight(1f, fill = false)
-                            .padding(end = 8.dp)
+                            .padding(end = AppSpacing.sm)
                     )
                     Text(
                         text = timeStr,
@@ -290,7 +291,7 @@ private fun LocalDataItem(
                 if (subtitle != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                     ) {
                         Icon(
                             Icons.Rounded.Description,
@@ -317,7 +318,7 @@ private fun LocalDataItem(
 
                 // 信号设备标签组（按类型分色，与管理页保持一致）
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (wifiCount > 0) {
@@ -332,7 +333,7 @@ private fun LocalDataItem(
                 }
             }
 
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(AppSpacing.sm))
 
             IconToggleButton(checked = isFavorited, onCheckedChange = { onFavorite() }) {
                 Icon(

@@ -19,6 +19,7 @@ import com.vincenthzr.locationspoofer.ui.theme.onSuccessContainer
 import com.vincenthzr.locationspoofer.ui.theme.onWarningContainer
 import com.vincenthzr.locationspoofer.ui.theme.successContainer
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /** 标签的配色角色：对应 M3 的 xxxContainer / onXxxContainer 色对 */
 enum class LabelTone { Primary, Secondary, Tertiary, Success, Warning, Error, Neutral }
@@ -61,9 +62,9 @@ fun StatusLabel(
         contentColor = colors.onContainerOf(tone)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = if (icon != null) 6.dp else 8.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
         ) {
             if (icon != null) {
                 Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))

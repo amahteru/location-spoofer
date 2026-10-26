@@ -17,6 +17,7 @@ import com.vincenthzr.locationspoofer.viewmodel.skipCollectionInfo
 import com.vincenthzr.locationspoofer.viewmodel.saveCollectionRouteInfo
 import com.vincenthzr.locationspoofer.viewmodel.skipCollectionRouteInfo
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /** 位于主界面层，采集中切换页面也能在停止后填写点位信息。 */
 @Composable
@@ -42,7 +43,7 @@ fun CollectionInfoDialogHost(viewModel: MainViewModel, uiState: AppState) {
         text = {
             Column(
                 modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 Text(stringResource(R.string.collection_info_description))
                 if (uiState.pendingCollectionLocations.size > 1) {

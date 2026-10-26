@@ -21,6 +21,7 @@ import com.vincenthzr.locationspoofer.ui.components.SwitchListItem
 import com.vincenthzr.locationspoofer.ui.components.listItemBleed
 import com.vincenthzr.locationspoofer.ui.screen.AltitudeSettingsCard
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun RouteConfigDialog(
@@ -53,8 +54,8 @@ fun RouteConfigDialog(
                 .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())
                 .imePadding()
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = AppSpacing.screenMargin),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             // 运行模式选择 (循环 / 手动)
             SectionLabel(stringResource(R.string.run_mode))
@@ -84,7 +85,7 @@ fun RouteConfigDialog(
 
             // 速度选择
             SectionLabel(stringResource(R.string.cruise_speed))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 listOf(
                     Triple(SimMode.WALKING, stringResource(R.string.walking), "1.4m/s"),
                     Triple(SimMode.RUNNING, stringResource(R.string.running), "3.0m/s"),
@@ -135,7 +136,7 @@ fun RouteConfigDialog(
                 // 微调步进按钮
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     listOf(-1.0f, -0.2f, 0.2f, 1.0f).forEach { step ->
                         OutlinedButton(
@@ -144,7 +145,7 @@ fun RouteConfigDialog(
                                 sliderValue = newVal
                                 onCustomSpeedChange(newVal.toDouble())
                             },
-                            contentPadding = PaddingValues(horizontal = 4.dp),
+                            contentPadding = PaddingValues(horizontal = AppSpacing.xs),
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(if (step > 0) "+$step" else "$step", maxLines = 1)
@@ -291,7 +292,7 @@ fun RouteConfigDialog(
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 16.dp)
+                .padding(start = AppSpacing.screenMargin, end = AppSpacing.screenMargin, top = AppSpacing.lg)
                 .height(48.dp)
         ) {
             Icon(Icons.Rounded.PlayArrow, null, modifier = Modifier.size(ButtonDefaults.IconSize))
@@ -307,6 +308,6 @@ private fun SectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = Modifier.padding(top = AppSpacing.sm)
     )
 }

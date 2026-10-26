@@ -81,6 +81,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import com.vincenthzr.locationspoofer.ui.theme.warning
 import androidx.compose.foundation.clickable
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -322,7 +323,7 @@ fun RouteTab(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(36.dp)
-                            .padding(bottom = 16.dp)
+                            .padding(bottom = AppSpacing.lg)
                     )
                 }
 
@@ -334,7 +335,7 @@ fun RouteTab(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(36.dp)
-                            .padding(bottom = 16.dp)
+                            .padding(bottom = AppSpacing.lg)
                     )
                 }
 
@@ -344,16 +345,16 @@ fun RouteTab(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .statusBarsPadding()
-                            .padding(top = 12.dp)
+                            .padding(top = AppSpacing.md)
                             .animateContentSize(motion.defaultSpatialSpec()),
                         shape = MaterialTheme.shapes.extraLarge,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         shadowElevation = 3.dp
                     ) {
                         Row(
-                            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                            modifier = Modifier.padding(start = AppSpacing.lg, end = AppSpacing.xs, top = AppSpacing.xs, bottom = AppSpacing.xs),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                         ) {
                             Text(
                                 stringResource(R.string.selected_waypoints_count, routePoints.size),
@@ -386,10 +387,10 @@ fun RouteTab(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = animatedBottomPadding)
+                        .padding(end = AppSpacing.lg, bottom = animatedBottomPadding)
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         RouteControlButton(
@@ -415,7 +416,7 @@ fun RouteTab(
                 RouteBottomPanel(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = bottomBarHeight + 6.dp, start = 14.dp, end = 14.dp)
+                        .padding(bottom = bottomBarHeight + AppSpacing.sm, start = AppSpacing.lg, end = AppSpacing.lg)
                         .onGloballyPositioned { coordinates ->
                             bottomActionHeightPx = coordinates.size.height
                         },
@@ -472,7 +473,7 @@ fun RouteTab(
                         modifier = Modifier
                             .fillMaxWidth()
                             .statusBarsPadding()
-                            .padding(top = 8.dp)
+                            .padding(top = AppSpacing.sm)
                     ) {
                         HomeSearchBar(
                             query = searchQuery,
@@ -484,7 +485,7 @@ fun RouteTab(
                             onBack = exitSearch,
                             modifier = searchModifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp),
+                                .padding(horizontal = AppSpacing.lg),
                             focusRequester = searchFocusRequester
                         )
 
@@ -497,7 +498,7 @@ fun RouteTab(
                                 shape = MaterialTheme.shapes.large,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
                                     .onGloballyPositioned { searchResultBounds = it.boundsInRoot() }
                             ) {
                                 LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {
@@ -564,12 +565,12 @@ fun RouteTab(
         ) {
             ElevatedCard(
                 shape = MaterialTheme.shapes.extraLarge,
-                modifier = Modifier.padding(32.dp)
+                modifier = Modifier.padding(AppSpacing.xxl)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
+                    modifier = Modifier.padding(horizontal = AppSpacing.xl, vertical = AppSpacing.xl),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg)
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                     Text(

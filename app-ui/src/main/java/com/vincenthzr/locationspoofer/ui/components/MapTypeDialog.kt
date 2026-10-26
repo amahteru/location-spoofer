@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 图层与地图引擎选择：M3 Modal Bottom Sheet，图层用分段按钮、引擎用单选列表。
@@ -42,24 +43,24 @@ fun MapTypeDialog(
     )
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
+        Column(modifier = Modifier.navigationBarsPadding().padding(bottom = AppSpacing.lg)) {
             Text(
                 text = stringResource(R.string.layers_and_engine_title),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                modifier = Modifier.padding(horizontal = AppSpacing.screenMargin)
             )
             Text(
                 text = stringResource(R.string.layers_and_engine_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = AppSpacing.screenMargin, vertical = AppSpacing.xs)
             )
 
             SheetSectionHeader(stringResource(R.string.map_layers))
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = AppSpacing.screenMargin)
             ) {
                 mapTypes.forEachIndexed { index, (type, icon, label) ->
                     SegmentedButton(
@@ -83,7 +84,7 @@ fun MapTypeDialog(
                         trailingContent = { RadioButton(selected = selected, onClick = null) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = AppSpacing.sm)
                             .selectable(
                                 selected = selected,
                                 role = Role.RadioButton,
@@ -102,6 +103,6 @@ private fun SheetSectionHeader(text: String) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = AppSpacing.screenMargin, end = AppSpacing.screenMargin, top = AppSpacing.xl, bottom = AppSpacing.sm)
     )
 }

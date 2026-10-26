@@ -32,6 +32,7 @@ import com.vincenthzr.locationspoofer.ui.screen.CoordinateInputCard
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import kotlin.math.roundToInt
 import androidx.compose.foundation.clickable
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun LocationControlPanel(
@@ -103,20 +104,20 @@ fun LocationControlPanel(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp)
-            .padding(bottom = (tabBarHeight + 10.dp).coerceAtLeast(0.dp))
+            .padding(horizontal = AppSpacing.lg)
+            .padding(bottom = (tabBarHeight + AppSpacing.md).coerceAtLeast(0.dp))
             .offset { IntOffset(0, drawerOffsetYPx.roundToInt()) }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 顶部阻尼拖拽药丸指示条（支持点击快速折叠/展开与拖拽）
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 2.dp, bottom = 4.dp)
+                    .padding(top = AppSpacing.xs, bottom = AppSpacing.xs)
                     .then(dragGestureModifier)
                     .clickable {
                         val next = when (panelState) {
@@ -140,7 +141,7 @@ fun LocationControlPanel(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 2.dp)
+                    .padding(vertical = AppSpacing.xs)
                     .then(dragGestureModifier),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -162,7 +163,7 @@ fun LocationControlPanel(
                         text = { Text(stringResource(R.string.stop_simulation)) },
                         containerColor = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = AppSpacing.sm)
                     )
                 }
 
@@ -188,7 +189,7 @@ fun LocationControlPanel(
                         text = {
                             Text(stringResource(if (uiState.isSavingConfig) R.string.starting_ellipsis else R.string.fixed_simulation))
                         },
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = AppSpacing.sm)
                     )
                 }
             }
@@ -210,7 +211,7 @@ fun LocationControlPanel(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(AppSpacing.lg)
                 ) {
                     CoordinateInputCard(
                         viewModel = viewModel,
@@ -219,7 +220,7 @@ fun LocationControlPanel(
                         onCustomClick = onCustomClick
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
 
                     ActionButtons(
                         viewModel = viewModel,

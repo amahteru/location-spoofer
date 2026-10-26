@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.vincenthzr.locationspoofer.ui.components.AppCard
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /** 本次开机的时间点，早于它写出的报告说明本次开机模块没有在该进程里生效 */
 internal fun bootTimeMs(): Long = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()
@@ -66,7 +67,7 @@ fun HookStatusScreen(
         actions = {
             Crossfade(targetState = loading, animationSpec = AppMotion.defaultEffectsSpec(), label = "refresh_loading") { isLoading ->
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.padding(12.dp).size(24.dp))
+                    CircularProgressIndicator(modifier = Modifier.padding(AppSpacing.md).size(24.dp))
                 } else {
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Rounded.Refresh, contentDescription = stringResource(R.string.progress_refresh))
@@ -92,14 +93,14 @@ fun HookStatusScreen(
 private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Long) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        insideMargin = PaddingValues(16.dp)
+        insideMargin = PaddingValues(AppSpacing.lg)
     ) {
         Text(
             stringResource(processName(process)),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(AppSpacing.xs))
         when {
             report == null -> Hint(stringResource(R.string.hook_status_no_report))
             report.isStale(bootTime) -> Hint(stringResource(R.string.hook_status_stale))
@@ -118,12 +119,12 @@ private fun ProcessCard(process: String, report: HookStatusReport?, bootTime: Lo
                         SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(report.configModified))
                     )
                 )
-                Spacer(Modifier.height(10.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.height(AppSpacing.md))
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     report.components.forEach { ComponentRow(it) }
                 }
                 if (report.errors.isNotEmpty()) {
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
                     Text(
                         stringResource(R.string.hook_status_errors),
                         style = MaterialTheme.typography.labelLarge,
@@ -147,7 +148,7 @@ private fun ComponentRow(component: HookStatusReport.Component) {
         State.PENDING -> LabelTone.Neutral to R.string.hook_state_pending
     }
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+        Column(modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.md)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     componentName(component.name)?.let { stringResource(it) } ?: component.name,

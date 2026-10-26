@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
@@ -26,6 +25,7 @@ import com.vincenthzr.locationspoofer.ui.screen.LANGUAGES
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.getSavedLanguage
 import com.vincenthzr.locationspoofer.viewmodel.selectLanguage
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun LanguageSettingsScreen(
@@ -42,7 +42,7 @@ fun LanguageSettingsScreen(
     ) {
         // 语言单选列表
         Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.selectableGroup().padding(vertical = 8.dp)) {
+            Column(modifier = Modifier.selectableGroup().padding(vertical = AppSpacing.sm)) {
                 LANGUAGES.forEach { lang ->
                     val isSelected = viewModel.getSavedLanguage() == lang.code
                     ListItem(

@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.MapEngine
@@ -32,6 +31,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setBaiduApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setGoogleApiKey
 import com.vincenthzr.locationspoofer.viewmodel.setKeepLastMapPosition
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun MapEngineSettingsScreen(
@@ -77,7 +77,7 @@ fun MapEngineSettingsScreen(
                 enter = fadeIn(AppMotion.defaultEffectsSpec()),
                 exit = fadeOut(AppMotion.fastEffectsSpec())
             ) {
-                Column(modifier = Modifier.padding(top = 14.dp)) {
+                Column(modifier = Modifier.padding(top = AppSpacing.lg)) {
                     when (uiState.mapEngine) {
                         MapEngine.AMAP -> {
                             ModernSettingsInput(

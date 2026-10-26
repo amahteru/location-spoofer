@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
@@ -33,6 +32,7 @@ import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import com.vincenthzr.locationspoofer.ui.theme.warning
 import androidx.compose.foundation.clickable
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun SignatureAuthScreen(
@@ -51,7 +51,7 @@ fun SignatureAuthScreen(
         onBack = onClose
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                 // 应用包名、签名 SHA1：整行点击复制
                 CopyableListItem(
                     label = stringResource(R.string.app_package_name),

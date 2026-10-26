@@ -42,6 +42,7 @@ import kotlin.math.roundToInt
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import androidx.compose.ui.text.style.TextOverflow
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun MotionRealismScreen(
@@ -76,7 +77,7 @@ fun MotionRealismScreen(
 private fun CardHeader(icon: ImageVector, tone: LabelTone, title: String, desc: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         ToneIcon(icon, tone)
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(AppSpacing.lg))
         Column {
             Text(
                 text = title,
@@ -94,14 +95,14 @@ private fun CardHeader(icon: ImageVector, tone: LabelTone, title: String, desc: 
 
 @Composable
 private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.Rounded.Shuffle,
             LabelTone.Primary,
             stringResource(R.string.realism_level_title),
             stringResource(R.string.realism_level_desc)
         )
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(AppSpacing.lg))
         val levels = listOf(
             MotionRealism.Level.OFF to stringResource(R.string.realism_level_off),
             MotionRealism.Level.LOW to stringResource(R.string.realism_level_low),
@@ -123,14 +124,14 @@ private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
 
 @Composable
 private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
-    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.Rounded.Speed,
             LabelTone.Warning,
             stringResource(R.string.speed_fluctuation_title),
             stringResource(R.string.speed_fluctuation_desc)
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(AppSpacing.sm))
         var local by remember(uiState.speedFluctuationPct) { mutableFloatStateOf(uiState.speedFluctuationPct.toFloat()) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
@@ -141,7 +142,7 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
                 steps = MotionRealism.MAX_SPEED_FLUCTUATION_PCT / 5 - 1,
                 modifier = Modifier.weight(1f)
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(AppSpacing.md))
             Text(
                 text = stringResource(R.string.speed_fluctuation_value, local.roundToInt()),
                 style = MaterialTheme.typography.titleSmall,
@@ -154,14 +155,14 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
 
 @Composable
 private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
-    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(16.dp)) {
+    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.AutoMirrored.Rounded.DirectionsWalk,
             LabelTone.Success,
             stringResource(R.string.gait_title),
             stringResource(R.string.gait_desc)
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(AppSpacing.md))
 
         when (val recording = uiState.gaitRecording) {
             is GaitRecordingState.Countdown, is GaitRecordingState.Recording, GaitRecordingState.Processing -> {
@@ -171,7 +172,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     else -> stringResource(R.string.gait_processing)
                 }
                 Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(AppSpacing.md))
                 if (recording is GaitRecordingState.Recording) {
                     LinearProgressIndicator(
                         progress = { recording.progress },
@@ -181,7 +182,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 if (recording !is GaitRecordingState.Processing) {
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(AppSpacing.md))
                     OutlinedButton(onClick = { viewModel.cancelGaitRecording() }) {
                         Text(stringResource(R.string.gait_cancel))
                     }
@@ -195,8 +196,8 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     GaitTemplate.Reason.TOO_FEW_STRIDES -> stringResource(R.string.gait_failed_too_few_strides)
                 }
                 Text(reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Spacer(Modifier.height(AppSpacing.md))
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     Button(
                         onClick = { viewModel.startGaitRecording() },
                                             ) { Text(stringResource(R.string.gait_retry)) }
@@ -218,7 +219,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (cadence != null) {
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(AppSpacing.sm))
                     SwitchListItem(
                         modifier = Modifier.listItemBleed(),
                         title = stringResource(R.string.gait_use_template),
@@ -226,8 +227,8 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
                         onCheckedChange = { viewModel.setUseGaitTemplate(it) }
                     )
                 }
-                Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Spacer(Modifier.height(AppSpacing.md))
+                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                     Button(
                         onClick = { viewModel.startGaitRecording() }
                     ) {
@@ -242,7 +243,7 @@ private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(AppSpacing.md))
         HintRow(stringResource(R.string.gait_scope_hint))
     }
 }
@@ -252,7 +253,7 @@ private fun HintRow(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = AppSpacing.xs),
         verticalAlignment = Alignment.Top
     ) {
         Icon(
@@ -261,7 +262,7 @@ private fun HintRow(text: String) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(18.dp)
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(AppSpacing.sm))
         Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

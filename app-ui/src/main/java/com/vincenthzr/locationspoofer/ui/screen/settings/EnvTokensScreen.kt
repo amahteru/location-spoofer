@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.components.ModernSettingsInput
@@ -30,6 +29,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setOpencellidApiToken
 import com.vincenthzr.locationspoofer.viewmodel.setWigleApiToken
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun EnvTokensScreen(
@@ -50,9 +50,9 @@ fun EnvTokensScreen(
     ) {
         AppCard(
             modifier = Modifier.fillMaxWidth(),
-            insideMargin = PaddingValues(16.dp)
+            insideMargin = PaddingValues(AppSpacing.lg)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
                 ModernSettingsInput(
                     label = stringResource(R.string.custom_wigle_token),
                     value = localWigleToken,

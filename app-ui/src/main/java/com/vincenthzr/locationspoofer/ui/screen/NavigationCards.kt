@@ -19,12 +19,13 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.NavigationCard
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun SectionHeader(icon: ImageVector, title: String, modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(AppSpacing.sm))
         Text(
             title,
             color = MaterialTheme.colorScheme.onSurface,
@@ -84,7 +85,7 @@ fun ScannerMapCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (uiState.isContinuousScanning) {
                     Badge(containerColor = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(AppSpacing.sm))
                 }
                 Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
             }
@@ -115,8 +116,8 @@ fun ImportExportDataCard(onImportClick: () -> Unit, onExportClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                .padding(start = AppSpacing.lg, end = AppSpacing.lg, bottom = AppSpacing.md),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End)
         ) {
             OutlinedButton(onClick = onImportClick) {
                 Text(stringResource(R.string.import_data))
@@ -134,8 +135,8 @@ fun FooterLinks() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+            .padding(bottom = AppSpacing.lg),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md, Alignment.CenterHorizontally)
     ) {
         OutlinedButton(
             onClick = { uriHandler.openUri("https://github.com/amahteru/location-spoofer") },

@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun BlockingScreen(icon: ImageVector, title: String, message: String) {
@@ -20,12 +21,12 @@ fun BlockingScreen(icon: ImageVector, title: String, message: String) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(32.dp),
+            .padding(AppSpacing.xxl),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             Box(
                 modifier = Modifier

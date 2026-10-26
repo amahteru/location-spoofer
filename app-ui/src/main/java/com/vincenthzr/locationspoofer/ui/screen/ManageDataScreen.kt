@@ -40,6 +40,7 @@ import com.vincenthzr.locationspoofer.viewmodel.syncFavoriteCoordinateIfExists
 import com.vincenthzr.locationspoofer.viewmodel.toggleCollectedLocationFavorite
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun ManageDataScreen(
@@ -129,12 +130,12 @@ fun ManageDataScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(32.dp),
+                        .padding(AppSpacing.xxl),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
                     ) {
                         Icon(
                             Icons.Rounded.Storage,
@@ -160,7 +161,7 @@ fun ManageDataScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.36f)
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                        .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
                     shape = MaterialTheme.shapes.large
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -180,7 +181,7 @@ fun ManageDataScreen(
                             tone = LabelTone.Secondary,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(10.dp)
+                                .padding(AppSpacing.md)
                         )
                     }
                 }
@@ -191,12 +192,12 @@ fun ManageDataScreen(
                         .fillMaxWidth()
                         .weight(0.64f),
                     contentPadding = PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 8.dp,
-                        bottom = 24.dp
+                        start = AppSpacing.lg,
+                        end = AppSpacing.lg,
+                        top = AppSpacing.sm,
+                        bottom = AppSpacing.xl
                     ),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
                     items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
                         Box(animateListItem()) {

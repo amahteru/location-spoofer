@@ -9,7 +9,7 @@ import androidx.compose.material.icons.outlined.East
 import androidx.compose.material.icons.outlined.North
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun CustomCoordinateDialog(
@@ -54,7 +54,7 @@ fun CustomCoordinateDialog(
                     androidx.compose.material3.Text(
                         androidx.compose.ui.res.stringResource(com.vincenthzr.locationspoofer.ui.R.string.custom_coord_desc)
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(AppSpacing.lg))
                     androidx.compose.material3.OutlinedTextField(
                         value = lng,
                         onValueChange = { lng = it },
@@ -84,7 +84,7 @@ fun CustomCoordinateDialog(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(AppSpacing.sm))
                     androidx.compose.material3.OutlinedTextField(
                         value = lat,
                         onValueChange = { lat = it },

@@ -38,6 +38,7 @@ import com.vincenthzr.locationspoofer.viewmodel.setCheckBetaUpdates
 import com.vincenthzr.locationspoofer.viewmodel.setIgnoredVersion
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.theme.success
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,14 +117,14 @@ fun UpdateScreen(
                 top = innerPadding.calculateTopPadding(),
                 bottom = innerPadding.calculateBottomPadding() + 24.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             item {
                 Text(
                     text = stringResource(R.string.software_update_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(horizontal = AppSpacing.xs)
                 )
             }
 
@@ -164,7 +165,7 @@ fun UpdateScreen(
                         text = if (hasNewVersion) stringResource(R.string.changelog) else stringResource(R.string.version_history),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                        modifier = Modifier.padding(start = AppSpacing.xs, top = AppSpacing.sm)
                     )
                 }
 
@@ -202,11 +203,11 @@ private fun CurrentVersionHeroCard(
 ) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        insideMargin = PaddingValues(16.dp)
+        insideMargin = PaddingValues(AppSpacing.lg)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             // 第一行：应用名，下方为方案与当前安装版本号徽章（同一行放不下，避免版本号被截断）
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -215,18 +216,18 @@ private fun CurrentVersionHeroCard(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(AppSpacing.xs))
                 Text(
                     text = "Location Spoofer",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
 
                 val cleanCurrentVersion = currentVersion.trim().removePrefix("v").removePrefix("V")
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     // 当前安装的是哪个模拟方案变体，更新时只会拉取同一变体的安装包
                     com.vincenthzr.locationspoofer.ui.screen.settings.SchemeBadge()
@@ -250,7 +251,7 @@ private fun CurrentVersionHeroCard(
             ) { status ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     when (status) {
                         0 -> {
@@ -293,7 +294,7 @@ private fun CurrentVersionHeroCard(
                                 color = MaterialTheme.colorScheme.error
                             )
                             if (release.isPrerelease) {
-                                Spacer(Modifier.width(4.dp))
+                                Spacer(Modifier.width(AppSpacing.xs))
                                 StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
                             }
                         }
@@ -324,7 +325,7 @@ private fun CurrentVersionHeroCard(
                 } else {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -354,7 +355,7 @@ private fun CurrentVersionHeroCard(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
                     ) {
                         val latestDownloadUrl = latestRelease.downloadUrl
                         val latestDownloadUrl32Bit = latestRelease.downloadUrl32Bit
@@ -411,11 +412,11 @@ private fun ReleaseItemCard(
 ) {
     AppCard(
         modifier = Modifier.fillMaxWidth(),
-        insideMargin = PaddingValues(16.dp)
+        insideMargin = PaddingValues(AppSpacing.lg)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -432,17 +433,17 @@ private fun ReleaseItemCard(
                     )
 
                     if (isCurrentVersion) {
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(AppSpacing.sm))
                         StatusLabel(text = stringResource(R.string.current_version), tone = LabelTone.Success)
                     }
 
                     if (isMergedRelease) {
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(AppSpacing.sm))
                         StatusLabel(text = stringResource(R.string.merged_count_badge, mergedCount))
                     }
 
                     if (release.isPrerelease) {
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(AppSpacing.sm))
                         StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
                     }
                 }
@@ -463,7 +464,7 @@ private fun ReleaseItemCard(
 
             // 操作按键（历史版本仅提供下载操作，不显示忽略）
             if (!isCurrentVersion && (release.downloadUrl != null || release.downloadUrl32Bit != null)) {
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(AppSpacing.xs))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
@@ -471,7 +472,7 @@ private fun ReleaseItemCard(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
                         val releaseDownloadUrl = release.downloadUrl
                         val releaseDownloadUrl32Bit = release.downloadUrl32Bit

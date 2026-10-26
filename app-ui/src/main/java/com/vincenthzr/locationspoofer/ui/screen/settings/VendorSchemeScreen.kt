@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -154,7 +155,7 @@ private fun VendorSchemeContent(
                 text = stringResource(R.string.vendor_scheme_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp)
+                modifier = Modifier.padding(horizontal = AppSpacing.xs)
             )
         }
         if (BuildConfig.GLOBAL_SCHEME) AppCard(modifier = Modifier.fillMaxWidth()) {
@@ -166,8 +167,8 @@ private fun VendorSchemeContent(
                 VendorScheme.AOSP to stringResource(R.string.vendor_scheme_aosp)
             )
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
             ) {
                 schemes.forEach { (scheme, label) ->
                     FilterChip(
@@ -178,7 +179,7 @@ private fun VendorSchemeContent(
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(AppSpacing.lg))
 
             Row(verticalAlignment = Alignment.Top) {
                 Icon(
@@ -187,7 +188,7 @@ private fun VendorSchemeContent(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(AppSpacing.sm))
                 Text(
                     text = stringResource(R.string.vendor_scheme_reboot_notice),
                     style = MaterialTheme.typography.bodySmall,
@@ -237,7 +238,7 @@ private fun NavigationRowCard(
             modifier = Modifier.clickable(onClick = onClick),
             leadingContent = { ToneIcon(icon) },
             headlineContent = { Text(title) },
-            supportingContent = chip?.let { { StatusLabel(text = it, tone = chipTone, modifier = Modifier.padding(top = 4.dp)) } },
+            supportingContent = chip?.let { { StatusLabel(text = it, tone = chipTone, modifier = Modifier.padding(top = AppSpacing.xs)) } },
             trailingContent = { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )

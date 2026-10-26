@@ -33,6 +33,7 @@ import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -60,8 +61,8 @@ fun RootDiagnosticsScreen(
                 RootSolution.RESUKISU_ULTRA to stringResource(R.string.root_solution_resukisu_ultra)
             )
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
             ) {
                 rootSolutions.forEach { (solution, label) ->
                     FilterChip(
@@ -75,7 +76,7 @@ fun RootDiagnosticsScreen(
 
         // 测试 Root 权限与框架配置通道；重启目标应用，让它们加载当前模块并重新订阅框架配置。
         Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                 NavigationListItem(
                     icon = Icons.Rounded.VerifiedUser,
                     title = stringResource(R.string.test_root_setup_title),

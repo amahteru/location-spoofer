@@ -21,6 +21,7 @@ import androidx.core.os.LocaleListCompat
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.selectLanguage
 import androidx.compose.ui.platform.LocalLocale
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 data class LanguageOption(val name: String, val code: String, val nativeName: String)
 
@@ -51,9 +52,9 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(32.dp),
+                .padding(AppSpacing.xxl),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.xl)
         ) {
             Box(
                 modifier = Modifier
@@ -78,7 +79,7 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
             )
 
             Card(modifier = Modifier.fillMaxWidth()) {
-              Column(modifier = Modifier.selectableGroup().padding(vertical = 8.dp)) {
+              Column(modifier = Modifier.selectableGroup().padding(vertical = AppSpacing.sm)) {
                 LANGUAGES.forEach { lang ->
                     LanguageItem(
                         option = lang,
@@ -89,7 +90,7 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
               }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(AppSpacing.lg))
 
             Button(
                 onClick = {

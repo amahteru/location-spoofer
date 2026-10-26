@@ -8,7 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 /**
  * 二级页面骨架：M3 Scaffold + 顶栏（返回、标题、说明、操作），内容区默认纵向滚动、左右 16dp 边距。
@@ -35,11 +35,11 @@ fun SubPageScaffold(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
             content = {
                 content()
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(AppSpacing.sm))
             }
         )
     }
@@ -52,6 +52,6 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(start = 4.dp, top = 8.dp)
+        modifier = modifier.padding(start = AppSpacing.xs, top = AppSpacing.sm)
     )
 }
