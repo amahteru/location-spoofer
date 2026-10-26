@@ -10,17 +10,10 @@
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 [![KernelSU](https://img.shields.io/badge/Root-KernelSU-orange.svg)](https://kernelsu.org)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%20101%2B-purple.svg)](https://github.com/LSPosed/LSPosed)
-[![Telegram](https://img.shields.io/badge/Telegram-Group-blue.svg)](https://t.me/+CsxZGItXdW40ZWVl)
 
 [简体中文](README.md) | [English](README_EN.md)
 
 </div>
-
----
-
-> **📢 Join our [Telegram Group](https://t.me/+CsxZGItXdW40ZWVl) for** ~~technical discussion, updates,~~ **bragging and shitposting.**
->
-> **📖 Read the [LocationSpoofer Detailed Tutorial](https://docs.google.com/document/d/1fFEz3k7ATdN2dwY1L3RJn1QuzgokIsslNa88-vUPxPk/edit?usp=sharing)**
 
 ---
 
@@ -194,7 +187,7 @@ The global scheme hooks system services directly, and their internals differ bet
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/LocationSpoofer.git
+git clone https://github.com/amahteru/location-spoofer.git
 
 # 2. Build and install Debug APK
 ./gradlew installDebug

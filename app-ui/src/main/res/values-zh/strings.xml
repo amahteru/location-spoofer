@@ -204,7 +204,6 @@
     <string name="fixes_header">缺陷修复</string>
     <string name="others_header">其他更新</string>
     <string name="brand_github">GitHub</string>
-    <string name="brand_telegram">Telegram</string>
     <string name="custom_wigle_token">WiGLE API 密钥（Basic Auth Base64）</string>
     <string name="custom_wigle_token_hint">输入您的 WiGLE 密钥…</string>
     <string name="custom_opencellid_token">OpenCellID API 密钥</string>

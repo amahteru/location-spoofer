@@ -201,7 +201,6 @@ select the apps to simulate, then restart them.</string>
     <string name="fixes_header">Bug fixes</string>
     <string name="others_header">Other changes</string>
     <string name="brand_github">GitHub</string>
-    <string name="brand_telegram">Telegram</string>
     <string name="route_name">Route name</string>
     <string name="save_success">Saved</string>
     <string name="route_library">Favorite routes</string>

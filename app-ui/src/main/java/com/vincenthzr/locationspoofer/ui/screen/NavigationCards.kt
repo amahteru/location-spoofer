@@ -139,18 +139,5 @@ fun FooterLinks() {
             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
             Text(stringResource(R.string.brand_github))
         }
-        OutlinedButton(
-            onClick = { uriHandler.openUri("https://t.me/+CsxZGItXdW40ZWVl") },
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_telegram),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.brand_telegram))
-        }
     }
 }

@@ -21,7 +21,7 @@ Only register results actually tested on real hardware. Anything not tested is m
 
 | System | Adapter | Status | Verified system versions | Notes |
 |---|---|---|---|---|
-| Xiaomi HyperOS / MIUI | `HyperOsVendor` | ✅ | HyperOS 4, HyperOS 3 | Fully tested on HyperOS 4. On HyperOS 3 (REDMI K90 Ultra / OS3.0.308.0.WHPCNXM), global location injection works; other components not re-verified one by one. See [#74](https://github.com/HuangZhuoRui/LocationSpoofer/issues/74) |
+| Xiaomi HyperOS / MIUI | `HyperOsVendor` | ✅ | HyperOS 4, HyperOS 3 | Fully tested on HyperOS 4. On HyperOS 3 (REDMI K90 Ultra / OS3.0.308.0.WHPCNXM), global location injection works; other components not re-verified one by one. |
 | OPPO ColorOS / OnePlus OxygenOS | `ColorOs16Vendor` (API 36) / `ColorOsVendor` | ⚠️ | ColorOS 16 / Android 16 | Partially tested on PJX110. Telephony and Bluetooth pass; continuous location and fitness apps still need retesting. OxygenOS unverified. See [scope and screenshots](docs/adaptation/coloros16.md) |
 | Samsung One UI | `OneUiVendor` | ❔ | — | Same as above |
 | vivo OriginOS, HONOR MagicOS, Meizu Flyme, etc. | None (falls back to `AospVendor`) | ❔ | — | No dedicated adapter yet |
@@ -57,7 +57,7 @@ The results below come from the full build installed before the split. The revie
 | Device | System version | Verified | Notes |
 |---|---|---|---|
 | Xiaomi 17 Pro Max | HyperOS 4 | 2026-09 | Development and verification device for the global scheme |
-| REDMI K90 Ultra (M332BF / warsaw) | HyperOS 3 / OS3.0.308.0.WHPCNXM / Android 16 | 2026-09 | KernelSU (ksud 4.2.0) + LSPosed v2.2.0 (7854), global v3.0.0-beta-2 (arm64-v8a). Location injection works (`getLastLocation` provider=fused/network); other components not re-verified one by one. See [#74](https://github.com/HuangZhuoRui/LocationSpoofer/issues/74) |
+| REDMI K90 Ultra (M332BF / warsaw) | HyperOS 3 / OS3.0.308.0.WHPCNXM / Android 16 | 2026-09 | KernelSU (ksud 4.2.0) + LSPosed v2.2.0 (7854), global v3.0.0-beta-2 (arm64-v8a). Location injection works (`getLastLocation` provider=fused/network); other components not re-verified one by one. |
 | PJX110 | ColorOS 16 / PJX110_16.0.1.301 / Android 16 | 2026-09 | LSPosed IT 2.1.1 (7846), limited to the partial verification above |
 
 ---

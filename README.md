@@ -11,17 +11,10 @@
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 [![KernelSU](https://img.shields.io/badge/Root-KernelSU-orange.svg)](https://kernelsu.org)
 [![LSPosed](https://img.shields.io/badge/LSPosed-API%20101%2B-purple.svg)](https://github.com/LSPosed/LSPosed)
-[![Telegram](https://img.shields.io/badge/Telegram-交流群-blue.svg)](https://t.me/+CsxZGItXdW40ZWVl)
 
 [简体中文](README.md) | [English](README_EN.md)
 
 </div>
-
----
-
-> **📢 加入我们的 [Telegram 交流群](https://t.me/+CsxZGItXdW40ZWVl) 进行**~~技术探讨、催更、~~**吹牛逼、搞抽象。**
->
-> **📖 查看 [LocationSpoofer 详细使用教程](https://docs.google.com/document/d/1fFEz3k7ATdN2dwY1L3RJn1QuzgokIsslNa88-vUPxPk/edit?usp=sharing)**
 
 ---
 
@@ -199,7 +192,7 @@ App 通过 libxposed 的远程配置通道传递 JSON，Hook 从内存缓存读�
 
 ```bash
 # 1. 克隆代码仓库
-git clone https://github.com/your-username/LocationSpoofer.git
+git clone https://github.com/amahteru/location-spoofer.git
 
 # 2. 编译 Debug APK 并直接安装到设备
 ./gradlew installDebug
