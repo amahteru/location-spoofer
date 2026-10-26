@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -164,7 +148,7 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                                 val fakeIdentity = this@hookSystemTelephonyService.constructCellIdentityByType(
                                     "GSM", cellIdentityGsmClass, 460, "460", 0, "00", lac, cid, 0
                                 )
-                                if (fakeIdentity != null && returnType.isInstance(fakeIdentity)) {
+                                if (returnType.isInstance(fakeIdentity)) {
                                     sysLog("[SysCell] Dispatched fake CellIdentity to ${explicitPkg ?: "caller"} (lac=$lac, cid=$cid)")
                                     return@hookAllMethods fakeIdentity
                                 }

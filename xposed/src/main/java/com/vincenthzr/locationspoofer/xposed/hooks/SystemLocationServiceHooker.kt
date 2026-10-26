@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry
@@ -92,6 +76,32 @@ private val activeCallbackBinders = ConcurrentHashMap<IBinder, CallbackRegistrat
 // 存储当前活跃的目标应用 PendingIntent 映射
 private val activePendingIntents = ConcurrentHashMap<android.app.PendingIntent, String>()
 
+// 全局模式下应当改写的监听者 Binder：注册时按调用方记下（不论当时模拟是否已开启），
+// 投递时据此区分目标应用与本 App / 电话 / GMS 等豁免进程——它们共用同一个 Binder 代理类
+private val globalModeListenerBinders: MutableSet<IBinder> =
+    Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
+
+// 全局模式下 provider 的上报会在 onReportLocation 就地改写成模拟位置（走 GMS 融合定位的 App 靠这一层才能被模拟），
+// 系统的"最近位置"缓存也随之变成模拟位置。改写前留一份真实上报：分发给本 App、电话、系统内部等豁免方时换回真实位置，
+// 它们查询最近位置时也返回真实位置；停止模拟后缓存里残留的模拟位置也不再交给任何人。
+private val realReportInFlight = ThreadLocal<Any?>()
+private val lastRealLocations = ConcurrentHashMap<String, android.location.Location>()
+private val spoofedCacheProviders: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+/** 与系统 getCurrentLocation 直接返回缓存的时效一致（LocationProviderManager.MAX_CURRENT_LOCATION_AGE_MS） */
+private const val MAX_CURRENT_LOCATION_AGE_MS = 30_000L
+
+/** 全局模式下仍应拿真实位置的调用方：不属于全局模拟对象、且不是 GMS（GMS 拿模拟位置，融合定位才会跟着变） */
+private fun receivesRealLocation(serviceInstance: Any?, pkg: String?, uid: Int?): Boolean =
+    pkg?.substringBefore(":") != "com.google.android.gms" &&
+        !SystemHookUtils.isGlobalModeCaller(serviceInstance, pkg, uid)
+
+private fun copyLocationResult(result: Any): Any? =
+    try { XposedHelpers.callMethod(result, "deepCopy") } catch (_: Throwable) { null }
+
+private fun providerNameOf(manager: Any?): String? =
+    try { manager?.let { XposedHelpers.getObjectField(it, "mName") as? String } } catch (_: Throwable) { null }
+
 @Volatile
 private var isHeartbeatTimerStarted = false
 
@@ -111,7 +121,10 @@ internal fun saveSystemLocationReloadState(): Array<Any> = arrayOf(
     },
     activePendingIntents.mapTo(java.util.ArrayList()) { (pendingIntent, packageName) ->
         arrayOf<Any>(pendingIntent, packageName)
-    }
+    },
+    lastRealLocations.mapTo(java.util.ArrayList()) { (provider, location) -> arrayOf<Any>(provider, location) },
+    java.util.ArrayList(spoofedCacheProviders),
+    synchronized(globalModeListenerBinders) { java.util.ArrayList(globalModeListenerBinders) }
 )
 
 internal fun clearSystemLocationReloadState() {
@@ -122,6 +135,9 @@ internal fun clearSystemLocationReloadState() {
     activeCallbackBinders.clear()
     activePendingIntents.clear()
     spoofedListenerInstances.clear()
+    globalModeListenerBinders.clear()
+    lastRealLocations.clear()
+    spoofedCacheProviders.clear()
 }
 
 internal fun LocationHooker.restoreSystemLocationReloadState(value: Any?) {
@@ -158,6 +174,9 @@ internal fun LocationHooker.restoreSystemLocationReloadState(value: Any?) {
         runCatching { ModuleBinderDeaths.watch(binder) { activeCallbackBinders.remove(binder) } }
     }
     rows(4).forEach { row -> activePendingIntents[row[0] as android.app.PendingIntent] = row[1] as String }
+    rows(5).forEach { row -> lastRealLocations[row[0] as String] = row[1] as android.location.Location }
+    (state.getOrNull(6) as? List<*>)?.filterIsInstance<String>()?.let { spoofedCacheProviders.addAll(it) }
+    (state.getOrNull(7) as? List<*>)?.filterIsInstance<IBinder>()?.filter { it.isBinderAlive }?.let { globalModeListenerBinders.addAll(it) }
 }
 
 /** 在 args 里递归找出所有 android.location.Location（单个、List、或 LocationResult 形态）并就地改写 */
@@ -214,7 +233,8 @@ private fun LocationHooker.ensureCallbackHooked(callback: Any, vararg deliveryMe
                 val isGlobal = config?.optBoolean("system_hook_global_mode", false) == true
                 val isTracked = (binder != null && (activeListenerBinders.containsKey(binder) || activeCallbackBinders.containsKey(binder))) ||
                         spoofedListenerInstances.contains(innerChain.thisObject)
-                val isTarget = isTracked || isGlobal
+                // 同一个回调类被所有客户端共用，全局模式也只改写注册时判定为目标应用的监听者
+                val isTarget = isTracked || (isGlobal && binder != null && globalModeListenerBinders.contains(binder))
                 if (isTarget && config != null && config.optBoolean("active", false)) {
                     val motion = getCurrentSpoofedMotion("WGS-84")
                     if (motion != null) {
@@ -570,14 +590,21 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
             val overrideUid = SystemHookUtils.extractCallerUid(chain.args)
             val isTarget = SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config, overrideUid)
 
+            val provider = SystemHookUtils.extractProvider(chain.args)
             if (!isTarget) {
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                val result = chain.proceed(chain.args.toTypedArray())
+                if (result == null || !spoofedCacheProviders.contains(provider)) return@hookAllMethods result
+                // 缓存里是全局模式留下的模拟位置：模拟进行中 GMS 和全局模拟对象照常拿缓存，
+                // 豁免方换成真实位置；停止模拟后谁都不再拿到残留的模拟位置（没有真实位置可还时返回 null）
+                val isGlobalActive = config.optBoolean("active", false) && config.optBoolean("system_hook_global_mode", false)
+                val wantsReal = receivesRealLocation(chain.thisObject, explicitPkg, overrideUid)
+                if (isGlobalActive && !wantsReal) return@hookAllMethods result
+                val real = lastRealLocations[provider]
+                return@hookAllMethods if (real != null && wantsReal) android.location.Location(real) else null
             }
 
             val motion = getCurrentSpoofedMotion("WGS-84")
                 ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
-
-            val provider = SystemHookUtils.extractProvider(chain.args)
 
             val fakeLoc = SystemHookUtils.buildFakeLocation(
                 classLoader,
@@ -614,14 +641,19 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                         val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
                         val overrideUid = SystemHookUtils.extractCallerUid(chain.args)
                         val isTarget = SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config, overrideUid)
+                        val listener = chain.args.firstOrNull { arg ->
+                            arg != null && LocationHooker.hasTypeByName(
+                                arg.javaClass,
+                                "android.location.ILocationListener"
+                            )
+                        }
+                        if (listener != null && SystemHookUtils.isGlobalModeCaller(chain.thisObject, explicitPkg, overrideUid)) {
+                            val binder = (listener as? IInterface)?.asBinder() ?: (listener as? IBinder)
+                            if (binder != null) globalModeListenerBinders.add(binder)
+                            ensureCallbackHooked(listener, "onLocationChanged")
+                        }
 
                         if (isTarget) {
-                            val listener = chain.args.firstOrNull { arg ->
-                                arg != null && LocationHooker.hasTypeByName(
-                                    arg.javaClass,
-                                    "android.location.ILocationListener"
-                                )
-                            }
                             val provider = SystemHookUtils.extractProvider(chain.args)
                             if (listener != null) {
                                 val binder = (listener as? IInterface)?.asBinder() ?: (listener as? IBinder)
@@ -705,6 +737,7 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                         val binder = (listener as? IInterface)?.asBinder() ?: (listener as? IBinder)
                         if (binder != null) {
                             activeListenerBinders.remove(binder)
+                            globalModeListenerBinders.remove(binder)
                         }
                         spoofedListenerInstances.remove(listener)
                     }
@@ -1098,6 +1131,21 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                     }
                                 }
                             }
+                        } else {
+                            // 缓存够新时系统会直接把缓存交给回调（不经过 acceptLocationChange），全局模式下缓存是模拟位置：
+                            // 豁免方改为直接拿最近一次真实位置；真实位置也不够新时缓存同样不够新，系统会重新定位
+                            val provider = providerNameOf(chain.thisObject)
+                            val real = provider?.takeIf { spoofedCacheProviders.contains(it) }?.let { lastRealLocations[it] }
+                            val callback = chain.args.firstOrNull { arg ->
+                                arg != null && LocationHooker.hasTypeByName(arg.javaClass, "android.location.ILocationCallback")
+                            }
+                            if (real != null && callback != null && (android.os.SystemClock.elapsedRealtimeNanos() - real.elapsedRealtimeNanos) / 1_000_000 < MAX_CURRENT_LOCATION_AGE_MS &&
+                                receivesRealLocation(chain.thisObject, pkgName, overrideUid)) {
+                                callback.javaClass.methods.firstOrNull { it.name == "onLocation" && it.parameterTypes.size == 1 }
+                                    ?.invoke(callback, android.location.Location(real))
+                                logLoc("[SysLoc] LocationProviderManager.getCurrentLocation kept real location for $pkgName (provider=$provider)")
+                                return@hookAllMethods createDummyCancellationSignal()
+                            }
                         }
                     }
                 } catch (_: Throwable) {}
@@ -1216,17 +1264,30 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         try {
             XposedHelpers.hookAllMethods(providerManagerClazz, "onReportLocation") { chain, _ ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) {
-                    val isGlobal = config.optBoolean("system_hook_global_mode", false)
-                    if (isGlobal) {
-                        val motion = getCurrentSpoofedMotion("WGS-84")
-                        if (motion != null) {
-                            rewriteLocationArgs(chain.args, motion, RouteEngine.realisticAltitude(config), getJitteredAccuracy())
-                            logLoc("[SysLoc] LocationProviderManager.onReportLocation rewrote location globally")
-                        }
-                    }
+                val provider = providerNameOf(chain.thisObject)
+                // passive provider 收到的是其他 provider 已改写过的上报，真实位置沿用外层那一份
+                val outerReal = realReportInFlight.get()
+                val real = outerReal ?: chain.args.firstOrNull()?.let { copyLocationResult(it) }
+                val realLast = real?.let { try { XposedHelpers.callMethod(it, "getLastLocation") } catch (_: Throwable) { null } }
+                if (provider != null && realLast is android.location.Location) lastRealLocations[provider] = realLast
+
+                val motion = if (config != null && config.optBoolean("active", false) &&
+                    config.optBoolean("system_hook_global_mode", false)) getCurrentSpoofedMotion("WGS-84") else null
+                if (config == null || motion == null) {
+                    // 真实上报重新写进缓存，之前残留的模拟位置被覆盖
+                    if (outerReal == null && provider != null) spoofedCacheProviders.remove(provider)
+                    return@hookAllMethods chain.proceed(chain.args.toTypedArray())
                 }
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                rewriteLocationArgs(chain.args, motion, RouteEngine.realisticAltitude(config), getJitteredAccuracy())
+                if (provider != null) spoofedCacheProviders.add(provider)
+                logLoc("[SysLoc] LocationProviderManager.onReportLocation rewrote location globally (provider=$provider)")
+                if (outerReal != null || real == null) return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                realReportInFlight.set(real)
+                try {
+                    return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                } finally {
+                    realReportInFlight.remove()
+                }
             }
             logLoc("[SysLoc] LocationProviderManager.onReportLocation hooked")
         } catch (e: Throwable) {
@@ -1238,36 +1299,66 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         val regClasses = listOfNotNull(
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$Registration", classLoader),
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationRegistration", classLoader),
-            XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationListenerRegistration", classLoader)
+            XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationListenerRegistration", classLoader),
+            // getCurrentLocation 的单次注册自己重写了 acceptLocationChange，不经过上面几个类
+            XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$GetCurrentLocationListenerRegistration", classLoader)
         )
         for (regClazz in regClasses) {
             if (hookedCallbackClasses.putIfAbsent(regClazz, true) != null) continue
             try {
                 XposedHelpers.hookAllMethods(regClazz, "acceptLocationChange") { chain, _ ->
                     val config = readConfig()
-                    if (config != null && config.optBoolean("active", false)) {
-                        val identity = try {
-                            XposedHelpers.getObjectField(chain.thisObject, "mIdentity")
-                        } catch (_: Throwable) {
-                            try { XposedHelpers.callMethod(chain.thisObject, "getIdentity") } catch (_: Throwable) { null }
+                    val active = config?.optBoolean("active", false) == true
+                    val reported = chain.args.firstOrNull()
+                    val provider = providerNameOf(try { XposedHelpers.getObjectField(chain.thisObject, "this\$0") } catch (_: Throwable) { null })
+                    // 注册时系统会先把缓存里的"最近位置"投递一次，全局模式下这份缓存是模拟位置
+                    val cacheSpoofed = provider != null && spoofedCacheProviders.contains(provider)
+                    val realInFlight = realReportInFlight.get()
+                    if (config == null || (!active && !cacheSpoofed)) return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+
+                    val identity = try {
+                        XposedHelpers.getObjectField(chain.thisObject, "mIdentity")
+                    } catch (_: Throwable) {
+                        try { XposedHelpers.callMethod(chain.thisObject, "getIdentity") } catch (_: Throwable) { null }
+                    }
+                    val pkg = identity?.let {
+                        try { XposedHelpers.callMethod(it, "getPackageName") as? String } catch (_: Throwable) {
+                            try { XposedHelpers.getObjectField(it, "mPackageName") as? String } catch (_: Throwable) { null }
                         }
-                        val pkg = identity?.let {
-                            try { XposedHelpers.callMethod(it, "getPackageName") as? String } catch (_: Throwable) {
-                                try { XposedHelpers.getObjectField(it, "mPackageName") as? String } catch (_: Throwable) { null }
-                            }
+                    }
+                    val uid = identity?.let {
+                        try { XposedHelpers.callMethod(it, "getUid") as? Int } catch (_: Throwable) {
+                            try { XposedHelpers.getIntField(it, "mUid") } catch (_: Throwable) { null }
                         }
-                        val uid = identity?.let {
-                            try { XposedHelpers.callMethod(it, "getUid") as? Int } catch (_: Throwable) {
-                                try { XposedHelpers.getIntField(it, "mUid") } catch (_: Throwable) { null }
-                            }
+                    }
+                    val isTarget = active && SystemHookUtils.isTargetCaller(chain.thisObject, pkg, config, uid)
+                    if (isTarget) {
+                        val motion = getCurrentSpoofedMotion("WGS-84")
+                        if (motion != null) {
+                            rewriteLocationArgs(chain.args, motion, RouteEngine.realisticAltitude(config), getJitteredAccuracy())
+                            logLoc("[SysLoc] Registration.acceptLocationChange rewrote location for $pkg (lat=${motion.lat}, lng=${motion.lng})")
                         }
-                        val isTarget = SystemHookUtils.isTargetCaller(chain.thisObject, pkg, config, uid)
-                        if (isTarget) {
-                            val motion = getCurrentSpoofedMotion("WGS-84")
-                            if (motion != null) {
-                                rewriteLocationArgs(chain.args, motion, RouteEngine.realisticAltitude(config), getJitteredAccuracy())
-                                logLoc("[SysLoc] Registration.acceptLocationChange rewrote location for $pkg (lat=${motion.lat}, lng=${motion.lng})")
+                    } else if (reported != null && (realInFlight != null || cacheSpoofed)) {
+                        // 全局模式改写过的位置：模拟进行中 GMS 和全局模拟对象照常收到；豁免方换回真实位置，
+                        // 停止模拟后残留的模拟缓存不再投递给任何应用（豁免方有真实位置时给真实位置）
+                        val wantsReal = receivesRealLocation(chain.thisObject, pkg, uid)
+                        val isGlobalActive = active && config.optBoolean("system_hook_global_mode", false)
+                        if (!isGlobalActive || wantsReal) {
+                            val replacement = realInFlight?.takeIf { it.javaClass == reported.javaClass }
+                                ?: lastRealLocations[provider]?.takeIf { wantsReal }?.let { real ->
+                                    try {
+                                        reported.javaClass.getMethod("create", java.util.List::class.java)
+                                            .invoke(null, listOf(android.location.Location(real)))
+                                    } catch (_: Throwable) { null }
+                                }
+                            if (replacement == null) {
+                                logLoc("[SysLoc] Registration.acceptLocationChange dropped spoofed cache for $pkg (provider=$provider)")
+                                return@hookAllMethods null
                             }
+                            val args = chain.args.toTypedArray()
+                            args[0] = replacement
+                            logLoc("[SysLoc] Registration.acceptLocationChange kept real location for $pkg (uid=$uid, provider=$provider)")
+                            return@hookAllMethods chain.proceed(args)
                         }
                     }
                     return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -1290,19 +1381,22 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                 XposedHelpers.hookAllMethods(tClazz, "deliverOnLocationChanged") { chain, _ ->
                     val config = readConfig()
                     if (config != null && config.optBoolean("active", false)) {
+                        // Transport 类被所有客户端共用，全局模式也要按客户端区分，不能改写本 App / 电话 / GMS 的投递
                         val isGlobal = config.optBoolean("system_hook_global_mode", false)
-                        var isTarget = isGlobal
-                        if (!isTarget) {
+                        var isTarget = false
+                        run {
                             val listener = try { XposedHelpers.getObjectField(chain.thisObject, "mListener") } catch (_: Throwable) { null }
                             val binder = (listener as? IInterface)?.asBinder() ?: (listener as? IBinder)
-                            if (binder != null && activeListenerBinders.containsKey(binder)) {
+                            if (binder != null && (activeListenerBinders.containsKey(binder) ||
+                                    (isGlobal && globalModeListenerBinders.contains(binder)))) {
                                 isTarget = true
                             } else if (listener != null && spoofedListenerInstances.contains(listener)) {
                                 isTarget = true
                             }
                             if (!isTarget) {
                                 val pi = try { XposedHelpers.getObjectField(chain.thisObject, "mPendingIntent") as? android.app.PendingIntent } catch (_: Throwable) { null }
-                                if (pi != null && activePendingIntents.containsKey(pi)) {
+                                if (pi != null && (activePendingIntents.containsKey(pi) || (isGlobal && pi.creatorUid >= 10000 &&
+                                        pi.creatorPackage?.let { !SystemHookUtils.EXEMPT_PACKAGES.contains(it) } == true))) {
                                     isTarget = true
                                 }
                             }

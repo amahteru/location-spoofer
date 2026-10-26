@@ -93,7 +93,6 @@ data class AppState(
     val wifiLoadStatus: WifiLoadStatus = WifiLoadStatus.IDLE,
     val wifiApCount: Int = 0,
     val savedLocations: List<SavedLocation> = emptyList(),
-    val searchKeyword: String = "",
     val searchMode: SearchMode = SearchMode.NETWORK,
     val searchResults: List<SavedLocation> = emptyList(),
     val simBearing: Float = 0f,

@@ -13,16 +13,11 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 
 class SpoofingService : Service() {
 
     private lateinit var locationManager: LocationManager
     private var wakeLock: PowerManager.WakeLock? = null
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     companion object {
         const val ACTION_START = "ACTION_START"
@@ -183,7 +178,6 @@ class SpoofingService : Service() {
         super.onDestroy()
         isRunning = false
         releaseWakeLock()
-        serviceScope.cancel()
         cleanupLegacyTestProviders()
     }
 

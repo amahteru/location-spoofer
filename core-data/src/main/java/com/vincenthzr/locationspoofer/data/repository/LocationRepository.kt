@@ -1,8 +1,6 @@
 package com.vincenthzr.locationspoofer.data.repository
 
 import android.content.Context
-import android.location.LocationManager
-import android.os.Build
 import com.vincenthzr.locationspoofer.data.db.SavedRouteDao
 import com.vincenthzr.locationspoofer.data.db.SavedRouteEntity
 import com.vincenthzr.locationspoofer.data.model.RootSetupTestResult
@@ -160,38 +158,10 @@ class LocationRepository(
         SpoofingState.isRouteMode = false
         configManager.saveConfig(0.0, 0.0, false)
 
-        // 1. 同步在当前进程清理所有可能残留的 TestProvider
-        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-        if (lm != null) {
-            try {
-                lm.setTestProviderEnabled(LocationManager.GPS_PROVIDER, false)
-            } catch (e: Throwable) {
-            }
-            try {
-                lm.removeTestProvider(LocationManager.GPS_PROVIDER)
-            } catch (e: Throwable) {
-            }
-            try {
-                lm.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, false)
-            } catch (e: Throwable) {
-            }
-            try {
-                lm.removeTestProvider(LocationManager.NETWORK_PROVIDER)
-            } catch (e: Throwable) {
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    lm.setTestProviderEnabled(LocationManager.FUSED_PROVIDER, false)
-                    lm.removeTestProvider(LocationManager.FUSED_PROVIDER)
-                }
-            } catch (e: Throwable) {
-            }
-        }
-
-        // 2. 停止前台模拟服务
+        // 停止前台模拟服务（服务停止时顺带清理旧版本可能残留的 TestProvider）
         spoofingServiceController.stop(context)
 
-        // 3. 彻底重置系统的 mock_location 状态，防止被澎湃OS/系统安全中心记录为模拟中
+        // 彻底重置系统的 mock_location 状态，防止被澎湃OS/系统安全中心记录为模拟中
         rootManager.revokeMockLocation()
     }
 
@@ -273,25 +243,6 @@ class LocationRepository(
             enableStepSimulation,
             stepCadenceSpm,
             isAutoCadence
-        )
-    }
-
-    suspend fun updateWifiJson(wifiJson: String, appCoordinateSystems: Map<String, String>) {
-        SpoofingState.wifiJson = wifiJson
-        // 同步写入配置文件,确保Xposed端能读取到WiFi数据
-        configManager.saveConfig(
-            SpoofingState.latitude,
-            SpoofingState.longitude,
-            SpoofingState.isActive,
-            SpoofingState.simMode,
-            SpoofingState.simBearing,
-            startTimestamp = SpoofingState.startTimestamp,
-            wifiJson = wifiJson,
-            appCoordinateSystems = appCoordinateSystems,
-            cellJson = SpoofingState.cellJson,
-            bluetoothJson = SpoofingState.bluetoothJson,
-            altitude = settingsManager.altitude.toDoubleOrNull() ?: 0.0,
-            satelliteCount = settingsManager.satelliteCount.toIntOrNull() ?: 20
         )
     }
 

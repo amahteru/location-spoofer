@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -206,7 +190,8 @@ internal fun LocationHooker.hookAMapSDK(classLoader: ClassLoader) {
     val clientClazz = XposedHelpers.findClassIfExists(
         "com.amap.api.location.AMapLocationClient", classLoader
     )
-    if (clientClazz != null) {
+    // hookAllMapSdks 会在启动的几个阶段重复调用，按类去重，避免同一方法叠加多层拦截
+    if (clientClazz != null && hookedCallbackClasses.putIfAbsent(clientClazz, true) == null) {
         try {
             XposedHelpers.hookAllMethods(clientClazz, "setLocationListener") { chain, _ ->
                 val listener = chain.args.getOrNull(0)
@@ -280,10 +265,11 @@ internal fun LocationHooker.hookAMapSDK(classLoader: ClassLoader) {
 
             XposedHelpers.hookAllMethods(clientClazz, "setMockEnable") { chain, _ ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && chain.args.isNotEmpty()) {
-                    chain.args[0] = true
+                val args = chain.args.toTypedArray()
+                if (config != null && config.optBoolean("active", false) && args.isNotEmpty()) {
+                    args[0] = true
                 }
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                return@hookAllMethods chain.proceed(args)
             }
         } catch (_: Throwable) {}
     }
@@ -292,7 +278,7 @@ internal fun LocationHooker.hookAMapSDK(classLoader: ClassLoader) {
     val reportClazz = XposedHelpers.findClassIfExists(
         "com.amap.api.location.AMapLocationQualityReport", classLoader
     )
-    if (reportClazz != null) {
+    if (reportClazz != null && hookedCallbackClasses.putIfAbsent(reportClazz, true) == null) {
         try {
             XposedHelpers.hookAllMethods(reportClazz, "isWifiAble") { chain, _ ->
                 val config = readConfig()

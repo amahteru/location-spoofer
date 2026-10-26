@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -54,9 +38,7 @@ internal fun LocationHooker.hookTencentSDK(classLoader: ClassLoader) {
             "com.tencent.map.geolocation.TencentLocation", classLoader
         )
         if (interfaceClazz != null && interfaceClazz.isInterface) {
-            if (hookedCallbackClasses.putIfAbsent(interfaceClazz, true) == null) {
-                hookTencentLocationCallback(classLoader)
-            }
+            // 实现类被混淆时无法直接 Hook getter，改为在 requestLocationUpdates 捕获监听器时 Hook 其回调
             hooked = true
         } else if (interfaceClazz != null) {
             if (hookedCallbackClasses.putIfAbsent(interfaceClazz, true) == null) {
@@ -90,11 +72,16 @@ internal fun LocationHooker.hookTencentSDK(classLoader: ClassLoader) {
                                 )
                             ) {
                                 capturedTencentListeners.addIfAbsent(arg)
+                                hookTencentListenerClass(arg.javaClass)
                             }
                         } catch (e: Throwable) {
                         }
                     }
                 }
+                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+            }
+            XposedHelpers.hookAllMethods(tencentManagerClass, "removeUpdates") { chain, _ ->
+                chain.args.forEach { if (it != null) capturedTencentListeners.remove(it) }
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
         } catch (e: Throwable) {
@@ -209,19 +196,16 @@ internal fun LocationHooker.hookTencentLocationClass(clazz: Class<*>, classLoade
 }
 
 /**
- * 通过拦截TencentLocationListener回调来修改坐标
+ * 通过拦截 TencentLocationListener 回调来修改坐标
  *
- * 当无法直接Hook TencentLocation实现类时的降级方案:
- * Hook TencentLocationListener.onLocationChanged(TencentLocation, int, String)回调,
- * 在回调触发时通过反射修改TencentLocation实例的内部字段。
+ * 当无法直接 Hook TencentLocation 实现类（类名被混淆）时的降级方案：
+ * Hook 监听器实际类的 onLocationChanged(TencentLocation, int, String)，
+ * 在回调触发时通过反射修改 TencentLocation 实例的内部字段。
+ * 接口方法是抽象的，hookAllMethods 会跳过，所以必须 Hook 捕获到的具体监听器类。
  */
-internal fun LocationHooker.hookTencentLocationCallback(classLoader: ClassLoader) {
-    val listenerClass = XposedHelpers.findClassIfExists(
-        "com.tencent.map.geolocation.TencentLocationListener", classLoader
-    ) ?: return
-
+internal fun LocationHooker.hookTencentListenerClass(listenerClass: Class<*>) {
+    if (hookedCallbackClasses.putIfAbsent(listenerClass, true) != null) return
     try {
-        // hookAllMethods可以Hook接口的所有实现类中的方法
         XposedHelpers.hookAllMethods(listenerClass, "onLocationChanged") { chain, method ->
             val config = readConfig()
             if (config == null || !config.optBoolean("active", false)) return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -284,7 +268,7 @@ internal fun LocationHooker.hookTencentLocationCallback(classLoader: ClassLoader
             }
             return@hookAllMethods chain.proceed(chain.args.toTypedArray())
         }
-        XposedBridge.log("[LocationSpoofer] TencentLocationListener callback hook installed")
+        XposedBridge.log("[LocationSpoofer] TencentLocationListener callback hook installed on ${listenerClass.name}")
     } catch (e: Throwable) {
         XposedBridge.log("[LocationSpoofer] TencentLocationListener hook failed: $e")
     }

@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed
 
 import com.vincenthzr.locationspoofer.xposed.utils.*
@@ -40,7 +24,8 @@ class LocationHooker : XposedModule() {
         XposedHelpers.module = this
     }
 
-    internal val nmeaTimers = ConcurrentHashMap<Any, java.util.Timer>()
+    /** App 传入的 NMEA 监听器 → 实际注册到系统的代理 */
+    internal val nmeaListenerProxies = ConcurrentHashMap<Any, Any>()
     internal val bleScanTimers = ConcurrentHashMap<Any, java.util.Timer>()
     internal val hookedCallbackClasses = ConcurrentHashMap<Class<*>, Boolean>()
 
@@ -81,12 +66,6 @@ class LocationHooker : XposedModule() {
     internal var currentClassLoader: ClassLoader? = null
 
     @Volatile
-    internal var lastSpoofedLat = 0.0
-
-    @Volatile
-    internal var lastSpoofedLng = 0.0
-
-    @Volatile
     internal var cachedProvince = ""
 
     @Volatile
@@ -110,11 +89,6 @@ class LocationHooker : XposedModule() {
     @Volatile
     internal var cachedPoiName = ""
 
-    @Volatile
-    internal var lastGeocodedLat = -999.0
-
-    @Volatile
-    internal var lastGeocodedLng = -999.0
 
     override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
         startFrameworkConfigReceiver()
@@ -195,8 +169,7 @@ class LocationHooker : XposedModule() {
         vendorExtraHooks.clear()
         ModuleBinderDeaths.close()
         HookStatus.close()
-        nmeaTimers.values.forEach { it.cancel() }
-        nmeaTimers.clear()
+        nmeaListenerProxies.clear()
         bleScanTimers.values.forEach { it.cancel() }
         bleScanTimers.clear()
         clearSystemLocationReloadState()
@@ -277,9 +250,20 @@ class LocationHooker : XposedModule() {
 
     companion object {
 
-        // 系统进程同样需要覆盖（android进程持有LocationManagerService）
-        val SYSTEM_PACKAGES = setOf("android", "system", "com.android.phone")
         internal const val VERBOSE_CELL_BUILD_LOGS = false
+
+        /** 动态代理里基本类型返回值的默认值；引用类型返回 null */
+        internal fun primitiveDefault(type: Class<*>): Any? = when (type) {
+            java.lang.Boolean.TYPE -> false
+            java.lang.Integer.TYPE -> 0
+            java.lang.Long.TYPE -> 0L
+            java.lang.Float.TYPE -> 0f
+            java.lang.Double.TYPE -> 0.0
+            java.lang.Short.TYPE -> 0.toShort()
+            java.lang.Byte.TYPE -> 0.toByte()
+            java.lang.Character.TYPE -> '\u0000'
+            else -> null
+        }
 
         fun hasTypeByName(clazz: Class<*>?, typeName: String): Boolean {
             if (clazz == null) return false
@@ -549,17 +533,7 @@ class LocationHooker : XposedModule() {
         }
     }
 
-    /**
-     * ★ 反检测: 隐藏Xposed环境,防止反作弊SDK检测到Hook
-     *
-     * 设计原则:
-     * 1. 只使用精确匹配,绝不使用宽泛的contains/startsWith,避免误杀正常类
-     * 2. 不Hook ClassLoader.loadClass的宽泛模式(会导致App卡死)
-     * 3. 不Hook BufferedReader.readLine(开销巨大)
-     * 4. 不Hook File.exists/Runtime.exec(干扰正常功能)
-     */
-    internal var startTimestamp = System.currentTimeMillis()
-
+    // 坐标抖动与精度起伏的随机过程状态，见 CoordinateConverter 的 getJitteredLocation / getJitteredAccuracy
     internal val rng = Random()
     internal var hookDriftLat = 0.0
     internal var hookDriftLng = 0.0
@@ -678,11 +652,6 @@ class LocationHooker : XposedModule() {
                                 }
 
                                 if (newConfig != null && newConfig.optBoolean("active", false)) {
-                                    val currentLat = newConfig.optDouble("lat", 0.0)
-                                    val currentLng = newConfig.optDouble("lng", 0.0)
-                                    lastSpoofedLat = currentLat
-                                    lastSpoofedLng = currentLng
-
                                     // 直接从前端控制台下发的 JSON 配置中读取逆地理编码信息，0网络延迟，0硬编码
                                     cachedProvince = newConfig.optString("province", "")
                                     cachedCity = newConfig.optString("city", "")
@@ -696,8 +665,6 @@ class LocationHooker : XposedModule() {
                                     val timeNow = System.currentTimeMillis()
                                     val elapsedNanos = android.os.SystemClock.elapsedRealtimeNanos()
                                     val motion = RouteEngine.calculateCurrentPosition(newConfig, timeNow)
-                                    lastSpoofedLat = motion.lat
-                                    lastSpoofedLng = motion.lng
 
                                     val basePkg = currentPackageName.substringBefore(":")
                                     if (basePkg == "com.vincenthzr.locationspoofer") {
@@ -715,8 +682,9 @@ class LocationHooker : XposedModule() {
                                     // 标准 android.location.Location 按规范是 WGS-84，高德等 App 会自行转 GCJ-02；
                                     // 这里若直接给 GCJ-02 会被二次加密、偏移数百米（issue #62）
                                     val (targetLat, targetLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "WGS-84")
-                                    val pushLat = if (isStationary) targetLat else getJitteredLocation(targetLat, targetLng).first
-                                    val pushLng = if (isStationary) targetLng else getJitteredLocation(targetLat, targetLng).second
+                                    // 纬度、经度取自同一次抖动，静止时不抖动
+                                    fun jittered(lat: Double, lng: Double) = if (isStationary) lat to lng else getJitteredLocation(lat, lng)
+                                    val (pushLat, pushLng) = jittered(targetLat, targetLng)
                                     val pushSpeed = motion.speed
                                     val pushBearing = motion.bearing
                                     val pushAccuracy = if (isStationary) 2.5f else getJitteredAccuracy()
@@ -735,46 +703,8 @@ class LocationHooker : XposedModule() {
                                             val listenersToNotify = capturedLocationListeners.toList()
                                             for (listener in listenersToNotify) {
                                                 try {
-                                                    val listenerCl = listener.javaClass.classLoader ?: cl
-                                                    val locationClass = Class.forName(
-                                                        "android.location.Location",
-                                                        false,
-                                                        listenerCl
-                                                    )
-                                                    val mockLoc =
-                                                        locationClass.getConstructor(String::class.java)
-                                                            .newInstance(android.location.LocationManager.GPS_PROVIDER)
-                                                    XposedHelpers.callMethod(mockLoc, "setLatitude", pushLat)
-                                                    XposedHelpers.callMethod(mockLoc, "setLongitude", pushLng)
-                                                    XposedHelpers.callMethod(mockLoc, "setAccuracy", pushAccuracy)
-                                                    XposedHelpers.callMethod(mockLoc, "setSpeed", pushSpeed)
-                                                    XposedHelpers.callMethod(mockLoc, "setBearing", pushBearing)
-                                                    XposedHelpers.callMethod(mockLoc, "setAltitude", pushAltitude)
-                                                    XposedHelpers.callMethod(mockLoc, "setTime", timeNow)
-                                                    XposedHelpers.callMethod(
-                                                        mockLoc,
-                                                        "setElapsedRealtimeNanos",
-                                                        elapsedNanos
-                                                    )
-                                                    try {
-                                                        val extras = android.os.Bundle().apply {
-                                                            val satCount = newConfig.optInt("satellite_count", 20)
-                                                            putInt("satellites", satCount)
-                                                            putInt("satellites_in_view", satCount)
-                                                            putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                                                            putInt("satellites_visible", satCount)
-                                                            putBoolean("mockLocation", false)
-                                                        }
-                                                        XposedHelpers.callMethod(mockLoc, "setExtras", extras)
-                                                    } catch (_: Throwable) {}
-                                                    try {
-                                                        XposedHelpers.callMethod(
-                                                            mockLoc,
-                                                            "setIsFromMockProvider",
-                                                            false
-                                                        )
-                                                    } catch (_: Throwable) {
-                                                    }
+                                                    val mockLoc = android.location.Location(android.location.LocationManager.GPS_PROVIDER)
+                                                    applySpoofedFix(mockLoc, pushLat, pushLng, pushSpeed, pushBearing, pushAccuracy, newConfig, timeNow, elapsedNanos)
                                                     var called = false
                                                     try {
                                                         XposedHelpers.callMethod(
@@ -815,33 +745,8 @@ class LocationHooker : XposedModule() {
                                             for (callback in callbacksToNotify) {
                                                 try {
                                                     val callbackCl = callback.javaClass.classLoader ?: cl
-                                                    val locationClass = Class.forName(
-                                                        "android.location.Location",
-                                                        false,
-                                                        callbackCl
-                                                    )
-                                                    val mockLoc =
-                                                        locationClass.getConstructor(String::class.java)
-                                                            .newInstance(android.location.LocationManager.GPS_PROVIDER)
-                                                    XposedHelpers.callMethod(mockLoc, "setLatitude", pushLat)
-                                                    XposedHelpers.callMethod(mockLoc, "setLongitude", pushLng)
-                                                    XposedHelpers.callMethod(mockLoc, "setAccuracy", pushAccuracy)
-                                                    XposedHelpers.callMethod(mockLoc, "setSpeed", pushSpeed)
-                                                    XposedHelpers.callMethod(mockLoc, "setBearing", pushBearing)
-                                                    XposedHelpers.callMethod(mockLoc, "setAltitude", pushAltitude)
-                                                    XposedHelpers.callMethod(mockLoc, "setTime", timeNow)
-                                                    XposedHelpers.callMethod(
-                                                        mockLoc,
-                                                        "setElapsedRealtimeNanos",
-                                                        elapsedNanos
-                                                    )
-                                                    try {
-                                                        XposedHelpers.callMethod(
-                                                            mockLoc,
-                                                            "setIsFromMockProvider",
-                                                            false
-                                                        )
-                                                    } catch (_: Throwable) {}
+                                                    val mockLoc = android.location.Location(android.location.LocationManager.GPS_PROVIDER)
+                                                    applySpoofedFix(mockLoc, pushLat, pushLng, pushSpeed, pushBearing, pushAccuracy, newConfig, timeNow, elapsedNanos)
 
                                                     val locationResultClass = Class.forName(
                                                         "com.google.android.gms.location.LocationResult",
@@ -863,8 +768,7 @@ class LocationHooker : XposedModule() {
                                         // 2. AMapLocationListener
                                         if (aCount > 0 && cl != null) {
                                             val (aMapLat, aMapLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "GCJ-02")
-                                            val aMapPushLat = if (isStationary) aMapLat else getJitteredLocation(aMapLat, aMapLng).first
-                                            val aMapPushLng = if (isStationary) aMapLng else getJitteredLocation(aMapLat, aMapLng).second
+                                            val (aMapPushLat, aMapPushLng) = jittered(aMapLat, aMapLng)
                                             val listenersToNotify = capturedAMapListeners.toList()
                                             for (listener in listenersToNotify) {
                                                 try {
@@ -918,14 +822,7 @@ class LocationHooker : XposedModule() {
                                                         XposedHelpers.callMethod(mockAMapLoc, "setLocationType", 1)
                                                     } catch (_: Throwable) {}
                                                     try {
-                                                        val extras = android.os.Bundle().apply {
-                                                            val satCount = newConfig.optInt("satellite_count", 20)
-                                                            putInt("satellites", satCount)
-                                                            putInt("satellites_in_view", satCount)
-                                                            putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                                                            putInt("satellites_visible", satCount)
-                                                            putBoolean("mockLocation", false)
-                                                        }
+                                                        val extras = android.os.Bundle().also { putSatelliteExtras(it, newConfig.optInt("satellite_count", 20)) }
                                                         XposedHelpers.callMethod(mockAMapLoc, "setExtras", extras)
                                                     } catch (_: Throwable) {}
                                                     try {
@@ -957,8 +854,7 @@ class LocationHooker : XposedModule() {
                                         // 3. BDLocationListener / BDAbstractLocationListener
                                         if (bCount > 0 && cl != null) {
                                             val (baiduLat, baiduLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "BD-09")
-                                            val baiduPushLat = if (isStationary) baiduLat else getJitteredLocation(baiduLat, baiduLng).first
-                                            val baiduPushLng = if (isStationary) baiduLng else getJitteredLocation(baiduLat, baiduLng).second
+                                            val (baiduPushLat, baiduPushLng) = jittered(baiduLat, baiduLng)
                                             val listenersToNotify = capturedBaiduListeners.toList()
                                             for (listener in listenersToNotify) {
                                                 try {
@@ -988,7 +884,7 @@ class LocationHooker : XposedModule() {
                                                     XposedHelpers.callMethod(mockBDLoc, "setSpeed", pushSpeed * 3.6f)
                                                     XposedHelpers.callMethod(mockBDLoc, "setDirection", pushBearing)
                                                     XposedHelpers.callMethod(mockBDLoc, "setLocType", 61)
-                                                    XposedHelpers.callMethod(mockBDLoc, "setSatelliteNumber", 20)
+                                                    XposedHelpers.callMethod(mockBDLoc, "setSatelliteNumber", newConfig.optInt("satellite_count", 20))
                                                     XposedHelpers.callMethod(mockBDLoc, "setGpsCheckStatus", 1)
                                                     try { XposedHelpers.callMethod(mockBDLoc, "setMockGps", 0) } catch (_: Throwable) {}
                                                     try { XposedHelpers.callMethod(mockBDLoc, "setTime", java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())) } catch (_: Throwable) {}
@@ -1006,8 +902,7 @@ class LocationHooker : XposedModule() {
                                         if (tCount > 0 && cl != null) {
                                             try {
                                                 val (tencentLat, tencentLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "GCJ-02")
-                                                val tencentPushLat = if (isStationary) tencentLat else getJitteredLocation(tencentLat, tencentLng).first
-                                                val tencentPushLng = if (isStationary) tencentLng else getJitteredLocation(tencentLat, tencentLng).second
+                                                val (tencentPushLat, tencentPushLng) = jittered(tencentLat, tencentLng)
                                                 val tencentLocInterface = Class.forName(
                                                     "com.tencent.map.geolocation.TencentLocation",
                                                     false,
@@ -1015,16 +910,21 @@ class LocationHooker : XposedModule() {
                                                 )
                                                 val proxyLoc = Proxy.newProxyInstance(
                                                     cl, arrayOf(tencentLocInterface)
-                                                ) { _, method, _ ->
+                                                ) { proxy, method, args ->
                                                     when (method.name) {
                                                         "getLatitude" -> tencentPushLat
                                                         "getLongitude" -> tencentPushLng
+                                                        "getAltitude" -> pushAltitude
                                                         "getProvider" -> "gps"
                                                         "getAccuracy" -> pushAccuracy
                                                         "getSpeed" -> pushSpeed
                                                         "getBearing" -> pushBearing
                                                         "getTime" -> timeNow
-                                                        else -> null
+                                                        "hashCode" -> System.identityHashCode(proxy)
+                                                        "equals" -> proxy === args?.getOrNull(0)
+                                                        "toString" -> "TencentLocation($tencentPushLat,$tencentPushLng)"
+                                                        // 返回基本类型的方法不能返回 null，否则 App 一调用就抛 NPE
+                                                        else -> primitiveDefault(method.returnType)
                                                     }
                                                 }
                                                 val listenersToNotify = capturedTencentListeners.toList()
@@ -1073,7 +973,4 @@ class LocationHooker : XposedModule() {
             }
         }
     }
-
-    internal var cachedGpsSatellitesList: Iterable<Any>? = null
-    internal var lastGpsSatellitesUpdate = 0L
 }

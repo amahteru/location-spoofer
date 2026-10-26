@@ -221,49 +221,14 @@ object SystemHookUtils {
     ): Boolean {
         if (!config.optBoolean("active", false)) return false
 
+        // 2. 全局模拟模式：只对普通用户应用（UID >= 10000）生效，绝不污染系统级服务
+        if (config.optBoolean("system_hook_global_mode", false)) {
+            return isGlobalModeCaller(serviceInstance, explicitPackage, overrideUid)
+        }
+
         val uid = if (overrideUid != null && overrideUid > 1000) overrideUid else Binder.getCallingUid()
         val cleanPkg = explicitPackage?.substringBefore(":")?.trim()
-
-        // 1. 严格排除自身，绝不模拟自身
-        if (cleanPkg == "com.vincenthzr.locationspoofer" || explicitPackage == "com.vincenthzr.locationspoofer") {
-            return false
-        }
-
-        // 若是 system_server 内部发起的调用（uid=1000）且无显式外部包名，则不干扰系统内部逻辑
-        if (uid <= 1000 && explicitPackage == null) {
-            return false
-        }
-
-        // 严格排除系统核心组件与定位服务
-        if (cleanPkg != null && EXEMPT_PACKAGES.contains(cleanPkg)) {
-            return false
-        }
-
-        val callingPackages = resolveCallingPackages(serviceInstance, uid)
-        if (callingPackages.any { it.substringBefore(":") == "com.vincenthzr.locationspoofer" }) {
-            return false
-        }
-        if (callingPackages.any { EXEMPT_PACKAGES.contains(it.substringBefore(":")) }) {
-            return false
-        }
-
-        val isGlobalMode = config.optBoolean("system_hook_global_mode", false)
-
-        // 2. 全局模拟模式：只对普通用户应用（UID >= 10000）生效，绝不污染系统级服务
-        if (isGlobalMode) {
-            if (uid >= 10000) {
-                if (cleanPkg != null && !EXEMPT_PACKAGES.contains(cleanPkg)) {
-                    XposedBridge.log("[SysHook] GlobalMode match: explicitPkg=$explicitPackage (cleanPkg=$cleanPkg, uid=$uid)")
-                    return true
-                }
-                val nonExempt = callingPackages.filter { !EXEMPT_PACKAGES.contains(it.substringBefore(":")) }
-                if (nonExempt.isNotEmpty()) {
-                    XposedBridge.log("[SysHook] GlobalMode match: callingPkgs=$nonExempt (uid=$uid)")
-                    return true
-                }
-            }
-            return false
-        }
+        val callingPackages = exemptCallingPackages(serviceInstance, explicitPackage, cleanPkg, uid) ?: return false
 
         // 3. 白名单模式：仅对用户在软件内勾选的目标包名生效
         val targetPackages = resolveTargetPackages(config)
@@ -288,6 +253,34 @@ object SystemHookUtils {
         }
 
         return false
+    }
+
+    /**
+     * 全局模式下该调用方是否属于模拟对象（普通用户应用、且不在豁免名单里）；不看模拟是否已开启，
+     * 供注册时记下"开启全局模拟后应当改写"的监听者。
+     */
+    fun isGlobalModeCaller(serviceInstance: Any?, explicitPackage: String?, overrideUid: Int? = null): Boolean {
+        val uid = if (overrideUid != null && overrideUid > 1000) overrideUid else Binder.getCallingUid()
+        if (uid < 10000) return false
+        val cleanPkg = explicitPackage?.substringBefore(":")?.trim()
+        val callingPackages = exemptCallingPackages(serviceInstance, explicitPackage, cleanPkg, uid) ?: return false
+        return cleanPkg != null || callingPackages.isNotEmpty()
+    }
+
+    /**
+     * 1. 排除自身、system_server 内部调用、系统核心组件与定位服务。
+     * @return 调用方 UID 对应的包名集合；调用方应当豁免时返回 null
+     */
+    private fun exemptCallingPackages(serviceInstance: Any?, explicitPackage: String?, cleanPkg: String?, uid: Int): Set<String>? {
+        // 严格排除自身，绝不模拟自身
+        if (cleanPkg == "com.vincenthzr.locationspoofer" || explicitPackage == "com.vincenthzr.locationspoofer") return null
+        // 若是 system_server 内部发起的调用（uid=1000）且无显式外部包名，则不干扰系统内部逻辑
+        if (uid <= 1000 && explicitPackage == null) return null
+        // 严格排除系统核心组件与定位服务
+        if (cleanPkg != null && EXEMPT_PACKAGES.contains(cleanPkg)) return null
+        val callingPackages = resolveCallingPackages(serviceInstance, uid)
+        if (callingPackages.any { EXEMPT_PACKAGES.contains(it.substringBefore(":")) }) return null
+        return callingPackages
     }
 
     private val lastWhitelistLogTimes = java.util.concurrent.ConcurrentHashMap<String, Long>()

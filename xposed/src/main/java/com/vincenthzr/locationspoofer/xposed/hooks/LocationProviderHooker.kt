@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -29,56 +13,6 @@ import io.github.libxposed.api.*
  */
 internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, currentPkg: String) {
     try {
-        // ★ 拦截 LocationManager.getProviders() / getAllProviders()：移除 mock/test 提供者
-
-        try {
-            XposedHelpers.hookMethod(
-                "android.location.LocationManager", classLoader, "getProviders",
-                Boolean::class.javaPrimitiveType!!
-            ) { chain, method ->
-                var result = chain.proceed(chain.args.toTypedArray())
-
-                val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) {
-                    @Suppress("UNCHECKED_CAST")
-                    val list = result as? MutableList<String> ?: return@hookMethod result
-                    val cleaned = list.filterNot {
-                        it.contains("mock", ignoreCase = true) ||
-                                it.contains("test", ignoreCase = true) ||
-                                it.contains("fake", ignoreCase = true)
-                    }.toMutableList()
-                    if (!cleaned.contains(android.location.LocationManager.GPS_PROVIDER))
-                        cleaned.add(android.location.LocationManager.GPS_PROVIDER)
-                    result = cleaned
-                }
-
-                return@hookMethod result
-            }
-            XposedHelpers.hookMethod(
-                "android.location.LocationManager", classLoader, "getAllProviders"
-            ) { chain, method ->
-                var result = chain.proceed(chain.args.toTypedArray())
-
-                val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) {
-                    @Suppress("UNCHECKED_CAST")
-                    val list = result as? MutableList<String> ?: return@hookMethod result
-                    val cleaned = list.filterNot {
-                        it.contains("mock", ignoreCase = true) ||
-                                it.contains("test", ignoreCase = true) ||
-                                it.contains("fake", ignoreCase = true)
-                    }.toMutableList()
-                    if (!cleaned.contains(android.location.LocationManager.GPS_PROVIDER))
-                        cleaned.add(android.location.LocationManager.GPS_PROVIDER)
-                    result = cleaned
-                }
-
-                return@hookMethod result
-            }
-        } catch (e: Throwable) {
-            XposedBridge.log(e)
-        }
-
         // ★ NMEA-0183 报文劫持
         try {
 
@@ -92,7 +26,7 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                 // 强制启动代理注入，无论当前active是true还是false。
                 // 真正的状态校验在代理注入器的Timer中进行。
 
-                val args = chain.args
+                val args = chain.args.toTypedArray()
                 for (i in args.indices) {
                     val arg = args[i] ?: continue
 
@@ -116,16 +50,15 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                         false
                     }
 
+                    // 同一个监听器重复注册时复用同一个代理，注销时才能换回系统认识的那个对象
                     if (isOnNmea) {
-                        XposedBridge.log("[GPS_Spoofer] Detected addNmeaListener(OnNmeaMessageListener)! Starting active injector.")
-                        args[i] = createOnNmeaMessageListenerProxy(arg, classLoader)
+                        args[i] = nmeaListenerProxies.getOrPut(arg) { createOnNmeaMessageListenerProxy(arg, classLoader) }
                     } else if (isGpsNmea) {
-                        XposedBridge.log("[GPS_Spoofer] Detected addNmeaListener(GpsStatus.NmeaListener)! Starting active injector.")
-                        args[i] = createGpsStatusNmeaListenerProxy(arg, classLoader)
+                        args[i] = nmeaListenerProxies.getOrPut(arg) { createGpsStatusNmeaListenerProxy(arg, classLoader) }
                     }
                 }
 
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                return@hookAllMethods chain.proceed(args)
             }
 
             // Hook 取消注册 NmeaListener
@@ -133,15 +66,13 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                 locationManagerClazz,
                 "removeNmeaListener"
             ) { chain, method ->
-
-                for (arg in chain.args) {
-                    if (arg != null) {
-                        nmeaTimers.remove(arg)?.cancel()
-                        XposedBridge.log("[GPS_Spoofer] removeNmeaListener called, canceled timer.")
-                    }
+                // 系统里注册的是代理对象，拿 App 传入的原始监听器去注销会找不到，代理会一直留在系统里
+                val args = chain.args.toTypedArray()
+                for (i in args.indices) {
+                    val arg = args[i] ?: continue
+                    nmeaListenerProxies.remove(arg)?.let { args[i] = it }
                 }
-
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                return@hookAllMethods chain.proceed(args)
             }
         } catch (e: Throwable) {
             XposedBridge.log(e)
@@ -187,82 +118,15 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                                     XposedHelpers.hookAllMethods(listenerClazz, "onLocationChanged") { lChain, _ ->
                                         val config = readConfig()
                                         if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
-                                            if (lChain.args.isNotEmpty()) {
-                                                val firstArg = lChain.args[0]
-                                                if (firstArg != null) {
-                                                    if (firstArg is android.location.Location) {
-                                                        val defaultSys = when {
-                                                            firstArg.javaClass.name.contains("amap", ignoreCase = true) || firstArg.javaClass.name.contains("autonavi", ignoreCase = true) -> "GCJ-02"
-                                                            firstArg.javaClass.name.contains("baidu", ignoreCase = true) -> "BD-09"
-                                                            firstArg.javaClass.name.contains("tencent", ignoreCase = true) -> "GCJ-02"
-                                                            else -> {
-                                                                val provider = try { firstArg.provider } catch (_: Throwable) { null }
-                                                                when (provider?.lowercase()) {
-                                                                    "baidu" -> "BD-09"
-                                                                    else -> "WGS-84"
-                                                                }
-                                                            }
-                                                        }
-                                                        val motion = getCurrentSpoofedMotion(defaultSys)
-                                                        if (motion != null) {
-                                                            firstArg.latitude = motion.lat
-                                                            firstArg.longitude = motion.lng
-                                                            firstArg.accuracy = getJitteredAccuracy()
-                                                            firstArg.speed = motion.speed
-                                                            firstArg.bearing = motion.bearing
-                                                            firstArg.altitude = RouteEngine.realisticAltitude(config)
-                                                            firstArg.time = System.currentTimeMillis()
-                                                            firstArg.elapsedRealtimeNanos = android.os.SystemClock.elapsedRealtimeNanos()
-                                                            try {
-                                                                val extras = firstArg.extras ?: android.os.Bundle()
-                                                                val satCount = config.optInt("satellite_count", 20)
-                                                                extras.putInt("satellites", satCount)
-                                                                extras.putInt("satellites_in_view", satCount)
-                                                                extras.putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                                                                extras.putBoolean("mockLocation", false)
-                                                                firstArg.extras = extras
-                                                            } catch (_: Throwable) {}
-                                                        }
-                                                    } else if (firstArg is List<*>) {
-                                                        for (loc in firstArg) {
-                                                            if (loc is android.location.Location) {
-                                                                val defaultSys = when {
-                                                                    loc.javaClass.name.contains("amap", ignoreCase = true) || loc.javaClass.name.contains("autonavi", ignoreCase = true) -> "GCJ-02"
-                                                                    loc.javaClass.name.contains("baidu", ignoreCase = true) -> "BD-09"
-                                                                    loc.javaClass.name.contains("tencent", ignoreCase = true) -> "GCJ-02"
-                                                                    else -> {
-                                                                        val provider = try { loc.provider } catch (_: Throwable) { null }
-                                                                        when (provider?.lowercase()) {
-                                                                            "baidu" -> "BD-09"
-                                                                            else -> "WGS-84"
-                                                                        }
-                                                                    }
-                                                                }
-                                                                val motion = getCurrentSpoofedMotion(defaultSys)
-                                                                if (motion != null) {
-                                                                    loc.latitude = motion.lat
-                                                                    loc.longitude = motion.lng
-                                                                    loc.accuracy = getJitteredAccuracy()
-                                                                    loc.speed = motion.speed
-                                                                    loc.bearing = motion.bearing
-                                                                    loc.altitude = RouteEngine.realisticAltitude(config)
-                                                                    loc.time = System.currentTimeMillis()
-                                                                    loc.elapsedRealtimeNanos = android.os.SystemClock.elapsedRealtimeNanos()
-                                                                    try {
-                                                                        val extras = loc.extras ?: android.os.Bundle()
-                                                                        val satCount = config.optInt("satellite_count", 20)
-                                                                        extras.putInt("satellites", satCount)
-                                                                        extras.putInt("satellites_in_view", satCount)
-                                                                        extras.putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                                                                        extras.putInt("satellites_visible", satCount)
-                                                                        extras.putBoolean("mockLocation", false)
-                                                                        loc.extras = extras
-                                                                    } catch (_: Throwable) {}
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                            // 单个 Location 或 Android 12+ 的 List<Location> 批量回调
+                                            val locations = when (val firstArg = lChain.args.firstOrNull()) {
+                                                is android.location.Location -> listOf(firstArg)
+                                                is List<*> -> firstArg.filterIsInstance<android.location.Location>()
+                                                else -> emptyList()
+                                            }
+                                            for (loc in locations) {
+                                                val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOf(loc)) ?: break
+                                                applySpoofedFix(loc, motion, config)
                                             }
                                         }
                                         return@hookAllMethods lChain.proceed(lChain.args.toTypedArray())
@@ -299,11 +163,7 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
                     val provider = chain.args.getOrNull(0) as? String ?: "gps"
-                    val defaultSys = when (provider.lowercase()) {
-                        "baidu" -> "BD-09"
-                        else -> "WGS-84"
-                    }
-                    val motion = getCurrentSpoofedMotion(defaultSys)
+                    val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOfProvider(provider))
                     if (motion != null) {
                         var consumerArg: Any? = null
                         var executorArg: java.util.concurrent.Executor? = null
@@ -315,29 +175,7 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                             }
                         }
                         if (consumerArg != null) {
-                            val timeNow = System.currentTimeMillis()
-                            val locClass = Class.forName("android.location.Location", false, classLoader)
-                            val fakeLoc = locClass.getConstructor(String::class.java).newInstance(if (provider.isNotBlank()) provider else android.location.LocationManager.GPS_PROVIDER)
-                            XposedHelpers.callMethod(fakeLoc, "setLatitude", motion.lat)
-                            XposedHelpers.callMethod(fakeLoc, "setLongitude", motion.lng)
-                            XposedHelpers.callMethod(fakeLoc, "setAccuracy", getJitteredAccuracy())
-                            XposedHelpers.callMethod(fakeLoc, "setSpeed", motion.speed)
-                            XposedHelpers.callMethod(fakeLoc, "setBearing", motion.bearing)
-                            XposedHelpers.callMethod(fakeLoc, "setAltitude", RouteEngine.realisticAltitude(config))
-                            XposedHelpers.callMethod(fakeLoc, "setTime", timeNow)
-                            XposedHelpers.callMethod(fakeLoc, "setElapsedRealtimeNanos", android.os.SystemClock.elapsedRealtimeNanos())
-                            try {
-                                val extras = android.os.Bundle().apply {
-                                    val satCount = config.optInt("satellite_count", 20)
-                                    putInt("satellites", satCount)
-                                    putInt("satellites_in_view", satCount)
-                                    putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                                    putInt("satellites_visible", satCount)
-                                    putBoolean("mockLocation", false)
-                                }
-                                XposedHelpers.callMethod(fakeLoc, "setExtras", extras)
-                            } catch (_: Throwable) {}
-                            try { XposedHelpers.callMethod(fakeLoc, "setIsFromMockProvider", false) } catch (_: Throwable) {}
+                            val fakeLoc = buildSpoofedLocation(provider, motion, config)
 
                             val runDispatch = Runnable {
                                 try {
@@ -381,42 +219,9 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                     )
                 ) return@hookAllMethods result
                 val provider = chain.args.getOrNull(0) as? String ?: "gps"
-                val defaultSys = when (provider.lowercase()) {
-                    "baidu" -> "BD-09"
-                    else -> "WGS-84"
-                }
-                val motion = getCurrentSpoofedMotion(defaultSys) ?: return@hookAllMethods result
+                val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOfProvider(provider)) ?: return@hookAllMethods result
                 try {
-                    val locClass = Class.forName("android.location.Location", false, classLoader)
-                    val fakeLoc = locClass.getConstructor(String::class.java)
-                        .newInstance(if (provider.isNotBlank()) provider else android.location.LocationManager.GPS_PROVIDER)
-                    XposedHelpers.callMethod(fakeLoc, "setLatitude", motion.lat)
-                    XposedHelpers.callMethod(fakeLoc, "setLongitude", motion.lng)
-                    XposedHelpers.callMethod(fakeLoc, "setAccuracy", getJitteredAccuracy())
-                    XposedHelpers.callMethod(fakeLoc, "setSpeed", motion.speed)
-                    XposedHelpers.callMethod(fakeLoc, "setBearing", motion.bearing)
-                    XposedHelpers.callMethod(fakeLoc, "setAltitude", RouteEngine.realisticAltitude(config))
-                    XposedHelpers.callMethod(fakeLoc, "setTime", System.currentTimeMillis())
-                    XposedHelpers.callMethod(
-                        fakeLoc, "setElapsedRealtimeNanos",
-                        android.os.SystemClock.elapsedRealtimeNanos()
-                    )
-                    try {
-                        val extras = android.os.Bundle().apply {
-                            val satCount = config.optInt("satellite_count", 20)
-                            putInt("satellites", satCount)
-                            putInt("satellites_in_view", satCount)
-                            putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                            putInt("satellites_visible", satCount)
-                            putBoolean("mockLocation", false)
-                        }
-                        XposedHelpers.callMethod(fakeLoc, "setExtras", extras)
-                    } catch (_: Throwable) {}
-                    try {
-                        XposedHelpers.callMethod(fakeLoc, "setIsFromMockProvider", false)
-                    } catch (_: Throwable) {
-                    }
-                    result = fakeLoc
+                    result = buildSpoofedLocation(provider, motion, config)
                 } catch (e2: Throwable) {
                     XposedBridge.log("[LocationSpoofer] getLastKnownLocation build error: $e2")
                 }
@@ -445,20 +250,25 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
 
-            XposedHelpers.hookAllMethods(lmClazz, "getAllProviders") { chain, _ ->
-                val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
-                    return@hookAllMethods listOf("gps", "network", "passive")
+            // ★ getProviders() / getAllProviders()：移除 mock/test 提供者，并保证有 gps
+            for (methodName in arrayOf("getAllProviders", "getProviders")) {
+                XposedHelpers.hookAllMethods(lmClazz, methodName) { chain, _ ->
+                    val result = chain.proceed(chain.args.toTypedArray())
+                    val config = readConfig()
+                    if (config == null || !config.optBoolean("active", false) || currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") {
+                        return@hookAllMethods result
+                    }
+                    val list = result as? List<*> ?: return@hookAllMethods result
+                    val cleaned = list.filterIsInstance<String>().filterNot {
+                        it.contains("mock", ignoreCase = true) ||
+                                it.contains("test", ignoreCase = true) ||
+                                it.contains("fake", ignoreCase = true)
+                    }.toMutableList()
+                    if (!cleaned.contains(android.location.LocationManager.GPS_PROVIDER)) {
+                        cleaned.add(android.location.LocationManager.GPS_PROVIDER)
+                    }
+                    return@hookAllMethods cleaned
                 }
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
-            }
-
-            XposedHelpers.hookAllMethods(lmClazz, "getProviders") { chain, _ ->
-                val config = readConfig()
-                if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
-                    return@hookAllMethods listOf("gps", "network", "passive")
-                }
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
         } catch (_: Throwable) {}
     } catch (e: Throwable) {

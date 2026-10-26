@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -38,20 +22,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             var result = chain.proceed(chain.args.toTypedArray())
 
             if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
-            val thisObj = chain.thisObject
-            val defaultSys = when {
-                thisObj != null && (thisObj.javaClass.name.contains("amap", ignoreCase = true) || thisObj.javaClass.name.contains("autonavi", ignoreCase = true)) -> "GCJ-02"
-                thisObj != null && thisObj.javaClass.name.contains("baidu", ignoreCase = true) -> "BD-09"
-                thisObj != null && thisObj.javaClass.name.contains("tencent", ignoreCase = true) -> "GCJ-02"
-                else -> {
-                    val provider = try { (thisObj as? android.location.Location)?.provider } catch (_: Throwable) { null }
-                    when (provider?.lowercase()) {
-                        "baidu" -> "BD-09"
-                        else -> "WGS-84"
-                    }
-                }
-            }
-            val motion = getCurrentSpoofedMotion(defaultSys)
+            val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOf(chain.thisObject))
             if (motion != null) {
                 result = motion.lat
             }
@@ -67,20 +38,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             var result = chain.proceed(chain.args.toTypedArray())
 
             if (currentPkg.substringBefore(":") == "com.vincenthzr.locationspoofer") return@hookMethod result
-            val thisObj = chain.thisObject
-            val defaultSys = when {
-                thisObj != null && (thisObj.javaClass.name.contains("amap", ignoreCase = true) || thisObj.javaClass.name.contains("autonavi", ignoreCase = true)) -> "GCJ-02"
-                thisObj != null && thisObj.javaClass.name.contains("baidu", ignoreCase = true) -> "BD-09"
-                thisObj != null && thisObj.javaClass.name.contains("tencent", ignoreCase = true) -> "GCJ-02"
-                else -> {
-                    val provider = try { (thisObj as? android.location.Location)?.provider } catch (_: Throwable) { null }
-                    when (provider?.lowercase()) {
-                        "baidu" -> "BD-09"
-                        else -> "WGS-84"
-                    }
-                }
-            }
-            val motion = getCurrentSpoofedMotion(defaultSys)
+            val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOf(chain.thisObject))
             if (motion != null) {
                 result = motion.lng
             }
@@ -304,12 +262,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "com.vincenthzr.locationspoofer") {
                     val bundle = (result as? android.os.Bundle) ?: android.os.Bundle()
-                    val satCount = config.optInt("satellite_count", 20)
-                    bundle.putInt("satellites", satCount)
-                    bundle.putInt("satellites_in_view", satCount)
-                    bundle.putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
-                    bundle.putInt("satellites_visible", satCount)
-                    bundle.putBoolean("mockLocation", false)
+                    putSatelliteExtras(bundle, config.optInt("satellite_count", 20))
                     result = bundle
                 }
                 return@hookMethod result

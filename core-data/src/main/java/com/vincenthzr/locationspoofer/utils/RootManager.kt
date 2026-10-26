@@ -80,24 +80,13 @@ class RootManager {
         result != "ERROR"
     }
 
-    fun executeCommand(command: String): String = runCommand(command, null)
-
-    fun executeCommandWithInput(command: String, input: String): String = runCommand(command, input)
-
-    private fun runCommand(command: String, input: String?): String {
+    fun executeCommand(command: String): String {
         return try {
             val process = ProcessBuilder("su", "-c", command).redirectErrorStream(true).start()
-            // Drain output while feeding stdin, so neither pipe can fill and deadlock.
-            var output = ""
-            val reader = kotlin.concurrent.thread(name = "LocationSpoofer-root-output", isDaemon = true) {
-                output = process.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-            }
             try {
-                process.outputStream.bufferedWriter(Charsets.UTF_8).use { writer ->
-                    if (input != null) writer.write(input)
-                }
+                process.outputStream.close()
+                val output = process.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
                 val exitCode = process.waitFor()
-                reader.join()
                 if (exitCode == 0) output.ifEmpty { "SUCCESS" }
                 else {
                     android.util.Log.e(TAG, "Root command failed ($exitCode): ${output.take(2000)}")

@@ -1,19 +1,3 @@
-@file:Suppress(
-    "UNUSED_PARAMETER",
-    "UNUSED_VARIABLE",
-    "UNNECESSARY_NOT_NULL_ASSERTION",
-    "DEPRECATION",
-    "NAME_SHADOWING",
-    "FunctionName",
-    "PrivatePropertyName",
-    "SpellCheckingInspection",
-    "RedundantUnitReturnType",
-    "RemoveRedundantQualifierName",
-    "OPT_IN_USAGE",
-    "unused",
-    "UnusedImport"
-)
-
 package com.vincenthzr.locationspoofer.xposed.hooks
 
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
@@ -97,15 +81,19 @@ internal fun LocationHooker.hookAddressFields(clazz: Class<*>, classLoader: Clas
  * 1. Hook `requestLocationUpdates`，捕获 `LocationCallback` 实例并直接 Hook 它自己的 `onLocationResult`，
  *    改写 `LocationResult` 里包着的 `List<Location>`。
  * 2. Hook `removeLocationUpdates`，注销时移出捕获列表。
- * 3. `getLastLocation()`/`getCurrentLocation()` 返回的是异步 `Task<Location>`，改在通用的
- *    `OnSuccessListener.onSuccess` 上按结果类型过滤——只在结果确实是 `Location` 时才改写，
- *    不影响 Play 服务其它 `Task<T>`（登录、支付等）的正常回调。
+ * 3. `getLastLocation()`/`getCurrentLocation()` 返回的 `Task<Location>` 里是标准 `Location`，
+ *    由进程内 `android.location.Location` 的 getter Hook 改写（`OnSuccessListener` 是接口，
+ *    抽象方法无法 Hook）。
+ *
+ * 注意：play-services-location 21+ 里 `FusedLocationProviderClient` 本身也是接口，
+ * 上面 1、2 在新版 SDK 上装不上，同样只能靠 Location getter Hook 兜底。
  */
 internal fun LocationHooker.hookGoogleFusedLocation(classLoader: ClassLoader) {
     try {
         val clientClazz = XposedHelpers.findClass(
             "com.google.android.gms.location.FusedLocationProviderClient", classLoader
         )
+        if (hookedCallbackClasses.putIfAbsent(clientClazz, true) != null) return
 
         XposedHelpers.hookAllMethods(clientClazz, "requestLocationUpdates") { chain, _ ->
             for (arg in chain.args) {
@@ -133,16 +121,7 @@ internal fun LocationHooker.hookGoogleFusedLocation(classLoader: ClassLoader) {
                                         locations?.forEach { loc ->
                                             if (loc is android.location.Location) {
                                                 val motion = getCurrentSpoofedMotion("WGS-84")
-                                                if (motion != null) {
-                                                    loc.latitude = motion.lat
-                                                    loc.longitude = motion.lng
-                                                    loc.accuracy = getJitteredAccuracy()
-                                                    loc.speed = motion.speed
-                                                    loc.bearing = motion.bearing
-                                                    loc.time = System.currentTimeMillis()
-                                                    loc.elapsedRealtimeNanos =
-                                                        android.os.SystemClock.elapsedRealtimeNanos()
-                                                }
+                                                if (motion != null) applySpoofedFix(loc, motion, config)
                                             }
                                         }
                                     } catch (_: Throwable) {}
@@ -162,31 +141,6 @@ internal fun LocationHooker.hookGoogleFusedLocation(classLoader: ClassLoader) {
             }
             return@hookAllMethods chain.proceed(chain.args.toTypedArray())
         }
-
-        try {
-            val onSuccessListenerClazz = XposedHelpers.findClass(
-                "com.google.android.gms.tasks.OnSuccessListener", classLoader
-            )
-            XposedHelpers.hookAllMethods(onSuccessListenerClazz, "onSuccess") { chain, _ ->
-                val result = chain.args.getOrNull(0)
-                if (result is android.location.Location) {
-                    val config = readConfig()
-                    if (config != null && config.optBoolean("active", false) &&
-                        currentPackageName.substringBefore(":") != "com.vincenthzr.locationspoofer"
-                    ) {
-                        val motion = getCurrentSpoofedMotion("WGS-84")
-                        if (motion != null) {
-                            result.latitude = motion.lat
-                            result.longitude = motion.lng
-                            result.accuracy = getJitteredAccuracy()
-                            result.time = System.currentTimeMillis()
-                            result.elapsedRealtimeNanos = android.os.SystemClock.elapsedRealtimeNanos()
-                        }
-                    }
-                }
-                return@hookAllMethods chain.proceed(chain.args.toTypedArray())
-            }
-        } catch (_: Throwable) {}
 
         XposedBridge.log("[LocationSpoofer] Google FusedLocationProvider hooks installed")
     } catch (_: Throwable) {
