@@ -33,9 +33,6 @@ fun RouteConfigDialog(
     onCustomSpeedChange: (Double) -> Unit = {},
     onUseRealRouteChange: (Boolean) -> Unit = {},
     onStopAtDestinationChange: (Boolean) -> Unit = {},
-    onEnableStepSimulationChange: (Boolean) -> Unit = {},
-    onStepCadenceChange: (Int) -> Unit = {},
-    onIsAutoCadenceChange: (Boolean) -> Unit = {},
     onToggleWifi: () -> Unit = {},
     onToggleCell: () -> Unit = {},
     onToggleBluetooth: () -> Unit = {},
@@ -155,63 +152,6 @@ fun RouteConfigDialog(
             }
 
             HorizontalDivider()
-
-            // 步频与计步模拟
-            SwitchListItem(
-                modifier = Modifier.listItemBleed(),
-                title = stringResource(R.string.step_cadence_simulation),
-                summary = stringResource(R.string.step_cadence_simulation_desc),
-                checked = uiState.enableStepSimulation,
-                onCheckedChange = onEnableStepSimulationChange
-            )
-            if (uiState.enableStepSimulation) {
-                // 步频模式切换：自适应 vs 固定步频
-                val cadenceModes = listOf(true to R.string.smart_adaptive_cadence, false to R.string.custom_fixed_cadence)
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    cadenceModes.forEachIndexed { index, (auto, label) ->
-                        SegmentedButton(
-                            selected = uiState.isAutoCadence == auto,
-                            onClick = { onIsAutoCadenceChange(auto) },
-                            shape = SegmentedButtonDefaults.itemShape(index, cadenceModes.size)
-                        ) {
-                            Text(stringResource(label), maxLines = 1)
-                        }
-                    }
-                }
-
-                if (!uiState.isAutoCadence) {
-                    var cadenceSlider by remember(uiState.stepCadenceSpm) {
-                        mutableFloatStateOf(uiState.stepCadenceSpm.toFloat())
-                    }
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            stringResource(R.string.set_cadence),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            stringResource(R.string.cadence_value_format, cadenceSlider.toInt(), String.format(Locale.US, "%.1f", cadenceSlider / 60.0)),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    Slider(
-                        value = cadenceSlider,
-                        onValueChange = {
-                            cadenceSlider = it
-                            onStepCadenceChange(it.toInt())
-                        },
-                        valueRange = 60f..240f,
-                        steps = 179
-                    )
-                } else {
-                    Text(
-                        stringResource(R.string.smart_cadence_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
 
             // 到达终点后停下
             SwitchListItem(

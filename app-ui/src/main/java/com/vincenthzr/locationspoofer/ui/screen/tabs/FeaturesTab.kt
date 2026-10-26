@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
-import com.vincenthzr.locationspoofer.ui.screen.AppCoordinateConfigCard
 import com.vincenthzr.locationspoofer.ui.screen.ImportExportDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ManageDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ScannerMapCard
@@ -41,7 +40,6 @@ fun FeaturesTab(
     viewModel: MainViewModel,
     uiState: AppState,
     tabBarHeight: Dp = 90.dp,
-    onNavigateToCoordinate: () -> Unit,
     onNavigateToScanner: () -> Unit,
     onNavigateToManageData: () -> Unit,
     onNavigateToSystemHookApps: () -> Unit
@@ -160,24 +158,16 @@ fun FeaturesTab(
                     )
                 }
 
-                // 3. 配置应用坐标系
+                // 3. 系统级模拟（全局 / 指定应用）
                 item {
-                    AppCoordinateConfigCard(
-                        onClick = onNavigateToCoordinate
+                    SystemHookAppsConfigCard(
+                        uiState = uiState,
+                        onClick = onNavigateToSystemHookApps
                     )
                 }
 
-                // 4. 系统级模拟（全局 / 指定应用），仅全局方案
-                if (BuildConfig.GLOBAL_SCHEME) {
-                    item {
-                        SystemHookAppsConfigCard(
-                            uiState = uiState,
-                            onClick = onNavigateToSystemHookApps
-                        )
-                    }
-                }
 
-                // 5. 导入与导出数据
+                // 4. 导入与导出数据
                 item {
                     ImportExportDataCard(
                         onImportClick = {

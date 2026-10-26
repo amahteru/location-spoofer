@@ -59,15 +59,12 @@ import com.vincenthzr.locationspoofer.viewmodel.isDomesticEnvironment
 import com.vincenthzr.locationspoofer.viewmodel.performLocalSearch
 import com.vincenthzr.locationspoofer.viewmodel.restartSelectingPoints
 import com.vincenthzr.locationspoofer.viewmodel.setCustomSpeedMs
-import com.vincenthzr.locationspoofer.viewmodel.setEnableStepSimulation
-import com.vincenthzr.locationspoofer.viewmodel.setIsAutoCadence
 import com.vincenthzr.locationspoofer.viewmodel.setMapEngine
 import com.vincenthzr.locationspoofer.viewmodel.setMapType
 import com.vincenthzr.locationspoofer.viewmodel.setRouteRunMode
 import com.vincenthzr.locationspoofer.viewmodel.setRouteSimMode
 import com.vincenthzr.locationspoofer.viewmodel.setSatelliteCount
 import com.vincenthzr.locationspoofer.viewmodel.setSearchMode
-import com.vincenthzr.locationspoofer.viewmodel.setStepCadenceSpm
 import com.vincenthzr.locationspoofer.viewmodel.setStopAtDestination
 import com.vincenthzr.locationspoofer.viewmodel.setUseRealRoute
 import com.vincenthzr.locationspoofer.viewmodel.startRoutePlanning
@@ -543,9 +540,6 @@ fun RouteTab(
             onCustomSpeedChange = viewModel::setCustomSpeedMs,
             onUseRealRouteChange = viewModel::setUseRealRoute,
             onStopAtDestinationChange = viewModel::setStopAtDestination,
-            onEnableStepSimulationChange = viewModel::setEnableStepSimulation,
-            onStepCadenceChange = viewModel::setStepCadenceSpm,
-            onIsAutoCadenceChange = viewModel::setIsAutoCadence,
             onToggleWifi = viewModel::toggleMockWifi,
             onToggleCell = viewModel::toggleMockCell,
             onToggleBluetooth = viewModel::toggleMockBluetooth,

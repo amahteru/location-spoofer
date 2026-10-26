@@ -73,13 +73,6 @@ object GnssFastMockEngine {
     @Volatile
     private var cachedGnssCount: Int = 0
 
-    @Volatile
-    private var cachedGpsSatelliteList: List<Any>? = null
-    @Volatile
-    private var lastGpsSatellitesTimeMs: Long = 0L
-    @Volatile
-    private var cachedGpsSatCount: Int = 0
-
     // 反射句柄缓存
     private class ClassReflectionHolder(val classLoader: ClassLoader) {
         var isInitialized = false
@@ -340,66 +333,4 @@ object GnssFastMockEngine {
         return fallbackOriginalObj
     }
 
-    /**
-     * 极速获取或创建 GpsSatellite 列表 (适配旧版 GpsStatus.getSatellites() / DevCheck)
-     */
-    fun getOrCreateSpoofedGpsSatellites(classLoader: ClassLoader, targetCount: Int): Iterable<Any> {
-        val now = System.currentTimeMillis()
-        val count = targetCount.coerceIn(4, MAX_SATELLITES)
-
-        val cached = cachedGpsSatelliteList
-        if (cached != null && cachedGpsSatCount == count && now - lastGpsSatellitesTimeMs < 1000L) {
-            return cached
-        }
-
-        synchronized(this) {
-            if (cachedGpsSatelliteList != null && cachedGpsSatCount == count && now - lastGpsSatellitesTimeMs < 1000L) {
-                return cachedGpsSatelliteList!!
-            }
-
-            val holder = getReflectionHolder(classLoader)
-            if (holder.gpsSatelliteConstructor == null) {
-                return emptyList()
-            }
-
-            val timeStep = (now / 1000L)
-            val list = ArrayList<Any>(count)
-
-            try {
-                for (i in 0 until count) {
-                    val type = CONSTELLATION_TYPES[i]
-                    val rawSvid = SVID_LIST[i]
-                    val prn = if (type == 3) rawSvid + 64 else rawSvid
-
-                    val sat = holder.gpsSatelliteConstructor!!.newInstance(prn)
-                    val baseElev = BASE_ELEVATIONS[i]
-                    val baseAz = BASE_AZIMUTHS[i]
-                    val driftStep = ((timeStep + i * 3) % 360).toFloat()
-                    val elevation = (baseElev + (driftStep % 10 - 5)).coerceIn(16f, 88f)
-                    val azimuth = (baseAz + driftStep * 0.1f) % 360f
-                    val jitter = JITTER_TABLE[(timeStep.toInt() + i) and 15]
-                    val snr = (34f + (elevation / 90f) * 8f + jitter).coerceIn(30f, 43.5f)
-                    val usedInFix = elevation > 18f
-
-                    holder.satValidField?.setBoolean(sat, true)
-                    holder.satHasEphemerisField?.setBoolean(sat, true)
-                    holder.satHasAlmanacField?.setBoolean(sat, true)
-                    holder.satUsedInFixField?.setBoolean(sat, usedInFix)
-                    holder.satSnrField?.set(sat, snr)
-                    holder.satElevationField?.set(sat, elevation)
-                    holder.satAzimuthField?.set(sat, azimuth)
-
-                    list.add(sat)
-                }
-
-                cachedGpsSatelliteList = list
-                lastGpsSatellitesTimeMs = now
-                cachedGpsSatCount = count
-                return list
-            } catch (e: Throwable) {
-                XposedBridge.log("[GnssFastMockEngine] createSpoofedGpsSatellites failed: $e")
-                return emptyList()
-            }
-        }
-    }
 }

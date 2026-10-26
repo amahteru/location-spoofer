@@ -170,11 +170,7 @@ class UpdateViewModel(private val context: Context) : ViewModel() {
 }
 
 /**
- * 同一个 Release 里同时挂着两个模拟方案的 APK，文件名形如 LocationSpoofer-<scheme>-<abi>-<tag>.apk
- * （见 .github/workflows/release.yml），只挑和当前安装的方案一致的那一个。
- * 引入 scheme 变体之前的旧 Release 文件名里没有方案标记，那时发布的都是非全局（scoped）方案。
+ * Release 里的 APK 文件名形如 LocationSpoofer-global-<abi>-<tag>.apk（见 .github/workflows/release.yml）。
+ * 旧 Release 里还同时挂着已移除的非全局（scoped）方案 APK，或者文件名里没有方案标记（那时只有 scoped），只挑全局方案的。
  */
-private fun isAssetForCurrentScheme(assetName: String): Boolean {
-    val markedGlobal = assetName.contains("-global-")
-    return if (BuildConfig.GLOBAL_SCHEME) markedGlobal else !markedGlobal
-}
+private fun isAssetForCurrentScheme(assetName: String): Boolean = assetName.contains("-global-")

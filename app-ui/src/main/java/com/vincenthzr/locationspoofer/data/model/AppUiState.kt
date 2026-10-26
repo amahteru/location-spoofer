@@ -47,14 +47,6 @@ enum class RouteRunMode {
     LOOP
 }
 
-sealed interface GaitRecordingState {
-    data object Idle : GaitRecordingState
-    data class Countdown(val secondsLeft: Int) : GaitRecordingState
-    data class Recording(val progress: Float) : GaitRecordingState
-    data object Processing : GaitRecordingState
-    data class Failed(val reason: GaitTemplate.Reason) : GaitRecordingState
-}
-
 enum class AppMapType {
     NORMAL,
     SATELLITE,
@@ -77,7 +69,6 @@ data class AppState(
     val gaitTemplateCadence: Int? = null,
     val gaitTemplateStrides: Int = 0,
     val useGaitTemplate: Boolean = false,
-    val gaitRecording: GaitRecordingState = GaitRecordingState.Idle,
     val keepLastMapPosition: Boolean = true,
     val isTestingRootSetup: Boolean = false,
     val rootSetupTestResult: RootSetupTestResult? = null,

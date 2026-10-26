@@ -84,18 +84,9 @@ fun DeviceAdaptationCard(markdown: String) {
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
-            SchemeBadge()
         }
         Spacer(Modifier.height(AppSpacing.md))
-        if (BuildConfig.GLOBAL_SCHEME) {
-            StatusLine(entry?.status ?: AdaptationProgress.Status.UNVERIFIED, entry?.verifiedVersions.orEmpty())
-        } else {
-            Text(
-                stringResource(R.string.progress_scoped_simple),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        StatusLine(entry?.status ?: AdaptationProgress.Status.UNVERIFIED, entry?.verifiedVersions.orEmpty())
     }
 }
 
@@ -118,14 +109,4 @@ private fun StatusLine(status: AdaptationProgress.Status, verifiedVersions: Stri
             )
         }
     }
-}
-
-/** 当前安装的是哪个模拟方案，更新页、启动更新弹窗、系统适配页共用 */
-@Composable
-fun SchemeBadge(modifier: Modifier = Modifier) {
-    StatusLabel(
-        text = stringResource(if (BuildConfig.GLOBAL_SCHEME) R.string.scheme_global else R.string.scheme_scoped),
-        tone = if (BuildConfig.GLOBAL_SCHEME) LabelTone.Tertiary else LabelTone.Primary,
-        modifier = modifier
-    )
 }

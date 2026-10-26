@@ -114,7 +114,7 @@ adb shell dumpsys package android      # 查看 framework 包的版本/签名信
 ## OEM 定制 ROM 的特殊坑
 
 * **小米 HyperOS / MIUI**：会在系统定位、Wi-Fi、AppOps 等服务里插入自己的风控/检测逻辑（对应本项目 `AntiDetectionHooker.kt`、`SystemAppOpsHooker.kt` 里专门处理的部分），排查时除了看 AOSP 对应类，还要留意 `com.miui.*`、`com.xiaomi.*` 包名下有没有相关的辅助类参与了判断。
-* **配置传递由框架负责**：全局与非全局版统一使用 libxposed 远程配置，不再通过 RootManager 注入配置文件读取规则。适配时检查框架是否支持远程配置、Hook 状态报告中的配置来源与发布时间，不要恢复公共临时配置副本或放宽 SELinux 授权。
+* **配置传递由框架负责**：统一使用 libxposed 远程配置，不再通过 RootManager 注入配置文件读取规则。适配时检查框架是否支持远程配置、Hook 状态报告中的配置来源与发布时间，不要恢复公共临时配置副本或放宽 SELinux 授权。
 * **APEX 模块版本漂移**：同一 Android 大版本号下，不同设备的 Google Play 系统更新（Project Mainline）可能已经把 APEX 模块升级到了不同的小版本，AOSP 源码 tag 对应的 APEX 代码不一定和真机完全一致，遇到诡异的方法签名不匹配问题时，优先信真机反编译结果，不要迷信源码 tag。
 
 ---

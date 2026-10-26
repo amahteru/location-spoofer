@@ -229,8 +229,6 @@ private fun CurrentVersionHeroCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
-                    // 当前安装的是哪个模拟方案变体，更新时只会拉取同一变体的安装包
-                    com.vincenthzr.locationspoofer.ui.screen.settings.SchemeBadge()
                     StatusLabel(text = "v$cleanCurrentVersion", tone = LabelTone.Neutral)
                 }
             }

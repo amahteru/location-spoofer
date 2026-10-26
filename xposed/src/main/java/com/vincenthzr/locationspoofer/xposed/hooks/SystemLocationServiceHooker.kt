@@ -414,6 +414,18 @@ private fun LocationHooker.dispatchGnssStatus(listener: Any, gnssStatus: Any?, c
 }
 
 /** 向 IGnssNmeaListener 反射分发 NMEA 语句 */
+/** NMEA-0183 校验和：`$` 与 `*` 之间所有字符的异或，两位十六进制 */
+private fun calculateNmeaChecksum(sentence: String): String {
+    var checksum = 0
+    val startIndex = if (sentence.startsWith("$")) 1 else 0
+    val endIndex = sentence.indexOf('*')
+    val limit = if (endIndex != -1) endIndex else sentence.length
+    for (i in startIndex until limit) {
+        checksum = checksum xor sentence[i].code
+    }
+    return String.format(java.util.Locale.US, "%02X", checksum)
+}
+
 private fun dispatchNmea(listener: Any, timestamp: Long, sentence: String) {
     val clazz = listener.javaClass
     val method = clazz.methods.firstOrNull { it.name == "onNmeaReceived" }

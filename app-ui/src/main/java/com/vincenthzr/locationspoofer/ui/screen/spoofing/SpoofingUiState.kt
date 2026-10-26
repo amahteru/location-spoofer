@@ -13,7 +13,6 @@ data class SpoofingUiState(
     val showMapTypeDialog: Boolean = false,
     val showCustomCoordDialog: Boolean = false,
     val showStartSpoofingDialog: Boolean = false,
-    val showAppCoordinateScreen: Boolean = false,
 
     // 底部抽屉与搜索状态
     val isSheetExpanded: Boolean = true,

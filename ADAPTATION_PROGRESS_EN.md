@@ -1,9 +1,9 @@
 # Adaptation progress
 
-This file records **on-device verification** of each system / device under the two simulation schemes. It is the single source of truth for “how far adaptation has come”.
+This file records **on-device verification** of each system / device under the global scheme. It is the single source of truth for “how far adaptation has come”.
 Only register results actually tested on real hardware. Anything not tested is marked “unverified”; never fill it in by guesswork.
 
-- See the release notes for the difference between the two schemes: `scoped` = per-app (target apps in the hook scope), `global` = global (hooks system processes).
+- The global scheme hooks system processes (system_server, phone, Bluetooth) and applies device-wide; the former per-app (scoped) scheme has been removed.
 - The global scheme uses a different adapter per system. See [vendor/README.md](xposed/src/main/java/com/vincenthzr/locationspoofer/xposed/hooks/vendor/README.md) for the architecture,
   and [ADAPTATION_GUIDE.md](xposed/ADAPTATION_GUIDE.md) for how to locate system interfaces.
 
@@ -62,25 +62,15 @@ The results below come from the full build installed before the split. The revie
 
 ---
 
-## Per-app scheme (scoped)
-
-| Device | System version | Root / LSPosed | Verified | Status |
-|---|---|---|---|---|
-| Xiaomi Mi 10 Pro | Android 15 | SukiSU + LSPosed (API 101+) | AMap location SDK callbacks (`com.bxkj.student` running flow), see PR #69 | ✅ |
-
-> The per-app scheme is the project’s original scheme. Devices verified in the past haven’t been collected here yet; contributions welcome.
-
----
-
 ## Target app compatibility
 
-| App | Global scheme | Per-app scheme | Notes |
-|---|---|---|---|
-| AMap | ✅ | ❔ | |
-| Baidu Maps | ✅ | ❔ | |
-| WeChat | ✅ | ❔ | |
-| TIM | ✅ | ❔ | |
-| Taobao / Xianyu | ⚠️ | ❔ | Location is simulated correctly, but Taobao still reports “location failed” when sending a location. Possibly a server-side IP region check; to be confirmed |
+| App | Global scheme | Notes |
+|---|---|---|
+| AMap | ✅ | |
+| Baidu Maps | ✅ | |
+| WeChat | ✅ | |
+| TIM | ✅ | |
+| Taobao / Xianyu | ⚠️ | Location is simulated correctly, but Taobao still reports “location failed” when sending a location. Possibly a server-side IP region check; to be confirmed |
 
 ---
 

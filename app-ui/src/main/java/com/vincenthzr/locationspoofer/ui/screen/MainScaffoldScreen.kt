@@ -58,7 +58,6 @@ enum class BottomTab(val icon: ImageVector) {
 
 enum class MainSubScreen {
     None,
-    CoordinateConfig,
     ScannerMap,
     ManageData,
     Update,
@@ -261,9 +260,6 @@ fun MainScaffoldScreen(
                             viewModel = viewModel,
                             uiState = uiState,
                             tabBarHeight = paddingValues.calculateBottomPadding(),
-                            onNavigateToCoordinate = {
-                                currentSubScreen = MainSubScreen.CoordinateConfig
-                            },
                             onNavigateToScanner = { currentSubScreen = MainSubScreen.ScannerMap },
                             onNavigateToManageData = { currentSubScreen = MainSubScreen.ManageData },
                             onNavigateToSystemHookApps = { currentSubScreen = MainSubScreen.SystemHookApps }
@@ -295,12 +291,6 @@ fun MainScaffoldScreen(
                 if (currentSubScreen != MainSubScreen.None) currentSubScreen else activeSubScreen
             Box(modifier = Modifier.fillMaxSize()) {
                 when (subScreenToRender) {
-                    MainSubScreen.CoordinateConfig -> AppCoordinateScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onBack = { currentSubScreen = MainSubScreen.None }
-                    )
-
                     MainSubScreen.ScannerMap -> ScannerMapScreen(
                         viewModel = viewModel,
                         uiState = uiState,

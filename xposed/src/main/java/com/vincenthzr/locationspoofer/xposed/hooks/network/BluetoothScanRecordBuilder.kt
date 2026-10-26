@@ -167,58 +167,6 @@ internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
     }
 
     // 辅助函数：智能判断对象是否为 BLE 扫描回调 (兼容匿名内部类、多层继承与动态代理)
-internal fun isScanCallback(obj: Any?): Boolean {
-        if (obj == null) return false
-        if (obj is android.os.Parcelable || obj is String || obj is Number || obj is Boolean) return false
-        val cls = obj.javaClass
-        val name = cls.name
-        if (name.contains("ScanFilter") || name.contains("ScanSettings") || name.contains("PendingIntent")) return false
-
-        var c: Class<*>? = cls
-        while (c != null && c != Any::class.java) {
-            val cName = c.name
-            if (cName == "android.bluetooth.le.ScanCallback" || cName.endsWith("ScanCallback")) {
-                return true
-            }
-            for (iface in c.interfaces) {
-                if (iface.name.contains("ScanCallback") || iface.name.contains("LeScanCallback")) {
-                    return true
-                }
-            }
-            c = c.superclass
-        }
-        // 兜底：通过方法名反射检测 (包含 onScanResult 或 onBatchScanResults)
-        try {
-            if (cls.methods.any { it.name == "onScanResult" || it.name == "onBatchScanResults" } ||
-                cls.declaredMethods.any { it.name == "onScanResult" || it.name == "onBatchScanResults" }) {
-                return true
-            }
-        } catch (_: Throwable) {}
-
-        return obj is android.bluetooth.le.ScanCallback || obj is android.bluetooth.BluetoothAdapter.LeScanCallback
-    }
-
-    // 辅助函数：智能判断对象是否为旧版 LeScanCallback
-internal fun isLeScanCallback(obj: Any?): Boolean {
-        if (obj == null) return false
-        var cls: Class<*>? = obj.javaClass
-        while (cls != null && cls != Any::class.java) {
-            val name = cls.name
-            val sName = cls.simpleName
-            if (name == "android.bluetooth.BluetoothAdapter\$LeScanCallback" || sName == "LeScanCallback" || name.endsWith("\$LeScanCallback")) {
-                return true
-            }
-            for (iface in cls.interfaces) {
-                if (iface.name.contains("LeScanCallback")) {
-                    return true
-                }
-            }
-            cls = cls.superclass
-        }
-        return obj is android.bluetooth.BluetoothAdapter.LeScanCallback
-    }
-
-    // 辅助函数：安全创建 ScanResult
 internal fun createScanResult(
         cl: ClassLoader,
         device: Any,

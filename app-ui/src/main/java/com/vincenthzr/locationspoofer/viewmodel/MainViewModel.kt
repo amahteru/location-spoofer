@@ -47,7 +47,6 @@ class MainViewModel(
 ) : ViewModel() {
     internal var lastMapMoveTime = 0L
     internal var mapMoveJob: Job? = null
-    internal var gaitRecordingJob: Job? = null
     internal var mockCapabilitiesJob: Job? = null
     internal var environmentUpdateJob: Job? = null
 

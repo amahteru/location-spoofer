@@ -70,7 +70,7 @@ fun VendorSchemeScreen(
     var showHookStatus by remember { mutableStateOf(false) }
 
     fun refreshHookStatus() {
-        if (!BuildConfig.GLOBAL_SCHEME || hookLoading) return
+        if (hookLoading) return
         hookLoading = true
         scope.launch {
             hookReports = hookStatusRepository.readAll()
@@ -148,17 +148,15 @@ private fun VendorSchemeContent(
     ) {
         DeviceAdaptationCard(markdown)
 
-        // 厂商适配只作用于系统级 Hook，仅全局方案可选
-        if (BuildConfig.GLOBAL_SCHEME) {
-            SectionTitle(stringResource(R.string.vendor_scheme_title))
-            Text(
-                text = stringResource(R.string.vendor_scheme_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = AppSpacing.xs)
-            )
-        }
-        if (BuildConfig.GLOBAL_SCHEME) AppCard(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(stringResource(R.string.vendor_scheme_title))
+        Text(
+            text = stringResource(R.string.vendor_scheme_desc),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = AppSpacing.xs)
+        )
+
+        AppCard(modifier = Modifier.fillMaxWidth()) {
             val schemes = listOf(
                 VendorScheme.AUTO to stringResource(R.string.vendor_scheme_auto),
                 VendorScheme.HYPEROS to stringResource(R.string.vendor_scheme_hyperos),
@@ -197,24 +195,23 @@ private fun VendorSchemeContent(
             }
         }
 
-        if (BuildConfig.GLOBAL_SCHEME) {
-            val summary = hookStatusSummary(hookReports)
-            NavigationRowCard(
-                icon = Icons.Rounded.Analytics,
-                title = stringResource(R.string.hook_status_title),
-                chip = when {
-                    hookLoading && hookReports.isEmpty() -> null
-                    summary == null -> stringResource(R.string.hook_status_summary_none)
-                    else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
-                },
-                chipTone = when {
-                    summary == null -> LabelTone.Neutral
-                    summary.first == summary.second -> LabelTone.Success
-                    else -> LabelTone.Warning
-                },
-                onClick = onOpenHookStatus
-            )
-        }
+        val summary = hookStatusSummary(hookReports)
+        NavigationRowCard(
+            icon = Icons.Rounded.Analytics,
+            title = stringResource(R.string.hook_status_title),
+            chip = when {
+                hookLoading && hookReports.isEmpty() -> null
+                summary == null -> stringResource(R.string.hook_status_summary_none)
+                else -> stringResource(R.string.hook_status_summary, summary.first, summary.second)
+            },
+            chipTone = when {
+                summary == null -> LabelTone.Neutral
+                summary.first == summary.second -> LabelTone.Success
+                else -> LabelTone.Warning
+            },
+            onClick = onOpenHookStatus
+        )
+
 
         NavigationRowCard(
             icon = Icons.Rounded.TaskAlt,

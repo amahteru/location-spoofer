@@ -93,12 +93,6 @@ object XposedHelpers {
         field.setInt(obj, value)
     }
 
-    fun setDoubleField(obj: Any, fieldName: String, value: Double) {
-        val field = findFieldInternal(obj.javaClass, fieldName)
-            ?: throw NoSuchFieldException(fieldName)
-        field.setDouble(obj, value)
-    }
-
     fun setBooleanField(obj: Any, fieldName: String, value: Boolean) {
         val field = findFieldInternal(obj.javaClass, fieldName)
             ?: throw NoSuchFieldException(fieldName)
@@ -184,37 +178,6 @@ object XposedHelpers {
 
 
     /**
-     * 现代 Kotlin DSL 语法的 Hook 封装
-     */
-    inline fun hookMethod(
-        className: String,
-        classLoader: ClassLoader?,
-        methodName: String,
-        vararg paramTypes: Any,
-        crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
-    ) {
-        try {
-            val clazz = findClass(className, classLoader)
-            val paramTypesClass = paramTypes.map {
-                when (it) {
-                    is Class<*> -> it
-                    is String -> findClass(it, clazz.classLoader)
-                    else -> throw IllegalArgumentException("Invalid argument type")
-                }
-            }.toTypedArray()
-
-            val method = findMethodExact(clazz, methodName, *paramTypesClass)
-            module.hook(method).intercept(object : io.github.libxposed.api.XposedInterface.Hooker {
-                override fun intercept(chain: io.github.libxposed.api.XposedInterface.Chain): Any? {
-                    return interceptor(chain, method)
-                }
-            })
-        } catch (e: Throwable) {
-            // 忽略
-        }
-    }
-
-    /**
      * 现代 Kotlin DSL 语法的 hookAllMethods 封装
      */
     inline fun hookAllMethods(
@@ -245,23 +208,6 @@ object XposedHelpers {
         return handles
     }
 
-    inline fun hookAllConstructors(
-        clazz: Class<*>,
-        crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
-    ) {
-        for (constructor in clazz.declaredConstructors) {
-            try {
-                module.hook(constructor)
-                    .intercept(object : io.github.libxposed.api.XposedInterface.Hooker {
-                        override fun intercept(chain: io.github.libxposed.api.XposedInterface.Chain): Any? {
-                            return interceptor(chain, constructor)
-                        }
-                    })
-            } catch (e: Throwable) {
-                // 忽略
-            }
-        }
-    }
 }
 
 object XposedBridge {

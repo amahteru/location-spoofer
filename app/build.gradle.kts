@@ -46,25 +46,12 @@ android {
             abi {
                 isEnable = true
                 reset()
-                include("arm64-v8a", "armeabi-v7a")
+                include("arm64-v8a")
                 isUniversalApk = false
             }
         }
     }
 
-    // 模拟方案维度：scoped = 在 LSPosed 作用域里的目标 App 进程内 Hook；global = Hook system_server 等系统进程，对全设备生效。
-    // app / app-ui / core-data / xposed 四个模块必须声明完全相同的维度与 flavor，否则变体无法对齐。
-    flavorDimensions += "scheme"
-    productFlavors {
-        create("scoped") {
-            dimension = "scheme"
-            buildConfigField("boolean", "GLOBAL_SCHEME", "false")
-        }
-        create("global") {
-            dimension = "scheme"
-            buildConfigField("boolean", "GLOBAL_SCHEME", "true")
-        }
-    }
 
     // CI 用环境变量（见 .github/workflows/release.yml），本地用仓库根目录的 keystore.properties（已被 gitignore）
     val keystoreProps = Properties().apply {

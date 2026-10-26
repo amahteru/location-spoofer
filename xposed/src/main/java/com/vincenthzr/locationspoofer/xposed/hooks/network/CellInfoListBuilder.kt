@@ -482,17 +482,6 @@ internal fun LocationHooker.cellAreaCode(cell: org.json.JSONObject, default: Int
 internal fun LocationHooker.cellIdentityCode(cell: org.json.JSONObject, default: Int): Int =
     positiveJsonInt(cell, "ci", "cid", "cellid", "cell", default = default)
 
-internal fun LocationHooker.fallbackAreaCode(lat: Double, lng: Double): Int {
-    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
-    return (10000 + (coordSeed and 0xFFFF).toInt() % 50000).coerceIn(1, 65534)
-}
-
-internal fun LocationHooker.fallbackCellIdentity(lat: Double, lng: Double): Int {
-    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
-    return (100000 + ((coordSeed shr 8) and 0xFFFFFF).toInt() % 900000)
-        .coerceIn(1, 268435455)
-}
-
 internal fun LocationHooker.positiveJsonInt(
     cell: org.json.JSONObject,
     vararg keys: String,
@@ -524,15 +513,4 @@ internal fun LocationHooker.signalDbm(cell: org.json.JSONObject, index: Int): In
 internal fun LocationHooker.firstCell(config: org.json.JSONObject?): org.json.JSONObject? {
     val cells = config?.optJSONArray("cell_json") ?: return null
     return if (cells.length() > 0) cells.optJSONObject(0) else null
-}
-
-internal fun LocationHooker.isTelephonyCallbackListener(
-    classLoader: ClassLoader,
-    callback: Any,
-    listenerName: String
-): Boolean {
-    return LocationHooker.hasTypeByName(
-        callback.javaClass,
-        "android.telephony.TelephonyCallback\$$listenerName"
-    )
 }

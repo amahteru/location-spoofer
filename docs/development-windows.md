@@ -66,25 +66,21 @@ SDK 37 的正式安装包名为 `platforms;android-37.0`；本地准备 `build-t
 
 ```powershell
 .\tools\gradle.ps1 :core-geo:test
-.\tools\gradle.ps1 :core-data:testScopedDebugUnitTest :xposed:testScopedDebugUnitTest :app-ui:testScopedDebugUnitTest
-.\tools\gradle.ps1 :core-data:testGlobalDebugUnitTest :xposed:testGlobalDebugUnitTest :app-ui:testGlobalDebugUnitTest
+.\tools\gradle.ps1 :core-data:testDebugUnitTest :xposed:testDebugUnitTest :app-ui:testDebugUnitTest
 ```
 
-`scoped` 和 `global` 两种方案必须**分次调用**打包命令：
+打包 Debug APK：
 
 ```powershell
-.\tools\gradle.ps1 :app:assembleScopedDebug
-.\tools\gradle.ps1 :app:assembleGlobalDebug
+.\tools\gradle.ps1 :app:assembleDebug
 ```
 
-APK 分别输出到 `app/build/outputs/apk/scoped/debug/` 和 `app/build/outputs/apk/global/debug/`，按 `arm64-v8a`、`armeabi-v7a` 拆分。Debug 构建未配置发布密钥时自动使用调试签名，不需要为了本地初始化申请发布密钥。Google Maps Key 可留空，需要 Google 地图时再配置。
+APK 输出到 `app/build/outputs/apk/debug/`，只打 `arm64-v8a`。Debug 构建未配置发布密钥时自动使用调试签名，不需要为了本地初始化申请发布密钥。Google Maps Key 可留空，需要 Google 地图时再配置。
 
-连接测试设备后，选择一种方案安装：
+连接测试设备后安装：
 
 ```powershell
-.\tools\gradle.ps1 :app:installScopedDebug
-# 或
-.\tools\gradle.ps1 :app:installGlobalDebug
+.\tools\gradle.ps1 :app:installDebug
 ```
 
 Root、LSPosed 及模块激活属于设备运行验证的前提，本地编译和单元测试不需要连接手机。`tools/test_framework_config.py` 与 `tools/test_environment_refresh.py` 会通过 ADB 调用设备测试入口，执行前需要安装对应 Debug APK 和测试 APK，并满足脚本注明的设备条件。

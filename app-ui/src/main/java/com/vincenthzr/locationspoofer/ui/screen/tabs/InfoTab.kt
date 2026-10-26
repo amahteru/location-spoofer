@@ -85,7 +85,6 @@ fun InfoTab(
     val progressContext = LocalContext.current
     val progressLocale = LocalConfiguration.current.locales[0]
     val adaptationStatus = remember(progressLocale) {
-        if (!BuildConfig.GLOBAL_SCHEME) return@remember null
         val markdown = AdaptationProgressSource(progressContext).local().markdown
         val family = VendorProfile.current.family
         AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status ?: AdaptationProgress.Status.UNVERIFIED

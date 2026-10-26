@@ -146,8 +146,7 @@ fun SystemHookAppsScreen(
                         checked = uiState.isSystemHookGlobalMode,
                         onCheckedChange = { viewModel.setSystemHookGlobalMode(it) }
                     )
-                    if (com.vincenthzr.locationspoofer.ui.BuildConfig.GLOBAL_SCHEME &&
-                        com.vincenthzr.locationspoofer.vendor.RomRules.isColorOs16(
+                    if (com.vincenthzr.locationspoofer.vendor.RomRules.isColorOs16(
                             com.vincenthzr.locationspoofer.vendor.VendorProfile.current)) {
                         SwitchListItem(
                             title = stringResource(R.string.coloros_virtual_location_title),

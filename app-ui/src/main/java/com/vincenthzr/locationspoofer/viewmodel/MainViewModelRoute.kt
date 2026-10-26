@@ -159,18 +159,6 @@ internal fun MainViewModel.setStopAtDestination(stop: Boolean) {
     _uiState.update { it.copy(stopAtDestination = stop) }
 }
 
-internal fun MainViewModel.setEnableStepSimulation(enable: Boolean) {
-    _uiState.update { it.copy(enableStepSimulation = enable) }
-}
-
-internal fun MainViewModel.setStepCadenceSpm(spm: Int) {
-    _uiState.update { it.copy(stepCadenceSpm = spm) }
-}
-
-internal fun MainViewModel.setIsAutoCadence(auto: Boolean) {
-    _uiState.update { it.copy(isAutoCadence = auto) }
-}
-
 /**
  * 开始路线模拟。
  * - 手动模式：路线以暂停状态开始并自动打开悬浮摇杆，摇杆自由移动，点"开始"后沿路线前进。

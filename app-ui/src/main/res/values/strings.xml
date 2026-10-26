@@ -41,7 +41,7 @@
     <string name="motion_realism_title">Motion realism</string>
     <string name="motion_realism_desc">Make motion data look more human</string>
     <string name="realism_level_title">Randomness</string>
-    <string name="realism_level_desc">Varies cadence, stride and more</string>
+    <string name="realism_level_desc">Varies speed, altitude and more</string>
     <string name="realism_level_off">Off</string>
     <string name="realism_level_low">Low</string>
     <string name="realism_level_medium">Mid</string>
@@ -50,29 +50,10 @@
     <string name="speed_fluctuation_value">±%1$d%%</string>
     <string name="speed_fluctuation_desc">Speed varies within this range</string>
     <string name="realism_next_session_hint">Takes effect on the next start</string>
-    <string name="gait_title">Personal gait</string>
-    <string name="gait_desc">Walk for 20 s to record your own gait</string>
-    <string name="gait_scope_hint">Only applies to apps in the LSPosed scope</string>
-    <string name="gait_not_recorded">Not recorded yet. Using the built-in gait</string>
-    <string name="gait_recorded_format">Recorded: %1$d steps/min, %2$d strides</string>
-    <string name="gait_use_template">Use recorded gait</string>
-    <string name="gait_record">Record</string>
-    <string name="gait_rerecord">Re-record</string>
-    <string name="gait_delete">Delete</string>
-    <string name="gait_countdown_format">Starting in %1$d s. Put the phone away and start walking</string>
-    <string name="gait_recording">Recording. Keep walking normally…</string>
-    <string name="gait_processing">Analyzing gait…</string>
-    <string name="gait_cancel">Cancel</string>
-    <string name="gait_retry">Retry</string>
-    <string name="gait_failed_too_short">The recording was too short</string>
-    <string name="gait_failed_no_rhythm">No walking rhythm detected. Make sure you walk normally while recording</string>
-    <string name="gait_failed_too_few_strides">Too few valid strides. Try walking more steadily</string>
     <string name="keep_last_map_position_title">Keep last position</string>
     <string name="keep_last_map_position_desc">Open the map at the last selected position</string>
-    <string name="scheme_global">Global</string>
     <string name="system_adaptation_title">System adaptation</string>
     <string name="adaptation_progress_full">Full adaptation progress</string>
-    <string name="progress_scoped_simple">The per-app scheme only hooks target apps and doesn’t depend on system adaptation</string>
     <string name="config_write_failed">Configuration could not be published. Check the module and framework connection; the latest settings will retry automatically</string>
     <string name="hook_status_title">Hook status</string>
     <string name="hook_status_summary">%1$d/%2$d components hooked</string>
@@ -117,7 +98,6 @@
     <string name="progress_source_remote">Showing the latest progress from the repository</string>
     <string name="progress_source_cache">Offline: showing the progress fetched last time</string>
     <string name="progress_source_bundled">Offline: showing the progress bundled with this version</string>
-    <string name="scheme_scoped">Per-app</string>
     <string name="vendor_scheme_title">Vendor adaptation</string>
     <string name="vendor_scheme_desc">Manually choose the vendor adapter</string>
     <string name="vendor_scheme_auto">Auto detect</string>
@@ -181,9 +161,6 @@ select the apps to simulate, then restart them.</string>
     <string name="confirm">Confirm</string>
     <string name="custom_coordinate_title">Custom coordinates</string>
     <string name="custom_coord_desc">Enter coordinates manually. The map moves to the new location.</string>
-    <string name="custom_coordinate_algo">Custom coordinate system</string>
-    <string name="config_app_coordinate">App coordinate systems</string>
-    <string name="config_app_coordinate_desc">Set coordinates per target app</string>
     <string name="system_hook_apps_title">System-level simulation</string>
     <string name="system_hook_apps_card_desc">Only the system framework needs to be in scope; simulate all apps or a whitelist</string>
     <string name="system_hook_apps_subtitle">Takes over location and radio at the system_server layer</string>
@@ -279,12 +256,6 @@ select the apps to simulate, then restart them.</string>
     <string name="cruise_speed">Cruise speed</string>
     <string name="custom_speed">Custom speed</string>
     <string name="pace_format">Pace: %s</string>
-    <string name="step_cadence_simulation">Step &amp; cadence simulation</string>
-    <string name="step_cadence_simulation_desc">Inject step count and cadence into fitness apps</string>
-    <string name="smart_adaptive_cadence">Adaptive cadence</string>
-    <string name="custom_fixed_cadence">Fixed cadence</string>
-    <string name="set_cadence">Cadence</string>
-    <string name="smart_cadence_hint">Cadence follows the speed automatically (90–200 SPM)</string>
     <string name="stop_at_destination_title">Stop at destination</string>
     <string name="stop_at_destination_desc_on">Stop and stay at the destination on arrival</string>
     <string name="stop_at_destination_desc_off">Loop on arrival (forward on closed routes, back on open routes)</string>
@@ -318,9 +289,7 @@ select the apps to simulate, then restart them.</string>
     <string name="tab_all">All</string>
     <string name="tab_user_apps">User apps</string>
     <string name="tab_system_apps">System apps</string>
-    <string name="app_coord_subtitle">Customize coordinate standards for target apps</string>
     <string name="search_app_hint">Search app name or package…</string>
-    <string name="customized_count_format">Customized (%d)</string>
     <string name="search_no_match_hint">Try other keywords or the System apps tab</string>
     <string name="system_tag">System</string>
     <string name="select_coord_algo_title">Choose the coordinate system this app receives</string>
@@ -537,5 +506,4 @@ Error details: %s</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
     <string name="local_collection_records_count">%1$d points · %2$d routes</string>
     <string name="system_hook_global_mode_summary">Global mode (all apps)</string>
-    <string name="cadence_value_format">%1$d spm (≈%2$s steps/s)</string>
 </resources>

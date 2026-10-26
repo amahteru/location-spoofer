@@ -21,20 +21,17 @@
 
 1. 同步提高根目录 `gradle.properties` 的 `APP_VERSION_NAME` 和 `APP_VERSION_CODE`。版本名用于应用更新提示，版本 code 用于安装升级；均应高于已发布版本。
 2. 版本名使用 `x.y.z`，或预发布格式 `x.y.z-beta-n` / `x.y.z-beta.n`。确认远端不存在对应的 `v<版本名>` Tag。
-3. 提交修改并推送到 `main`。工作流会检查版本、分别构建两个方案，再创建 Tag 和 Release；不要提前手动创建 Tag，否则工作流会跳过该版本。也可以在 Actions 页面手动触发同一流程。
-4. 确认工作流成功，Release 中有以下四个安装包：
+3. 提交修改并推送到 `main`。工作流会检查版本、构建安装包，再创建 Tag 和 Release；不要提前手动创建 Tag，否则工作流会跳过该版本。也可以在 Actions 页面手动触发同一流程。
+4. 确认工作流成功，Release 中有以下安装包：
 
 ```text
-LocationSpoofer-scoped-arm64-v8a-v<版本名>.apk
-LocationSpoofer-scoped-armeabi-v7a-v<版本名>.apk
 LocationSpoofer-global-arm64-v8a-v<版本名>.apk
-LocationSpoofer-global-armeabi-v7a-v<版本名>.apk
 ```
 
-保留文件名中的方案和 ABI 标记，应用依靠这些标记选择安装包。两个方案二选一安装；同一次发布的四个 APK 使用同一发布签名。
+保留文件名中的 `-global-` 标记：应用依靠它挑选安装包，并跳过旧 Release 里已移除的非全局（scoped）方案安装包。
 
 ## 首次切换签名
 
 本仓库使用自己的独立发布签名。原作者版本或此前使用调试签名的 Debug 包，如果签名与本仓库发布包不同，就不能直接覆盖安装。
 
-切换前先在旧版导出收藏位置、路线和采集数据等备份，在 LSPosed 中停用旧模块，卸载旧包后安装本仓库对应方案的 APK，再启用模块、设置作用域、重启设备并导入备份。完成首次迁移后，后续版本保持同一包名和签名即可继续覆盖升级。
+切换前先在旧版导出收藏位置、路线和采集数据等备份，在 LSPosed 中停用旧模块，卸载旧包后安装本仓库的 APK，再启用模块、设置作用域、重启设备并导入备份。完成首次迁移后，后续版本保持同一包名和签名即可继续覆盖升级。

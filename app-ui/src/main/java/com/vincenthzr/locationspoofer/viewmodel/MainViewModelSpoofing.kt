@@ -85,15 +85,6 @@ internal fun MainViewModel.startSpoofing() {
  */
 
 private suspend fun MainViewModel.restartHookedAppsSilently() {
-    if (!BuildConfig.GLOBAL_SCHEME) {
-        // 非全局方案：重启 LSPosed 作用域里勾选的全部 App（包括承担融合定位的 GMS）
-        val apps = lsposedManager.getHookedApps(context)
-        if (apps.isNotEmpty()) {
-            locationRepository.checkRootAccess() // 确认 Root 授权，以便强制停止目标应用
-            locationRepository.forceStopApps(apps.map { it.packageName })
-        }
-        return
-    }
     val targetPackages = mutableSetOf<String>()
     // 1. LSPosed 传统作用域勾选的应用
     targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })

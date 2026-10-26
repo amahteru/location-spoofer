@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
-import com.vincenthzr.locationspoofer.ui.screen.settings.SchemeBadge
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 @Composable
@@ -37,7 +36,6 @@ fun StartupUpdateDialog(
                 // 更新只会下载与当前安装一致的方案变体
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     StatusLabel(text = "v$cleanVersion")
-                    SchemeBadge()
                 }
                 if (latestRelease.body.isNotBlank()) {
                     Column(

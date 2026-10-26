@@ -221,10 +221,6 @@ internal fun MainViewModel.dismissRootSetupTestResult() {
 /** 从 LSPosed 作用域与系统级 Hook 目标应用拉取当前生效的目标 App 列表，触发"确认重启应用"弹窗 */
 
 internal fun MainViewModel.requestRestartHookedApps() {
-    if (!BuildConfig.GLOBAL_SCHEME) {
-        _uiState.update { it.copy(hookedAppsToRestart = lsposedManager.getHookedApps(context)) }
-        return
-    }
     val targetPackages = mutableSetOf<String>()
     targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
     targetPackages.addAll(settingsRepository.getSystemHookPackages())
@@ -503,21 +499,6 @@ private fun MainViewModel.getAppSignatureSHA1(): String {
     return "Unknown"
 }
 
-internal fun MainViewModel.setAppCoordinateSystem(pkg: String, sys: String) {
-    val currentMap = _uiState.value.appCoordinateSystems.toMutableMap()
-    currentMap[pkg] = sys
-    settingsRepository.setAppCoordinateSystems(currentMap)
-    _uiState.update { it.copy(appCoordinateSystems = currentMap) }
-
-    // 如果模拟处于开启状态，则更新配置
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(currentMap)) }
-        }
-    }
-}
-
 /** 进入"系统级模拟应用"选择页时按需加载全量已安装 App 列表 */
 internal fun MainViewModel.loadInstalledAppsForSystemHook() {
     _uiState.update { it.copy(isLoadingInstalledApps = true) }
@@ -649,11 +630,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
             _spoofingUiState.update { it.copy(showStartSpoofingDialog = intent.visible) }
         }
 
-        is SpoofingIntent.SetAppCoordinateScreenVisible -> _spoofingUiState.update {
-            it.copy(
-                showAppCoordinateScreen = intent.visible
-            )
-        }
 
         is SpoofingIntent.SetSheetExpanded -> _spoofingUiState.update {
             it.copy(

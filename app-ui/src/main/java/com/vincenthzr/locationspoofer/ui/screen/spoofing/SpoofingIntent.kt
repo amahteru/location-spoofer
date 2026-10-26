@@ -11,7 +11,6 @@ sealed class SpoofingIntent {
     data class SetMapTypeDialogVisible(val visible: Boolean) : SpoofingIntent()
     data class SetCustomCoordDialogVisible(val visible: Boolean) : SpoofingIntent()
     data class SetStartSpoofingDialogVisible(val visible: Boolean) : SpoofingIntent()
-    data class SetAppCoordinateScreenVisible(val visible: Boolean) : SpoofingIntent()
 
     // 底部抽屉与搜索界面
     data class SetSheetExpanded(val expanded: Boolean) : SpoofingIntent()

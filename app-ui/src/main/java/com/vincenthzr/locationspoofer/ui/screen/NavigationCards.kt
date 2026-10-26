@@ -37,17 +37,6 @@ fun SectionHeader(icon: ImageVector, title: String, modifier: Modifier = Modifie
 }
 
 @Composable
-fun AppCoordinateConfigCard(onClick: () -> Unit) {
-    NavigationCard(
-        icon = Icons.Rounded.Extension,
-        title = stringResource(R.string.config_app_coordinate),
-        summary = stringResource(R.string.config_app_coordinate_desc),
-        tone = LabelTone.Primary,
-        onClick = onClick
-    )
-}
-
-@Composable
 fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
     val statusDesc = if (uiState.isSystemHookGlobalMode) {
         stringResource(R.string.system_hook_global_mode_summary)

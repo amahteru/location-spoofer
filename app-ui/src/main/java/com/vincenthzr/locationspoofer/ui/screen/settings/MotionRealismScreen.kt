@@ -26,18 +26,11 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.AppState
-import com.vincenthzr.locationspoofer.data.model.GaitRecordingState
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
-import com.vincenthzr.locationspoofer.viewmodel.cancelGaitRecording
-import com.vincenthzr.locationspoofer.viewmodel.deleteGaitTemplate
-import com.vincenthzr.locationspoofer.viewmodel.dismissGaitRecordingResult
 import com.vincenthzr.locationspoofer.viewmodel.setRealismLevel
 import com.vincenthzr.locationspoofer.viewmodel.setSpeedFluctuationPct
-import com.vincenthzr.locationspoofer.viewmodel.setUseGaitTemplate
-import com.vincenthzr.locationspoofer.viewmodel.startGaitRecording
 import kotlin.math.roundToInt
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
@@ -52,15 +45,6 @@ fun MotionRealismScreen(
 ) {
     BackHandler(onBack = onClose)
 
-    // 录制时手机放进口袋，保持屏幕常亮，避免熄屏后传感器数据中断
-    val recording = uiState.gaitRecording
-    val keepAwake = recording is GaitRecordingState.Countdown || recording is GaitRecordingState.Recording
-    val view = LocalView.current
-    DisposableEffect(keepAwake) {
-        view.keepScreenOn = keepAwake
-        onDispose { view.keepScreenOn = false }
-    }
-
     SubPageScaffold(
         title = stringResource(R.string.motion_realism_title),
         subtitle = stringResource(R.string.motion_realism_desc),
@@ -68,7 +52,6 @@ fun MotionRealismScreen(
     ) {
         RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
         SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
-        GaitCard(viewModel, uiState)
         HintRow(stringResource(R.string.realism_next_session_hint))
     }
 }
@@ -150,101 +133,6 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
                 modifier = Modifier.widthIn(min = 48.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun GaitCard(viewModel: MainViewModel, uiState: AppState) {
-    AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
-        CardHeader(
-            Icons.AutoMirrored.Rounded.DirectionsWalk,
-            LabelTone.Success,
-            stringResource(R.string.gait_title),
-            stringResource(R.string.gait_desc)
-        )
-        Spacer(Modifier.height(AppSpacing.md))
-
-        when (val recording = uiState.gaitRecording) {
-            is GaitRecordingState.Countdown, is GaitRecordingState.Recording, GaitRecordingState.Processing -> {
-                val text = when (recording) {
-                    is GaitRecordingState.Countdown -> stringResource(R.string.gait_countdown_format, recording.secondsLeft)
-                    is GaitRecordingState.Recording -> stringResource(R.string.gait_recording)
-                    else -> stringResource(R.string.gait_processing)
-                }
-                Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(Modifier.height(AppSpacing.md))
-                if (recording is GaitRecordingState.Recording) {
-                    LinearProgressIndicator(
-                        progress = { recording.progress },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-                if (recording !is GaitRecordingState.Processing) {
-                    Spacer(Modifier.height(AppSpacing.md))
-                    OutlinedButton(onClick = { viewModel.cancelGaitRecording() }) {
-                        Text(stringResource(R.string.gait_cancel))
-                    }
-                }
-            }
-
-            is GaitRecordingState.Failed -> {
-                val reason = when (recording.reason) {
-                    GaitTemplate.Reason.TOO_SHORT -> stringResource(R.string.gait_failed_too_short)
-                    GaitTemplate.Reason.NO_RHYTHM -> stringResource(R.string.gait_failed_no_rhythm)
-                    GaitTemplate.Reason.TOO_FEW_STRIDES -> stringResource(R.string.gait_failed_too_few_strides)
-                }
-                Text(reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                Spacer(Modifier.height(AppSpacing.md))
-                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                    Button(
-                        onClick = { viewModel.startGaitRecording() },
-                                            ) { Text(stringResource(R.string.gait_retry)) }
-                    OutlinedButton(onClick = { viewModel.dismissGaitRecordingResult() }) {
-                        Text(stringResource(R.string.gait_cancel))
-                    }
-                }
-            }
-
-            GaitRecordingState.Idle -> {
-                val cadence = uiState.gaitTemplateCadence
-                Text(
-                    text = if (cadence != null) {
-                        stringResource(R.string.gait_recorded_format, cadence, uiState.gaitTemplateStrides)
-                    } else {
-                        stringResource(R.string.gait_not_recorded)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (cadence != null) {
-                    Spacer(Modifier.height(AppSpacing.sm))
-                    SwitchListItem(
-                        modifier = Modifier.listItemBleed(),
-                        title = stringResource(R.string.gait_use_template),
-                        checked = uiState.useGaitTemplate,
-                        onCheckedChange = { viewModel.setUseGaitTemplate(it) }
-                    )
-                }
-                Spacer(Modifier.height(AppSpacing.md))
-                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                    Button(
-                        onClick = { viewModel.startGaitRecording() }
-                    ) {
-                        Text(stringResource(if (cadence != null) R.string.gait_rerecord else R.string.gait_record))
-                    }
-                    if (cadence != null) {
-                        OutlinedButton(onClick = { viewModel.deleteGaitTemplate() }) {
-                            Text(stringResource(R.string.gait_delete))
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(Modifier.height(AppSpacing.md))
-        HintRow(stringResource(R.string.gait_scope_hint))
     }
 }
 
