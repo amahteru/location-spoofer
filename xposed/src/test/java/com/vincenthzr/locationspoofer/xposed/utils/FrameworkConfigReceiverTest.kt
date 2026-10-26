@@ -26,10 +26,14 @@ class FrameworkConfigReceiverTest {
         } as SharedPreferences
     }
 
-    private fun snapshot(payload: String = "{\"active\":true}", file: String? = null): String = JSONObject().apply {
+    private fun snapshot(
+        payload: String = "{\"active\":true}",
+        file: String? = null,
+        publishedAt: Long = 123L
+    ): String = JSONObject().apply {
         put("version", FrameworkConfigChannel.VERSION)
         put("id", java.util.UUID.randomUUID().toString())
-        put("published_at", 123L)
+        put("published_at", publishedAt)
         if (file == null) put("payload", payload) else put("file", file)
     }.toString()
 
@@ -103,6 +107,66 @@ class FrameworkConfigReceiverTest {
         prefs.snapshot = snapshot("{\"active\":false}")
         receiver.refresh()
         assertEquals(1, configs.size)
+    }
+
+    @Test fun headDeliversUpdatesWhenPreferencesAreStuck() {
+        // Reproduces system_server: preferences stay on the boot snapshot forever, without errors.
+        val prefs = Preferences().apply { snapshot = snapshot("{\"active\":true}", publishedAt = 100L) }
+        var head: String? = null
+        val configs = mutableListOf<FrameworkConfigSnapshot>()
+        FrameworkConfigReceiver({ prefs.notifyingPrefs }, { error("Unexpected file") }, configs::add,
+            { throw AssertionError(it) }, readHead = { head }).use {
+            it.refresh()
+            assertTrue(configs.single().config.getBoolean("active"))
+
+            head = snapshot("{\"active\":false}", publishedAt = 200L)
+            it.refresh()
+            assertFalse(configs.last().config.getBoolean("active"))
+            assertEquals(FrameworkConfigReceiver.HEAD_SOURCE, configs.last().source)
+
+            head = snapshot("{\"active\":true,\"lat\":30}", publishedAt = 300L)
+            it.refresh()
+            assertEquals(30, configs.last().config.getInt("lat"))
+            assertEquals(3, configs.size)
+        }
+    }
+
+    @Test fun sameSnapshotFromBothChannelsIsDeliveredOnce() {
+        val text = snapshot()
+        val prefs = Preferences().apply { snapshot = text }
+        val configs = mutableListOf<FrameworkConfigSnapshot>()
+        FrameworkConfigReceiver({ prefs.notifyingPrefs }, { error("Unexpected file") }, configs::add,
+            { throw AssertionError(it) }, readHead = { text }).use {
+            it.refresh()
+            it.refresh()
+            assertEquals(1, configs.size)
+        }
+    }
+
+    @Test fun olderHeadNeverOverridesNewerPreferences() {
+        val prefs = Preferences().apply { snapshot = snapshot("{\"active\":false}", publishedAt = 200L) }
+        val configs = mutableListOf<FrameworkConfigSnapshot>()
+        FrameworkConfigReceiver({ prefs.notifyingPrefs }, { error("Unexpected file") }, configs::add,
+            { throw AssertionError(it) }, readHead = { snapshot("{\"active\":true}", publishedAt = 100L) }).use {
+            it.refresh()
+            assertFalse(configs.single().config.getBoolean("active"))
+        }
+    }
+
+    @Test fun tornHeadReadIsRetried() {
+        val prefs = Preferences()
+        var head: String? = snapshot("{\"active\":false}", publishedAt = 200L).take(20)
+        val configs = mutableListOf<FrameworkConfigSnapshot>()
+        val errors = mutableListOf<Exception>()
+        FrameworkConfigReceiver({ prefs.notifyingPrefs }, { error("Unexpected file") }, configs::add,
+            errors::add, readHead = { head }).use {
+            it.refresh()
+            assertTrue(configs.isEmpty())
+            assertEquals(1, errors.size)
+            head = snapshot("{\"active\":false}", publishedAt = 200L)
+            it.refresh()
+            assertFalse(configs.single().config.getBoolean("active"))
+        }
     }
 
     @Test fun unsupportedProtocolAndPathTraversalAreRejectedBeforeFileAccess() {

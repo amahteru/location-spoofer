@@ -281,6 +281,14 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
                     ParcelFileDescriptor.AutoCloseOutputStream(service.openRemoteFile(name)).use { it.write(payload) }
                 }
 
+                override fun writeHead(snapshot: String) {
+                    ParcelFileDescriptor.AutoCloseOutputStream(service.openRemoteFile(FrameworkConfigChannel.HEAD_FILE)).use {
+                        // The same name is rewritten every time; drop any longer previous content.
+                        it.channel.truncate(0)
+                        it.write(snapshot.toByteArray(Charsets.UTF_8))
+                    }
+                }
+
                 override fun listFiles(): List<String> = service.listRemoteFiles().toList()
                 override fun deleteFile(name: String) { service.deleteRemoteFile(name) }
             })

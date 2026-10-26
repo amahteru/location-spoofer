@@ -7,6 +7,8 @@ import java.util.UUID
 internal interface FrameworkConfigStore {
     fun commit(snapshot: String): Boolean
     fun writeFile(name: String, payload: ByteArray)
+    /** Replaces the whole [FrameworkConfigChannel.HEAD_FILE]. */
+    fun writeHead(snapshot: String)
     fun listFiles(): List<String>
     fun deleteFile(name: String)
 }
@@ -21,17 +23,18 @@ internal class FrameworkConfigPublisher {
             "${FrameworkConfigChannel.FILE_PREFIX}${UUID.randomUUID()}.json"
         } else null
         var commitAttempted = false
+        val snapshot: String
         try {
             // Finish and close the immutable file before exposing its name to readers.
             if (file != null) store.writeFile(file, bytes)
-            val snapshot = JSONObject().apply {
+            snapshot = JSONObject().apply {
                 put("version", FrameworkConfigChannel.VERSION)
                 put("id", UUID.randomUUID().toString())
                 put("published_at", publishedAt)
                 if (file == null) put("payload", payload) else put("file", file)
-            }
+            }.toString()
             commitAttempted = true
-            check(store.commit(snapshot.toString())) { "Framework rejected config publication" }
+            check(store.commit(snapshot)) { "Framework rejected config publication" }
         } catch (error: Exception) {
             // A lost Binder response does not prove the commit was rejected. Keep the file
             // until a later successful publication, so either possible pointer remains readable.
@@ -39,6 +42,9 @@ internal class FrameworkConfigPublisher {
             cleanupNeeded = true
             throw error
         }
+        // Best effort: the preferences pointer is already committed and stays authoritative for
+        // processes that receive it; the head copy only helps those whose preferences went stale.
+        runCatching { store.writeHead(snapshot) }
         // A delayed reader can retry the current pointer if an older file was removed.
         if (cleanupNeeded || file != null) runCatching {
             store.listFiles().filter { FrameworkConfigChannel.isConfigFile(it) && it != file }

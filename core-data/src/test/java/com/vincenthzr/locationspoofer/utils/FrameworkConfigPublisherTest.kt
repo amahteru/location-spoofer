@@ -9,6 +9,8 @@ class FrameworkConfigPublisherTest {
         var snapshot: String? = null
         var accept = true
         var failWrite = false
+        var failHead = false
+        var head: String? = null
         val files = linkedMapOf<String, ByteArray>()
         val events = mutableListOf<String>()
         override fun commit(snapshot: String): Boolean {
@@ -20,6 +22,11 @@ class FrameworkConfigPublisherTest {
             events += "file"
             if (failWrite) error("File write failed")
             files[name] = payload
+        }
+        override fun writeHead(snapshot: String) {
+            events += "head"
+            if (failHead) error("Head write failed")
+            head = snapshot
         }
         override fun listFiles(): List<String> = files.keys.toList()
         override fun deleteFile(name: String) { files.remove(name) }
@@ -48,7 +55,38 @@ class FrameworkConfigPublisherTest {
         val file = envelope.getString("file")
         assertFalse(envelope.has("payload"))
         assertEquals(payload, store.files.getValue(file).toString(Charsets.UTF_8))
-        assertEquals(listOf("file", "commit"), store.events)
+        assertEquals(listOf("file", "commit", "head"), store.events)
+    }
+
+    @Test fun headCopiesTheCommittedSnapshotAfterTheCommit() {
+        val store = Store()
+        val publisher = FrameworkConfigPublisher()
+        publisher.publish("{\"active\":true}", store)
+        assertEquals(store.snapshot, store.head)
+        publisher.publish("{\"active\":false}", store)
+        assertEquals(store.snapshot, store.head)
+        assertEquals(listOf("commit", "head", "commit", "head"), store.events)
+    }
+
+    @Test fun headIsNotWrittenWhenTheCommitIsRejected() {
+        val store = Store()
+        val publisher = FrameworkConfigPublisher()
+        publisher.publish("{\"active\":true}", store)
+        val previousHead = store.head
+        store.accept = false
+        assertThrows(IllegalStateException::class.java) { publisher.publish("{\"active\":false}", store) }
+        assertEquals(previousHead, store.head)
+    }
+
+    @Test fun failedHeadWriteDoesNotFailPublication() {
+        val store = Store().apply { failHead = true }
+        FrameworkConfigPublisher().publish("{\"active\":true}", store)
+        assertNotNull(store.snapshot)
+        assertNull(store.head)
+    }
+
+    @Test fun headFileIsOutsideThePublicationCleanup() {
+        assertFalse(FrameworkConfigChannel.isConfigFile(FrameworkConfigChannel.HEAD_FILE))
     }
 
     @Test fun failedPublicationPreservesPreviousSnapshotAndFile() {

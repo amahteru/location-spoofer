@@ -595,6 +595,13 @@ class LocationHooker : XposedModule() {
             },
             onError = { error ->
                 XposedBridge.log("[Config] Framework receive failed: ${error.javaClass.simpleName}: ${error.message}")
+            },
+            readHead = {
+                // Absent until an app version that writes it publishes once.
+                runCatching {
+                    ParcelFileDescriptor.AutoCloseInputStream(openRemoteFile(FrameworkConfigChannel.HEAD_FILE))
+                        .bufferedReader(Charsets.UTF_8).use { it.readText() }
+                }.getOrNull()?.takeIf { it.isNotBlank() }
             }
         ).also { it.start() }
     }
