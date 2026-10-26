@@ -61,7 +61,7 @@ class BaiduMapControllerImpl(
         map.addOverlay(
             com.baidu.mapapi.map.PolylineOptions()
                 .color(colorInt)
-                .width(width.toInt())
+                .width(width)
                 .points(latLngList)
         )
     }
@@ -79,7 +79,7 @@ class BaiduMapControllerImpl(
                 .center(LatLng(lat, lng))
                 .radius(radius.toInt())
                 .fillColor(fillColorInt)
-                .stroke(Stroke(strokeWidth.toInt(), strokeColorInt))
+                .stroke(Stroke(strokeWidth, strokeColorInt))
         )
     }
 

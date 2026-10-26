@@ -166,7 +166,7 @@ fun performPoiSearch(
                 return
             }
             if (!com.google.android.libraries.places.api.Places.isInitialized()) {
-                com.google.android.libraries.places.api.Places.initialize(context.applicationContext, key)
+                com.google.android.libraries.places.api.Places.initializeWithNewPlacesApiEnabled(context.applicationContext, key)
             }
             val placesClient = cachedPlacesClient ?: com.google.android.libraries.places.api.Places.createClient(context.applicationContext).also { cachedPlacesClient = it }
             val sessionToken = com.google.android.libraries.places.api.model.AutocompleteSessionToken.newInstance()
@@ -190,9 +190,9 @@ fun performPoiSearch(
                     }
                     val fetchFields = listOf(
                         com.google.android.libraries.places.api.model.Place.Field.ID,
-                        com.google.android.libraries.places.api.model.Place.Field.NAME,
-                        com.google.android.libraries.places.api.model.Place.Field.LAT_LNG,
-                        com.google.android.libraries.places.api.model.Place.Field.ADDRESS
+                        com.google.android.libraries.places.api.model.Place.Field.DISPLAY_NAME,
+                        com.google.android.libraries.places.api.model.Place.Field.LOCATION,
+                        com.google.android.libraries.places.api.model.Place.Field.FORMATTED_ADDRESS
                     )
                     val resultList = mutableListOf<AppPoiItem>()
                     val topPredictions = predictions.take(5)
@@ -202,12 +202,12 @@ fun performPoiSearch(
                         placesClient.fetchPlace(fetchRequest)
                             .addOnSuccessListener { fetchResponse ->
                                 val place = fetchResponse.place
-                                val latLng = place.latLng
+                                val latLng = place.location
                                 if (latLng != null) {
                                     resultList.add(
                                         AppPoiItem(
-                                            title = place.name ?: prediction.getPrimaryText(null).toString(),
-                                            snippet = place.address ?: prediction.getSecondaryText(null).toString(),
+                                            title = place.displayName ?: prediction.getPrimaryText(null).toString(),
+                                            snippet = place.formattedAddress ?: prediction.getSecondaryText(null).toString(),
                                             lat = latLng.latitude,
                                             lng = latLng.longitude
                                         )

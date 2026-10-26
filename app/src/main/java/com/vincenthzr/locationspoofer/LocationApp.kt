@@ -49,7 +49,7 @@ class LocationApp : Application(), XposedServiceHelper.OnServiceListener {
         val googleApiKey = prefs.getString("google_api_key", "")
         if (!Places.isInitialized() && !googleApiKey.isNullOrBlank()) {
             try {
-                Places.initialize(this, googleApiKey)
+                Places.initializeWithNewPlacesApiEnabled(this, googleApiKey)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

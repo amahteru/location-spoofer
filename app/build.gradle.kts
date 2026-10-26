@@ -23,6 +23,7 @@ android {
     lint {
         // 只发布 arm64 手机包：模块依赖 root + LSPosed，ChromeOS 上无法使用
         disable += "ChromeOsAbiSupport"
+        lintConfig = file("lint.xml")
     }
 
     fun getLocalConfig(key: String): String? {

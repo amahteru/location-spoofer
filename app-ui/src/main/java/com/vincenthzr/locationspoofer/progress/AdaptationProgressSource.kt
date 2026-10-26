@@ -40,7 +40,7 @@ class AdaptationProgressSource(context: Context) {
         for (url in REMOTE_URLS.map { it + fileName }) {
             val text = runCatching {
                 client.newCall(Request.Builder().url(url).build()).execute().use { resp ->
-                    if (resp.isSuccessful) resp.body?.string() else null
+                    if (resp.isSuccessful) resp.body.string() else null
                 }
             }.getOrNull()
             // 只接受看起来确实是这份文档的内容，避免把代理 / 运营商的拦截页存进缓存

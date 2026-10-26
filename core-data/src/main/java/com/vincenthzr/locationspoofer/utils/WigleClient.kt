@@ -20,7 +20,7 @@ class WigleClient {
                 .build()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val body = response.body?.string() ?: return@withContext false
+                val body = response.body.string() ?: return@withContext false
                 org.json.JSONObject(body).optString("success") == "true"
             } else false
         } catch (e: Exception) {
@@ -51,7 +51,7 @@ class WigleClient {
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val body = response.body?.string() ?: return@withContext generateFallbackWifi()
+                    val body = response.body.string() ?: return@withContext generateFallbackWifi()
                     val jsonObject = JSONObject(body)
                     val results = jsonObject.optJSONArray("results")
                     if (results == null || results.length() == 0) {

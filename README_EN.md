@@ -54,7 +54,7 @@ Powered by **KernelSU / APatch / Magisk** for root privileges and **LSPosed (lib
 ### 1. Multi-Map Engines & Coordinate Adaptation
 * **Triple Engine Support**: Natively integrates AMap 3D, Baidu Maps, and Google Maps for flexible worldwide POI search and road-network routing.
 * **Out-of-the-Box & Multilingual Support**: Default "Auto Match" smoothly uses AMap across all languages (including Chinese, English, Arabic, etc.), functioning without requiring Google Play Services or proxy setups.
-* **Custom Google API Key**: No default Google Maps API Key is embedded. To use Google Maps rendering and Places global search, simply input your own Google API Key in the Settings page.
+* **Custom Google API Key**: No default Google Maps API Key is embedded. To use Google Maps rendering and Places global search, simply input your own Google API Key in the Settings page (enable Maps SDK for Android and Places API (New) for it in Google Cloud).
 * **Coordinate Conversion**: Points are picked in `GCJ-02` on AMap / Baidu Maps, while the system location service outputs standard `WGS-84` coordinates and satellite metadata as Android specifies; each app converts to the system it needs, avoiding double-encryption offsets of hundreds of meters.
 * **Zero-Latency Computation**: Coordinate transformations are pre-computed in memory and fetched directly inside Xposed hooks, avoiding repeated trigonometric calculations in high-frequency callback loops.
 

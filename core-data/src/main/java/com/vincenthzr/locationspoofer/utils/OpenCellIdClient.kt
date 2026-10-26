@@ -24,7 +24,7 @@ class OpenCellIdClient {
                 .build()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val body = response.body?.string() ?: return@withContext false
+                val body = response.body.string() ?: return@withContext false
                 val json = JSONObject(body)
                 if (json.has("error")) {
                     // code 1 表示“未找到基站”，这实际上验证了密钥存在并且有效。
@@ -61,7 +61,7 @@ class OpenCellIdClient {
                     val response = client.newCall(request).execute()
                     val code = response.code
                     if (response.isSuccessful) {
-                        val body = response.body?.string()
+                        val body = response.body.string()
                         if (body == null) {
                             continue
                         }

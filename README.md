@@ -55,7 +55,7 @@
 ### 1. 多地图引擎与坐标系适配
 * **三引擎自由切换**：集成高德 3D 地图 (AMap)、百度地图 (BaiduMap) 与 Google Maps，满足境内外不同场景下的路网检索与 POI 选点需求。
 * **开箱即用与全语言支持**：默认“自动匹配”在所有语言（包括中文、英文、阿拉伯语等）环境下均稳定选用高德地图，无需 Google 服务或特殊网络即可顺畅使用。
-* **Google 地图自定义 Key**：App 不内置任何 Google Maps 默认密钥；如需使用 Google 地图渲染与 Places 全球搜索，只需在“设置”中填入您自行申请的 Google API Key 即可。
+* **Google 地图自定义 Key**：App 不内置任何 Google Maps 默认密钥；如需使用 Google 地图渲染与 Places 全球搜索，只需在“设置”中填入您自行申请的 Google API Key（需在 Google Cloud 中启用 Maps SDK for Android 与 Places API (New)）即可。
 * **坐标系换算**：选点在高德 / 百度地图上以 `GCJ-02` 完成，系统定位服务按 Android 规范统一输出 `WGS-84` 坐标与卫星数据，由各 App 自行换算到所需坐标系，避免二次加密造成的数百米偏移。
 * **零延迟计算**：Hook 阶段直接从预计算的内存数据读取坐标，避免高频回调中的重复三角函数开销。
 
