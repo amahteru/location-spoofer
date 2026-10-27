@@ -88,8 +88,8 @@ fun LocationControlPanel(
     val rawDrawerOffsetY by animateDpAsState(
         targetValue = when (panelState) {
             LocationPanelState.EXPANDED -> 0.dp
-            LocationPanelState.DEFAULT -> savedCardHeightDp + 8.dp
-            LocationPanelState.COLLAPSED -> savedCardHeightDp + coordCardHeightDp + 16.dp
+            LocationPanelState.DEFAULT -> savedCardHeightDp + AppSpacing.sm
+            LocationPanelState.COLLAPSED -> savedCardHeightDp + coordCardHeightDp + AppSpacing.sm * 2
         },
         animationSpec = motion.defaultSpatialSpec(),
         label = "drawer_offset_y"
@@ -101,7 +101,7 @@ fun LocationControlPanel(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = AppSpacing.lg)
-            .padding(bottom = (tabBarHeight + AppSpacing.md).coerceAtLeast(0.dp))
+            .padding(bottom = (tabBarHeight + AppSpacing.sm).coerceAtLeast(0.dp))
             .offset { IntOffset(0, drawerOffsetYPx.roundToInt()) }
     ) {
         Column(
