@@ -9,14 +9,13 @@ data class ImportExportSelection(
     val locations: Boolean = true,
     val savedLocations: Boolean = true,
     val savedRoutes: Boolean = true,
-    val appCoordinateSystems: Boolean = true,
     val settings: Boolean = true,
     val apiKeys: Boolean = false
 ) {
     /** 一项都没勾时不应该允许继续 */
     val hasAny: Boolean
         get() = locations || savedLocations || savedRoutes ||
-                appCoordinateSystems || settings || apiKeys
+                settings || apiKeys
 }
 
 /**
@@ -28,7 +27,6 @@ data class ImportExportCounts(
     val locations: Int = 0,
     val savedLocations: Int = 0,
     val savedRoutes: Int = 0,
-    val appCoordinateSystems: Int = 0,
     val settings: Int = 0,
     val apiKeys: Int = 0
 )

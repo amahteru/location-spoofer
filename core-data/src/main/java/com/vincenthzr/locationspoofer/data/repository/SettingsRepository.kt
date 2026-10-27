@@ -98,10 +98,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         settingsManager.ignoredVersion = value
     }
 
-    fun getAppCoordinateSystems(): Map<String, String> = settingsManager.getAppCoordinateSystems()
-
-    fun setAppCoordinateSystems(map: Map<String, String>) =
-        settingsManager.setAppCoordinateSystems(map)
 
     fun getSystemHookPackages(): Set<String> = settingsManager.getSystemHookPackages()
 
@@ -188,18 +184,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         get() = settingsManager.speedFluctuationPct
         set(value) {
             settingsManager.speedFluctuationPct = value
-        }
-
-    var gaitTemplate: String
-        get() = settingsManager.gaitTemplate
-        set(value) {
-            settingsManager.gaitTemplate = value
-        }
-
-    var useGaitTemplate: Boolean
-        get() = settingsManager.useGaitTemplate
-        set(value) {
-            settingsManager.useGaitTemplate = value
         }
 
     var keepLastMapPosition: Boolean

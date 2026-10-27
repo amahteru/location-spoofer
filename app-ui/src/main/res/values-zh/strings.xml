@@ -449,7 +449,6 @@
     <string name="category_collected_data">采集数据</string>
     <string name="category_saved_locations">收藏的地点</string>
     <string name="category_saved_routes">收藏的路线</string>
-    <string name="category_app_coordinates">应用坐标系配置</string>
     <string name="category_app_settings">软件设置（模拟、地图）</string>
     <string name="category_api_keys">API 密钥</string>
     <string name="category_api_keys_warning">属于个人凭据，分享给他人时请勿包含</string>

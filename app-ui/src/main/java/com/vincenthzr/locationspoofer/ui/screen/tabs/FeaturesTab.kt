@@ -109,7 +109,6 @@ fun FeaturesTab(
                 locations = pkg.locations.size + pkg.collectionRoutes.size,
                 savedLocations = pkg.savedLocations.size,
                 savedRoutes = pkg.savedRoutes.size,
-                appCoordinateSystems = pkg.appCoordinateSystems.size,
                 settings = if (pkg.settings != null) 1 else 0,
                 apiKeys = if (pkg.apiKeys != null) 1 else 0
             ),

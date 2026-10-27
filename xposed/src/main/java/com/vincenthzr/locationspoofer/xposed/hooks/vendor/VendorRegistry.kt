@@ -9,7 +9,6 @@ import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.AospVendor
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.ColorOsVendor
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.HyperOsVendor
 import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.OneUiVendor
-import com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.versions.SystemVersionVendorTemplate
 import com.vincenthzr.locationspoofer.xposed.utils.XposedBridge
 
 /**
@@ -46,11 +45,9 @@ object VendorRegistry {
      * 但请把 [AospVendor] 放在最后，直观表达"它是兜底"。
      *
      * 系统版本适配器（[SystemVersionVendor] 子类）默认比它们的 `parent` 优先级更高，天然排在
-     * 对应厂商级适配器之前被选中；未真正配置版本判定逻辑的模板（如 [SystemVersionVendorTemplate]）
-     * 永远不会被 `matches()` 选中，留在列表里是安全的。
+     * 对应厂商级适配器之前被选中。
      */
     internal val ALL: List<SystemHookVendor> = listOf(
-        SystemVersionVendorTemplate, // 默认不生效的系统版本级适配器模板，见其类注释
         com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.versions.ColorOs16Vendor,
         HyperOsVendor,
         ColorOsVendor,

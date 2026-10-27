@@ -12,7 +12,6 @@ import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.data.model.RootSolution
 import com.vincenthzr.locationspoofer.vendor.VendorScheme
-import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.data.motion.MotionController
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
@@ -81,15 +80,11 @@ class MainViewModel(
             debugDumpSystemServices = settingsRepository.debugDumpSystemServices,
             realismLevel = settingsRepository.realismLevel,
             speedFluctuationPct = settingsRepository.speedFluctuationPct,
-            gaitTemplateCadence = GaitTemplate.decode(settingsRepository.gaitTemplate)?.cadenceSpm,
-            gaitTemplateStrides = GaitTemplate.decode(settingsRepository.gaitTemplate)?.strideCount ?: 0,
-            useGaitTemplate = settingsRepository.useGaitTemplate,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
             savedLocations = settingsRepository.getSavedLocations(),
             savedRoutes = emptyList(), // 将由 Room Flow 填充
             currentLanguage = settingsRepository.getLanguage(),
             isLanguageSet = settingsRepository.isLanguageSet(),
-            appCoordinateSystems = settingsRepository.getAppCoordinateSystems(),
             systemHookPackages = settingsRepository.getSystemHookPackages(),
             isSystemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
             forceLocationEnabled = settingsRepository.forceLocationEnabled,
@@ -134,4 +129,10 @@ class MainViewModel(
     internal var lastEnvironmentRouteId: Long? = null
     internal var lastDbQueryLat: Double = 0.0
     internal var lastDbQueryLng: Double = 0.0
+
+    /**
+     * 打开界面时恢复的模拟坐标，也就是地图镜头的初始位置。镜头停在这里不是用户选点，
+     * 不能据此重新发布配置（界面这时还没有周边数据，会把已发布的周边数据清空）；用户把地图挪开后置空。
+     */
+    internal var restoredSpoofPoint: com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng? = null
 }

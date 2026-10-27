@@ -65,7 +65,7 @@ class LocationSpooferDataPackageTest {
 
     @Test
     fun `旧的 version 2 文件仍然可以解析，settings 与 apiKeys 落到 null`() {
-        // 模拟 2.6.x 之前导出的文件：没有 settings / apiKeys 字段
+        // 模拟 2.6.x 之前导出的文件：没有 settings / apiKeys 字段，还带着已删除的 appCoordinateSystems 等字段
         val legacyV2 = """
             {
               "version": 2,
@@ -76,7 +76,8 @@ class LocationSpooferDataPackageTest {
                 {"name": "公司", "lat": 31.5, "lng": 121.5}
               ],
               "savedRoutes": [],
-              "appCoordinateSystems": {"com.tencent.mm": "GCJ-02"}
+              "appCoordinateSystems": {"com.tencent.mm": "GCJ-02"},
+              "unknownFutureField": true
             }
         """.trimIndent()
 
@@ -85,7 +86,6 @@ class LocationSpooferDataPackageTest {
         assertEquals(2, pkg.version)
         assertEquals(1, pkg.savedLocations.size)
         assertEquals("公司", pkg.savedLocations[0].name)
-        assertEquals("GCJ-02", pkg.appCoordinateSystems["com.tencent.mm"])
         assertNull("旧文件没有这两个分类，应当为 null", pkg.settings)
         assertNull("旧文件没有这两个分类，应当为 null", pkg.apiKeys)
     }
@@ -96,7 +96,6 @@ class LocationSpooferDataPackageTest {
             savedLocations = listOf(
                 com.vincenthzr.locationspoofer.data.model.SavedLocation("家", 31.0, 121.0)
             ),
-            appCoordinateSystems = mapOf("com.autonavi.minimap" to "GCJ-02"),
             settings = ExportedSettings(
                 mockWifi = false,
                 mockCell = true,
@@ -118,6 +117,5 @@ class LocationSpooferDataPackageTest {
         assertEquals(original.settings, restored.settings)
         assertEquals(original.apiKeys, restored.apiKeys)
         assertEquals(original.savedLocations, restored.savedLocations)
-        assertEquals(original.appCoordinateSystems, restored.appCoordinateSystems)
     }
 }

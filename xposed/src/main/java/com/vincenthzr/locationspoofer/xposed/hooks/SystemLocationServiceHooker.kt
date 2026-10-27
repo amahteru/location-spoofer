@@ -1585,7 +1585,7 @@ private fun LocationHooker.hookPendingIntentDelivery(classLoader: ClassLoader) {
     logLoc("[SysLoc] PendingIntent.send hooked for location intent rewrite")
 }
 
-/** Hook IGnssStatusListener 实例的 onSvStatusChanged 回调，注入 20+ 真实卫星矩阵 */
+/** 把投递给目标应用的卫星状态换成伪造的星座；回调类只挂一次，按监听者实例区分 */
 private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     val clazz = listener.javaClass
     if (hookedCallbackClasses.putIfAbsent(clazz, true) != null) return
@@ -1593,7 +1593,10 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     try {
         XposedHelpers.hookAllMethods(clazz, "onSvStatusChanged") { chain, _ ->
             val config = readConfig()
-            if (config != null && config.optBoolean("active", false)) {
+            // 回调代理类被所有客户端共用，只改写注册时判定为目标应用的监听者
+            val binder = (chain.thisObject as? IInterface)?.asBinder()
+            val isTarget = binder != null && activeGnssStatusBinders.containsKey(binder)
+            if (isTarget && config != null && config.optBoolean("active", false)) {
                 val args = chain.args
                 val satCount = config.optInt("satellite_count", 20)
                 val enableJitter = config.optBoolean("enable_jitter", true)

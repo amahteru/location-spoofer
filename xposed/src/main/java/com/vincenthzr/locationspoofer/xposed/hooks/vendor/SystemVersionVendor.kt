@@ -84,17 +84,4 @@ abstract class SystemVersionVendor(
     override fun installExtraHooks(hooker: LocationHooker, classLoader: ClassLoader) {
         parent.installExtraHooks(hooker, classLoader)
     }
-
-    /**
-     * 辅助方法：从形如 `"OS4.0.12.0.XXXCNXM"` 这类版本号字符串里提取开头的整数主版本号（这里是 `4`）。
-     * 提取不到时返回 `null`。
-     *
-     * 这只是一个通用的"数字前缀提取"工具，**不代表对某个具体厂商版本号格式的保证**——写
-     * [matchesVersion] 之前，务必先在真机上用 `adb shell getprop <属性名>` 打印出原始值确认格式，
-     * 确认这个工具函数真的适用，而不是想当然直接用。
-     */
-    protected fun extractLeadingMajorVersion(raw: String): Int? {
-        val digits = raw.dropWhile { !it.isDigit() }.takeWhile { it.isDigit() }
-        return digits.toIntOrNull()
-    }
 }

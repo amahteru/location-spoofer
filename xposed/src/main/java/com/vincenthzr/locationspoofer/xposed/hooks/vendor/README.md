@@ -74,8 +74,8 @@
 
 ### 精确到系统大版本
 
-同一厂商下某个大版本确实需要不同规则时，不要在厂商级适配器里写 `if (版本号 == …)`，而是复制
-`profiles/versions/SystemVersionVendorTemplate.kt`，改名（如 `HyperOs4Vendor.kt`），在 `matchesVersion` 里写
+同一厂商下某个大版本确实需要不同规则时，不要在厂商级适配器里写 `if (版本号 == …)`，而是参照
+`profiles/versions/ColorOs16Vendor.kt` 新建一个 `SystemVersionVendor` 子类（如 `HyperOs4Vendor.kt`），在 `matchesVersion` 里写
 **真机上用 `adb shell getprop` 确认过格式**的版本判断，只覆写和父适配器不同的部分，然后注册进 `VendorRegistry.ALL`。
 它默认比父适配器优先级高 10，没被精确匹配到的设备仍然落回父适配器。版本级适配器不出现在 App 的手动选择列表里。
 
@@ -140,7 +140,6 @@ App 通过 root 读取，显示在"系统适配 → Hook 运行状态"页：
 | `ColorOsVendor` | 厂商级 | 保留通用基线；ColorOS 16 由版本适配器补充差异 |
 | `ColorOs16Vendor` | 版本级 | API 36 + ColorOS 16；复用通用 Hook，补充蓝牙/网络类名与默认关闭的虚拟定位可用功能 |
 | `OneUiVendor` | 厂商级 | ⚠️ 仅能识别，完全走基线，待实机验证 |
-| `SystemVersionVendorTemplate` | 版本级 | 💤 不生效的模板（`matchesVersion` 恒为 `false`），复制改名后使用 |
 
 vivo OriginOS、荣耀 MagicOS、魅族 Flyme 已能被识别（App 会正确显示系统名），但还没有专用适配器，走 `AospVendor`。
 

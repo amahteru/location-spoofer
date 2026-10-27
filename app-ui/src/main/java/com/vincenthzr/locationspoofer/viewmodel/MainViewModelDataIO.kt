@@ -397,7 +397,6 @@ internal fun MainViewModel.collectExportCounts(onResult: (ImportExportCounts) ->
                 locations = environmentDao.getAllCompleteLocations().count { it.location.collectionRouteId == null } + environmentDao.getCollectionRoutes().size,
                 savedLocations = settingsRepository.getSavedLocations().size,
                 savedRoutes = locationRepository.getAllSavedRoutesList().size,
-                appCoordinateSystems = settingsRepository.getAppCoordinateSystems().size,
                 settings = 1,
                 apiKeys = listOf(
                     settingsRepository.getAmapApiKey(),
@@ -427,8 +426,6 @@ internal fun MainViewModel.exportEnvironmentData(
             val collectionRoutes = if (selection.locations) environmentDao.getCollectionRoutes() else emptyList()
             val savedLocations = if (selection.savedLocations) settingsRepository.getSavedLocations() else emptyList()
             val savedRoutes = if (selection.savedRoutes) locationRepository.getAllSavedRoutesList() else emptyList()
-            val appCoordinateSystems =
-                if (selection.appCoordinateSystems) settingsRepository.getAppCoordinateSystems() else emptyMap()
             val settings = if (selection.settings) {
                 com.vincenthzr.locationspoofer.data.db.ExportedSettings(
                     mockWifi = settingsRepository.mockWifi,
@@ -460,7 +457,6 @@ internal fun MainViewModel.exportEnvironmentData(
                 collectionRoutes = collectionRoutes,
                 savedLocations = savedLocations,
                 savedRoutes = savedRoutes,
-                appCoordinateSystems = appCoordinateSystems,
                 settings = settings,
                 apiKeys = apiKeys
             )
@@ -548,7 +544,7 @@ private fun MainViewModel.parseImportPackageInternal(
     }
     val pkgHasContent = pkg != null && (
             pkg.locations.isNotEmpty() || pkg.collectionRoutes.isNotEmpty() || pkg.savedLocations.isNotEmpty() ||
-                    pkg.savedRoutes.isNotEmpty() || pkg.appCoordinateSystems.isNotEmpty() ||
+                    pkg.savedRoutes.isNotEmpty() ||
                     pkg.settings != null || pkg.apiKeys != null
             )
     if (pkgHasContent) return pkg
@@ -607,13 +603,6 @@ internal fun MainViewModel.applyImportPackage(
                 }
             }
 
-            // 合并应用坐标系配置
-            if (selection.appCoordinateSystems && pkg.appCoordinateSystems.isNotEmpty()) {
-                val currentCoords = settingsRepository.getAppCoordinateSystems().toMutableMap()
-                currentCoords.putAll(pkg.appCoordinateSystems)
-                settingsRepository.setAppCoordinateSystems(currentCoords)
-            }
-
             // 软件设置与 API 密钥都是标量配置，没有合并语义，导入即覆盖
             if (selection.settings) {
                 pkg.settings?.let { s ->
@@ -641,12 +630,10 @@ internal fun MainViewModel.applyImportPackage(
             }
 
             val updatedSaved = settingsRepository.getSavedLocations()
-            val updatedCoords = settingsRepository.getAppCoordinateSystems()
 
             _uiState.update {
                 it.copy(
                     savedLocations = updatedSaved,
-                    appCoordinateSystems = updatedCoords,
                     mockWifi = settingsRepository.mockWifi,
                     mockCell = settingsRepository.mockCell,
                     mockBluetooth = settingsRepository.mockBluetooth,

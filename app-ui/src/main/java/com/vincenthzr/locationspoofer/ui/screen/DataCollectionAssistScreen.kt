@@ -88,7 +88,6 @@ fun DataCollectionAssistScreen(
                     locations = true,
                     savedLocations = false,
                     savedRoutes = false,
-                    appCoordinateSystems = false,
                     settings = false,
                     apiKeys = false
                 )

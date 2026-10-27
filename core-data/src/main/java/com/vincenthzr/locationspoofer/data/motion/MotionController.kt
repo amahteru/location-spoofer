@@ -195,7 +195,8 @@ class MotionController(
 
     /** 进程重启后界面状态丢失但模拟仍在进行时，按 SpoofingState 恢复成定点模拟 */
     fun syncFromSpoofingStateIfIdle() {
-        if (_state.value.mode == Mode.IDLE && SpoofingState.isActive) {
+        // 路线进度在系统进程里按时间推算，控制器这边恢复不了，路线模式下保持空闲，不改成定点
+        if (_state.value.mode == Mode.IDLE && SpoofingState.isActive && !SpoofingState.isRouteMode) {
             onStaticStarted(SpoofingState.latitude, SpoofingState.longitude)
         }
     }

@@ -68,13 +68,8 @@ class RootManager {
             packages.map { pkg -> pkg to (executeCommand("am force-stop $pkg") != "ERROR") }
         }
 
-    suspend fun grantMockLocation(): Boolean = withContext(Dispatchers.IO) {
-        val result =
-            executeCommand("appops set com.vincenthzr.locationspoofer android:mock_location allow")
-        result != "ERROR"
-    }
-
-    suspend fun revokeMockLocation(): Boolean = withContext(Dispatchers.IO) {
+    /** 把本 App 的 android:mock_location 恢复为默认，不再是"模拟位置应用" */
+    suspend fun clearMockLocationApp(): Boolean = withContext(Dispatchers.IO) {
         val result =
             executeCommand("appops set com.vincenthzr.locationspoofer android:mock_location default")
         result != "ERROR"

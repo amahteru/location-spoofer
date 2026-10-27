@@ -49,7 +49,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         routePoints: List<RoutePoint> = emptyList(),
         isRouteMode: Boolean = false,
         wifiJson: String = "[]",
-        appCoordinateSystems: Map<String, String> = emptyMap(),
         cellJson: String = "[]",
         bluetoothJson: String = "[]",
         mockWifi: Boolean = true,
@@ -59,10 +58,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         altitude: Double = 0.0,
         satelliteCount: Int = 20,
         speedMs: Double = 0.0,
-        stopAtDestination: Boolean = false,
-        enableStepSimulation: Boolean = true,
-        stepCadenceSpm: Int = 165,
-        isAutoCadence: Boolean = true
+        stopAtDestination: Boolean = false
     ): Boolean = withContext(Dispatchers.IO) {
         val routeArray = JSONArray()
         routePoints.forEach { p ->
@@ -90,13 +86,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
             put("enable_jitter", enableJitter)
             put("altitude", altitude)
             put("satellite_count", satelliteCount)
-            put("enable_step_simulation", enableStepSimulation)
-            put("step_cadence_spm", stepCadenceSpm)
-            put("is_auto_cadence", isAutoCadence)
 
-            val coordSysObj = JSONObject()
-            appCoordinateSystems.forEach { (pkg, sys) -> coordSysObj.put(pkg, sys) }
-            put("app_coordinate_systems", coordSysObj)
 
             put("route_distance_offset", SpoofingState.routeDistanceOffset)
             putPersistentSettings(this)
@@ -175,7 +165,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         // 运动真实度：Xposed 端据此给速度、步频、海拔、加速度加起伏；随机强度与速度浮动在会话内取开始时的快照
         json.put("realism_level", SpoofingState.realismLevel.takeIf { it >= 0 } ?: settingsManager.realismLevel)
         json.put("speed_fluctuation_pct", SpoofingState.speedFluctuationPct.takeIf { it >= 0 } ?: settingsManager.speedFluctuationPct)
-        json.put("gait_template", if (settingsManager.useGaitTemplate) settingsManager.gaitTemplate else "")
         json.put("altitude_variation_m", settingsManager.altitudeVariationM)
     }
 
@@ -222,6 +211,9 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         runCatching { JSONObject(it) }.getOrNull()
     }
     @Volatile private var publicationPending = lastJson != null
+
+    /** 最后一次要发布的完整配置的副本；它持久化保存，进程重启后仍在。还没开始过模拟时为 null */
+    fun desiredConfig(): JSONObject? = lastJson?.let { JSONObject(it.toString()) }
     private var nextCleanupAttemptAt = 0L
 
     init {

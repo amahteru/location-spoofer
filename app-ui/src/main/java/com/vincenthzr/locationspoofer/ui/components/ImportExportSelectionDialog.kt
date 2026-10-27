@@ -70,12 +70,6 @@ fun ImportExportSelectionDialog(
                         onCheckedChange = { selection = selection.copy(savedRoutes = it) }
                     )
                     SelectionRow(
-                        label = stringResource(R.string.category_app_coordinates),
-                        count = counts.appCoordinateSystems,
-                        checked = selection.appCoordinateSystems,
-                        onCheckedChange = { selection = selection.copy(appCoordinateSystems = it) }
-                    )
-                    SelectionRow(
                         label = stringResource(R.string.category_app_settings),
                         count = counts.settings,
                         showCount = false,

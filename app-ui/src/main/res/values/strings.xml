@@ -450,7 +450,6 @@ Error details: %s</string>
     <string name="category_collected_data">Collected data</string>
     <string name="category_saved_locations">Favorite locations</string>
     <string name="category_saved_routes">Favorite routes</string>
-    <string name="category_app_coordinates">Per-app coordinate systems</string>
     <string name="category_app_settings">App settings</string>
     <string name="category_api_keys">API keys</string>
     <string name="category_api_keys_warning">Personal credentials. Don’t include them when sharing with others</string>

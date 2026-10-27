@@ -145,15 +145,6 @@ class SettingsManager(context: Context) {
         get() = prefs.getInt("speed_fluctuation_pct", MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT)
         set(value) = prefs.edit { putInt("speed_fluctuation_pct", value) }
 
-    /** 录制的个人步态模板（GaitTemplate.encode() 的结果），空串表示未录制 */
-    var gaitTemplate: String
-        get() = prefs.getString("gait_template", "") ?: ""
-        set(value) = prefs.edit { putString("gait_template", value) }
-
-    var useGaitTemplate: Boolean
-        get() = prefs.getBoolean("use_gait_template", false)
-        set(value) = prefs.edit { putBoolean("use_gait_template", value) }
-
     /** 打开 App 时地图停留在上次选定的位置，而不是自动跳到真实位置 */
     var keepLastMapPosition: Boolean
         get() = prefs.getBoolean("keep_last_map_position", true)
@@ -289,26 +280,6 @@ class SettingsManager(context: Context) {
             jsonArray.put(obj)
         }
         prefs.edit { putString("saved_routes", jsonArray.toString()) }
-    }
-
-    fun getAppCoordinateSystems(): Map<String, String> {
-        val jsonString = prefs.getString("app_coordinate_systems", "{}") ?: "{}"
-        val map = mutableMapOf<String, String>()
-        try {
-            val jsonObj = JSONObject(jsonString)
-            for (key in jsonObj.keys()) {
-                map[key] = jsonObj.getString(key)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return map
-    }
-
-    fun setAppCoordinateSystems(map: Map<String, String>) {
-        val jsonObj = JSONObject()
-        map.forEach { (k, v) -> jsonObj.put(k, v) }
-        prefs.edit { putString("app_coordinate_systems", jsonObj.toString()) }
     }
 
     /** system_server 级定位 Hook（实验性）里被勾选生效的目标 App 包名集合 */

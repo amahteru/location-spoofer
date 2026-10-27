@@ -39,15 +39,21 @@ class LocationRepository(
     suspend fun forceStopApps(packages: List<String>) = rootManager.forceStopApps(packages)
 
     /**
-     * 设备重启 / App 更新后的统一自愈入口：恢复 Root 后台运行权限，
-     * 并在模拟定位此前处于开启状态时重新调用 startSpoofing() 发布完整配置。
-     * 供 BootCompletedReceiver 和 MainViewModel.initialize() 共同复用，
-     * 避免这段逻辑两处各写一份。
+     * 设备重启、App 更新和每次打开界面时调用：模拟此前处于开启状态时恢复进程内状态和前台服务。
+     * 框架里保存着最后一次发布的完整配置，系统进程开机后直接读取，这里不重新发布，
+     * 否则会用不完整的参数覆盖掉周边环境数据和路线进度。
+     * 是否在模拟以这份配置为准：开始模拟时先写配置再启动前台服务，和并发的开始请求不会互相打架。
      */
     suspend fun recoverAfterBoot(context: Context): Boolean {
         val hasRoot = rootManager.checkRootAccess(currentRootSolution())
 
-        if (settingsManager.isSpoofingActive) {
+        val desired = configManager.desiredConfig()
+        val active = desired?.optBoolean("active", false) ?: settingsManager.isSpoofingActive
+        if (active && desired != null) {
+            restoreSpoofingState(desired)
+            spoofingServiceController.startForeground(context, SpoofingState.latitude, SpoofingState.longitude)
+        } else if (active) {
+            // 本地没有完整配置（旧版本升级上来）：只能按上次的定点坐标重新开始
             val lastLat = settingsManager.lastSpoofedLat.toDoubleOrNull() ?: 0.0
             val lastLng = settingsManager.lastSpoofedLng.toDoubleOrNull() ?: 0.0
             if (lastLat != 0.0 && lastLng != 0.0) {
@@ -55,7 +61,6 @@ class LocationRepository(
                     context, lastLat, lastLng,
                     "STILL", 0f, System.currentTimeMillis(),
                     emptyList(), false,
-                    settingsManager.getAppCoordinateSystems(),
                     mockWifi = settingsManager.mockWifi,
                     mockCell = settingsManager.mockCell,
                     mockBluetooth = settingsManager.mockBluetooth,
@@ -69,6 +74,25 @@ class LocationRepository(
         return hasRoot
     }
 
+    /** 按已发布的配置还原进程内的模拟状态 */
+    private fun restoreSpoofingState(config: JSONObject) {
+        SpoofingState.isActive = true
+        SpoofingState.latitude = config.optDouble("lat", 0.0)
+        SpoofingState.longitude = config.optDouble("lng", 0.0)
+        SpoofingState.simMode = config.optString("sim_mode", "STILL")
+        SpoofingState.simBearing = config.optDouble("sim_bearing", 0.0).toFloat()
+        SpoofingState.startTimestamp = config.optLong("start_timestamp", 0L)
+        SpoofingState.routeJson = config.optJSONArray("route_points")?.toString() ?: "[]"
+        SpoofingState.isRouteMode = config.optBoolean("is_route_mode", false)
+        SpoofingState.routeDistanceOffset = config.optDouble("route_distance_offset", 0.0)
+        SpoofingState.wifiJson = config.optJSONObject("wifi_json")?.toString() ?: "[]"
+        SpoofingState.cellJson = config.optJSONArray("cell_json")?.toString() ?: "[]"
+        SpoofingState.bluetoothJson = config.optJSONArray("bluetooth_json")?.toString() ?: "[]"
+        SpoofingState.enableJitter = config.optBoolean("enable_jitter", true)
+        SpoofingState.realismLevel = config.optInt("realism_level", -1)
+        SpoofingState.speedFluctuationPct = config.optInt("speed_fluctuation_pct", -1)
+    }
+
     fun isModuleActive(): Boolean = lsposedManager.isModuleActive()
 
     suspend fun startSpoofing(
@@ -80,7 +104,6 @@ class LocationRepository(
         startTime: Long,
         routePoints: List<RoutePoint>,
         isRouteMode: Boolean,
-        appCoordinateSystems: Map<String, String>,
         wifiJson: String = "[]",
         cellJson: String = "[]",
         bluetoothJson: String = "[]",
@@ -89,10 +112,7 @@ class LocationRepository(
         mockBluetooth: Boolean = true,
         enableJitter: Boolean = true,
         speedMs: Double = 0.0,
-        stopAtDestination: Boolean = false,
-        enableStepSimulation: Boolean = true,
-        stepCadenceSpm: Int = 165,
-        isAutoCadence: Boolean = true
+        stopAtDestination: Boolean = false
     ) {
         SpoofingState.isActive = true
         SpoofingState.latitude = lat
@@ -110,11 +130,9 @@ class LocationRepository(
         SpoofingState.isRouteMode = isRouteMode
         SpoofingState.enableJitter = enableJitter
 
-        // 与 stopSpoofing() 里的 revokeMockLocation() 对称：上一次停止模拟时会把
-        // android:mock_location 重置为 default（用于避免被系统安全中心一直记录为"模拟中"），
-        // 如果这里不重新授予，第二次开始模拟时该 AppOps 就会一直停留在 default，
-        // 导致"模拟一次后关闭再开就再也无法模拟"。
-        rootManager.grantMockLocation()
+        // 模拟全部在系统服务里完成，本 App 不需要、也不应该是"模拟位置应用"（风控会查这一项）；
+        // 旧版本开始模拟时会授予它，这里把残留的授权清掉
+        rootManager.clearMockLocationApp()
 
         val alt = settingsManager.altitude.toDoubleOrNull() ?: 0.0
         val satCount = settingsManager.satelliteCount.toIntOrNull() ?: 20
@@ -128,7 +146,6 @@ class LocationRepository(
             routePoints,
             isRouteMode,
             SpoofingState.wifiJson,
-            appCoordinateSystems,
             SpoofingState.cellJson,
             SpoofingState.bluetoothJson,
             mockWifi,
@@ -138,10 +155,7 @@ class LocationRepository(
             alt,
             satCount,
             speedMs,
-            stopAtDestination,
-            enableStepSimulation,
-            stepCadenceSpm,
-            isAutoCadence
+            stopAtDestination
         )
 
         spoofingServiceController.startForeground(context, lat, lng)
@@ -158,11 +172,8 @@ class LocationRepository(
         SpoofingState.isRouteMode = false
         configManager.saveConfig(0.0, 0.0, false)
 
-        // 停止前台模拟服务（服务停止时顺带清理旧版本可能残留的 TestProvider）
         spoofingServiceController.stop(context)
-
-        // 彻底重置系统的 mock_location 状态，防止被澎湃OS/系统安全中心记录为模拟中
-        rootManager.revokeMockLocation()
+        rootManager.clearMockLocationApp()
     }
 
     val isFloatingJoystickShowing: Boolean get() = spoofingServiceController.isFloatingJoystickShowing
@@ -192,7 +203,6 @@ class LocationRepository(
         startTime: Long,
         routePoints: List<RoutePoint>,
         isRouteMode: Boolean,
-        appCoordinateSystems: Map<String, String>,
         wifiJson: String = SpoofingState.wifiJson,
         cellJson: String = SpoofingState.cellJson,
         bluetoothJson: String = SpoofingState.bluetoothJson,
@@ -201,10 +211,7 @@ class LocationRepository(
         mockBluetooth: Boolean = true,
         enableJitter: Boolean = true,
         speedMs: Double = 0.0,
-        stopAtDestination: Boolean = false,
-        enableStepSimulation: Boolean = true,
-        stepCadenceSpm: Int = 165,
-        isAutoCadence: Boolean = true
+        stopAtDestination: Boolean = false
     ) {
         SpoofingState.latitude = lat
         SpoofingState.longitude = lng
@@ -229,7 +236,6 @@ class LocationRepository(
             routePoints,
             isRouteMode,
             SpoofingState.wifiJson,
-            appCoordinateSystems,
             SpoofingState.cellJson,
             SpoofingState.bluetoothJson,
             mockWifi,
@@ -239,10 +245,7 @@ class LocationRepository(
             alt,
             satCount,
             speedMs,
-            stopAtDestination,
-            enableStepSimulation,
-            stepCadenceSpm,
-            isAutoCadence
+            stopAtDestination
         )
     }
 

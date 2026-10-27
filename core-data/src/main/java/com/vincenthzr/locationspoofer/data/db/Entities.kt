@@ -292,7 +292,6 @@ data class LocationSpooferDataPackage(
     val collectionRoutes: List<CompleteCollectionRoute> = emptyList(),
     val savedLocations: List<SavedLocation> = emptyList(),
     val savedRoutes: List<SavedRouteEntity> = emptyList(),
-    val appCoordinateSystems: Map<String, String> = emptyMap(),
     val settings: ExportedSettings? = null,
     val apiKeys: ExportedApiKeys? = null
 )

@@ -53,6 +53,11 @@ internal fun MainViewModel.initialize() {
             settingsRepository.keepLastMapPosition -> settingsRepository.getLastMapPosition()
             else -> null
         }
+        restoredSpoofPoint = if (settingsRepository.isSpoofingActive) {
+            val lat = restoredPosition?.first?.toDoubleOrNull()
+            val lng = restoredPosition?.second?.toDoubleOrNull()
+            if (lat != null && lng != null) com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng) else null
+        } else null
 
         _uiState.update {
             it.copy(
@@ -521,12 +526,10 @@ internal fun MainViewModel.setForceLocationEnabled(enabled: Boolean) {
     refreshSystemHookConfig()
 }
 
+/** 模拟中重新发布一次配置：patchConfig 每次都带上最新的常驻设置（系统级模拟目标等），不动位置与路线状态 */
 private fun MainViewModel.refreshSystemHookConfig() {
     if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
+        viewModelScope.launch { locationRepository.patchConfig { } }
     }
 }
 
@@ -539,12 +542,7 @@ internal fun MainViewModel.selectAllUserAppsForSystemHook() {
     settingsRepository.setSystemHookPackages(newSet)
     _uiState.update { it.copy(systemHookPackages = newSet) }
 
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
-    }
+    refreshSystemHookConfig()
 }
 
 internal fun MainViewModel.clearAllSystemHookApps() {
@@ -552,12 +550,7 @@ internal fun MainViewModel.clearAllSystemHookApps() {
     settingsRepository.setSystemHookPackages(emptySet)
     _uiState.update { it.copy(systemHookPackages = emptySet) }
 
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
-    }
+    refreshSystemHookConfig()
 }
 
 internal fun MainViewModel.setSystemHookPackageEnabled(pkg: String, enabled: Boolean) {
@@ -566,13 +559,7 @@ internal fun MainViewModel.setSystemHookPackageEnabled(pkg: String, enabled: Boo
     settingsRepository.setSystemHookPackages(currentSet)
     _uiState.update { it.copy(systemHookPackages = currentSet) }
 
-    // 如果模拟处于开启状态，立即刷新配置文件让新的 system_hook_packages 生效
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch {
-            // 只刷新坐标系映射与常驻设置字段（系统级模拟目标等由 patchConfig 自动刷新），不动位置与路线状态
-            locationRepository.patchConfig { it.put("app_coordinate_systems", org.json.JSONObject(_uiState.value.appCoordinateSystems)) }
-        }
-    }
+    refreshSystemHookConfig()
 }
 
 internal fun MainViewModel.getIgnoredVersion(): String = settingsRepository.getIgnoredVersion()

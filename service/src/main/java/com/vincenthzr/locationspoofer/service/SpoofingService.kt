@@ -8,7 +8,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -16,7 +15,6 @@ import androidx.core.app.NotificationCompat
 
 class SpoofingService : Service() {
 
-    private lateinit var locationManager: LocationManager
     private var wakeLock: PowerManager.WakeLock? = null
 
     companion object {
@@ -33,7 +31,6 @@ class SpoofingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         createNotificationChannel()
     }
 
@@ -129,27 +126,8 @@ class SpoofingService : Service() {
     private fun stopSpoofing() {
         isRunning = false
         releaseWakeLock()
-        cleanupLegacyTestProviders()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
-    }
-
-    private fun cleanupLegacyTestProviders() {
-        val providers =
-            mutableListOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            providers.add(LocationManager.FUSED_PROVIDER)
-        }
-        for (provider in providers) {
-            try {
-                locationManager.setTestProviderEnabled(provider, false)
-            } catch (_: Throwable) {
-            }
-            try {
-                locationManager.removeTestProvider(provider)
-            } catch (_: Throwable) {
-            }
-        }
     }
 
     private fun createNotificationChannel() {
@@ -176,7 +154,6 @@ class SpoofingService : Service() {
         super.onDestroy()
         isRunning = false
         releaseWakeLock()
-        cleanupLegacyTestProviders()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

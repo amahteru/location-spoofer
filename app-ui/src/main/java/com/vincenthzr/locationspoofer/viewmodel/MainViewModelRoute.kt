@@ -115,6 +115,11 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
     }
     evaluateMockCapabilities()
     val state = _uiState.value
+    // 镜头还停在打开界面时恢复的位置：是地图初始化触发的回调，不是用户选点
+    restoredSpoofPoint?.let { restored ->
+        if (com.vincenthzr.locationspoofer.utils.GeoMath.distance(restored, com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
+        restoredSpoofPoint = null
+    }
     if (state.isSpoofingActive) {
         settingsRepository.lastSpoofedLat = lat.toString()
         settingsRepository.lastSpoofedLng = lng.toString()
@@ -135,7 +140,6 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
                 startTime = SpoofingState.startTimestamp,
                 routePoints = emptyList(),
                 isRouteMode = false,
-                appCoordinateSystems = updatedState.appCoordinateSystems,
                 wifiJson = updatedState.collectedWifiJson,
                 cellJson = updatedState.collectedCellJson,
                 bluetoothJson = updatedState.collectedBluetoothJson,
@@ -319,7 +323,6 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
             now,
             pointsToRun,
             isLoop,
-            _uiState.value.appCoordinateSystems,
             _uiState.value.collectedWifiJson,
             _uiState.value.collectedCellJson,
             _uiState.value.collectedBluetoothJson,
@@ -328,10 +331,7 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
             _uiState.value.mockBluetooth,
             _uiState.value.enableJitter,
             speedMs = speed,
-            stopAtDestination = _uiState.value.stopAtDestination,
-            enableStepSimulation = _uiState.value.enableStepSimulation,
-            stepCadenceSpm = _uiState.value.stepCadenceSpm,
-            isAutoCadence = _uiState.value.isAutoCadence
+            stopAtDestination = _uiState.value.stopAtDestination
         )
         val preset = MotionController.SpeedPreset(_uiState.value.routeSimMode.name, joystickMaxSpeedMs().toDouble())
         // 手动模式同样加载路线，只是以暂停状态开始、由悬浮摇杆控制，点"开始"后沿路线前进

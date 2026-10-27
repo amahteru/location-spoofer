@@ -45,19 +45,18 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
         val index = intent.getIntExtra(EXTRA_FAVORITE, -1)
         val loc = settingsRepository.getSavedLocations().getOrNull(index) ?: return
 
+        settingsRepository.isSpoofingActive = true
+        settingsRepository.lastSpoofedLat = loc.lat.toString()
+        settingsRepository.lastSpoofedLng = loc.lng.toString()
         val now = System.currentTimeMillis()
         locationRepository.startSpoofing(
             context, loc.lat, loc.lng,
             "STILL", 0f, now,
             emptyList(), false,
-            settingsRepository.getAppCoordinateSystems(),
             loc.wifiJson, loc.cellJson, loc.bluetoothJson,
             settingsRepository.mockWifi, settingsRepository.mockCell, settingsRepository.mockBluetooth,
             settingsRepository.enableJitter
         )
-        settingsRepository.isSpoofingActive = true
-        settingsRepository.lastSpoofedLat = loc.lat.toString()
-        settingsRepository.lastSpoofedLng = loc.lng.toString()
     }
 
     private suspend fun handleStop(context: Context) {

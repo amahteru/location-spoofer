@@ -101,81 +101,28 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
     }
 
     // =========================================================================
-    // 2. getCellLocation：向目标应用派发对应伪造位置的 CellLocation / Bundle
+    // 2. getCellLocation：返回 getAllCellInfo 同一份伪造列表里的已注册小区，两个接口给出的基站一致
     // =========================================================================
     try {
         XposedHelpers.hookAllMethods(phoneServiceClass, "getCellLocation") { chain, method ->
-            val config = readConfig() ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean("active", false)) {
+            val config = readConfig()
+            if (config == null || !config.optBoolean("active", false)) {
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
-
             val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
-            val isTarget = SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)
-
-            if (!isTarget) {
+            if (!SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
-
-            val mockCell = config.optBoolean("mock_cell", true)
-
-            val lat = config.optDouble("lat", 0.0)
-            val lng = config.optDouble("lng", 0.0)
-
+            val returnType = (method as? java.lang.reflect.Method)?.returnType
+                ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             try {
-                // 开关关闭时用 -1（Android 约定的"未知/无基站信息"哨兵值）代替真实 lac/cid，
-                // 而不是放行真实基站坐标——与 mock_cell 关闭时 getAllCellInfo 返回空列表同一语义。
-                val lac = if (mockCell) ((lat * 100).toInt().coerceAtLeast(1000) % 65535) else -1
-                val cid = if (mockCell) ((lng * 1000).toInt().coerceAtLeast(10000) % 268435455) else -1
-
-                val targetMethod = method as? java.lang.reflect.Method
-                val returnType = targetMethod?.returnType
-                if (returnType != null) {
-                    if (returnType == android.os.Bundle::class.java || returnType.name == "android.os.Bundle") {
-                        val bundle = android.os.Bundle()
-                        bundle.putInt("lac", lac)
-                        bundle.putInt("cid", cid)
-                        bundle.putInt("psc", -1)
-                        sysLog("[SysCell] Dispatched fake CellLocation Bundle to ${explicitPkg ?: "caller"} (lac=$lac, cid=$cid)")
-                        return@hookAllMethods bundle
-                    }
-
-                    if (returnType.name.contains("CellIdentity")) {
-                        try {
-                            val cellIdentityGsmClass = XposedHelpers.findClassIfExists("android.telephony.CellIdentityGsm", classLoader)
-                                ?: XposedHelpers.findClassIfExists("android.telephony.CellIdentityGsm", android.telephony.CellInfo::class.java.classLoader)
-                            if (cellIdentityGsmClass != null) {
-                                val fakeIdentity = this@hookSystemTelephonyService.constructCellIdentityByType(
-                                    "GSM", cellIdentityGsmClass, 460, "460", 0, "00", lac, cid, 0
-                                )
-                                if (returnType.isInstance(fakeIdentity)) {
-                                    sysLog("[SysCell] Dispatched fake CellIdentity to ${explicitPkg ?: "caller"} (lac=$lac, cid=$cid)")
-                                    return@hookAllMethods fakeIdentity
-                                }
-                            }
-                        } catch (t: Throwable) {
-                            sysLog("[SysCell] construct fake CellIdentity failed: $t")
-                        }
-                    }
-
-                    if (returnType.name.contains("CellLocation")) {
-                        try {
-                            val gsmCellLocationClass = XposedHelpers.findClass(
-                                "android.telephony.gsm.GsmCellLocation", classLoader
-                            )
-                            val fakeLocation = XposedHelpers.newInstance(gsmCellLocationClass)
-                            XposedHelpers.callMethod(fakeLocation, "setLacAndCid", lac, cid)
-                            if (returnType.isInstance(fakeLocation)) {
-                                sysLog("[SysCell] Dispatched fake CellLocation object to ${explicitPkg ?: "caller"} (lac=$lac, cid=$cid)")
-                                return@hookAllMethods fakeLocation
-                            }
-                        } catch (t: Throwable) {
-                            sysLog("[SysCell] construct fake CellLocation failed: $t")
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-                sysLog("[SysCell] build fake CellLocation failed: $e")
+                // 关闭基站模拟时 getAllCellInfo 返回空列表，这里同样报告"没有小区"，不放行真实基站
+                val identity = if (config.optBoolean("mock_cell", true)) registeredCellIdentity(classLoader, config) else null
+                val result = fakeCellLocation(returnType, identity, classLoader)
+                sysLog("[SysCell] Dispatched fake cell location (${returnType.simpleName}) to ${explicitPkg ?: "caller"}: $identity")
+                return@hookAllMethods result
+            } catch (t: Throwable) {
+                sysLog("[SysCell] build fake cell location failed: $t")
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
         }
@@ -244,4 +191,41 @@ internal fun LocationHooker.hookSystemTelephonyRegistry(classLoader: ClassLoader
     val delivery = TelephonyCallbackDelivery(this, classLoader)
     vendorExtraHooks.add(delivery)
     delivery.install(registryClass)
+}
+
+/** 伪造基站列表里的已注册小区（没有标记注册的取第一个）的 CellIdentity；列表为空时返回 null */
+private fun LocationHooker.registeredCellIdentity(classLoader: ClassLoader, config: org.json.JSONObject): Any? {
+    val cells = buildFakeCellInfoList(classLoader, config.optDouble("lat", 0.0), config.optDouble("lng", 0.0), config)
+    val registered = cells.firstOrNull { runCatching { XposedHelpers.callMethod(it, "isRegistered") == true }.getOrDefault(false) }
+        ?: cells.firstOrNull()
+    return registered?.let { XposedHelpers.callMethod(it, "getCellIdentity") }
+}
+
+/**
+ * 按 getCellLocation 在当前系统上的返回类型包装小区：Android 10 起是 CellIdentity，更早是 Bundle 或 CellLocation。
+ * [identity] 为 null 时返回空小区（各字段为"未知"），客户端会把它当成没有基站信息。
+ */
+private fun fakeCellLocation(returnType: Class<*>, identity: Any?, classLoader: ClassLoader): Any {
+    if (identity != null && returnType.isInstance(identity)) return identity
+    if (returnType.name.contains("CellIdentity")) {
+        return XposedHelpers.newInstance(XposedHelpers.findClass("android.telephony.CellIdentityGsm", classLoader))
+    }
+    val area = identity?.let { cellValue(it, "getLac", "getTac") } ?: -1
+    val id = identity?.let { cellValue(it, "getCid", "getCi") } ?: -1
+    if (returnType == android.os.Bundle::class.java) {
+        return android.os.Bundle().apply {
+            putInt("lac", area)
+            putInt("cid", id)
+            putInt("psc", -1)
+        }
+    }
+    val location = XposedHelpers.newInstance(XposedHelpers.findClass("android.telephony.gsm.GsmCellLocation", classLoader))
+    if (identity != null) XposedHelpers.callMethod(location, "setLacAndCid", area, id)
+    check(returnType.isInstance(location)) { "unsupported getCellLocation return type ${returnType.name}" }
+    return location
+}
+
+/** 依次尝试几个取值方法（GSM/WCDMA 用 getLac/getCid，LTE 用 getTac/getCi），都没有时返回 null */
+private fun cellValue(identity: Any, vararg getters: String): Int? = getters.firstNotNullOfOrNull { name ->
+    runCatching { XposedHelpers.callMethod(identity, name) as? Int }.getOrNull()
 }

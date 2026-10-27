@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.data.model
 
 import androidx.annotation.StringRes
 import com.vincenthzr.locationspoofer.ui.R
-import com.vincenthzr.locationspoofer.utils.GaitTemplate
 import com.vincenthzr.locationspoofer.utils.AltitudeModel
 import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.utils.MotionRealism
@@ -65,10 +64,6 @@ data class AppState(
     val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,
     val speedFluctuationPct: Int = MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT,
-    /** 已录制步态模板的步频（步/分钟），null 表示尚未录制 */
-    val gaitTemplateCadence: Int? = null,
-    val gaitTemplateStrides: Int = 0,
-    val useGaitTemplate: Boolean = false,
     val keepLastMapPosition: Boolean = true,
     val isTestingRootSetup: Boolean = false,
     val rootSetupTestResult: RootSetupTestResult? = null,
@@ -97,12 +92,6 @@ data class AppState(
     val routeSimMode: SimMode = SimMode.WALKING,
     /** 自定义速度 (m/s)，仅当 routeSimMode == CUSTOM 时使用 */
     val customSpeedMs: Double = 3.0,
-    /** 是否开启步频模拟 */
-    val enableStepSimulation: Boolean = true,
-    /** 步频设定 (SPM, 步/分钟) */
-    val stepCadenceSpm: Int = 165,
-    /** 是否根据速度自动计算最佳步频 */
-    val isAutoCadence: Boolean = true,
     /** 是否使用真实路线规划 */
     val useRealRoute: Boolean = false,
     /** 到达终点后是否停下 */
@@ -117,7 +106,6 @@ data class AppState(
     val wigleToken: String = "",
     val opencellidToken: String = "",
     val appSha1: String = "",
-    val appCoordinateSystems: Map<String, String> = emptyMap(),
     val isContinuousScanning: Boolean = false,
     val isStoppingCollection: Boolean = false,
     val pendingCollectionLocations: List<com.vincenthzr.locationspoofer.data.db.LocationRecord> = emptyList(),
