@@ -130,7 +130,6 @@ fun parseMarkdownBlocks(rawText: String): List<MarkdownBlock> {
             continue
         }
 
-        // 普通文本段落
         blocks.add(MarkdownBlock.Paragraph(line))
     }
 
@@ -164,7 +163,6 @@ fun RenderMarkdownContent(
                             2 -> MaterialTheme.typography.titleMedium
                             else -> MaterialTheme.typography.titleSmall
                         },
-                        // 三级及以下标题用主色（M3 分组小标题），与同为 titleSmall 的表格行标题区分
                         color = if (block.level >= 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -252,10 +250,6 @@ fun RenderMarkdownContent(
     }
 }
 
-/**
- * 手机屏幕放不下多列表格，每一行渲染成一张小卡片：第一列作标题，"状态"列放在标题右侧，
- * 其余非空列按"列名：内容"逐行列出。
- */
 @Composable
 private fun MarkdownTable(table: MarkdownBlock.Table) {
     val statusIndex = table.header.indexOfFirst {
@@ -264,7 +258,6 @@ private fun MarkdownTable(table: MarkdownBlock.Table) {
     }
     Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm), modifier = Modifier.padding(vertical = AppSpacing.xs)) {
         table.rows.forEach { row ->
-            // 描边容器：放在任意底色的卡片 / 对话框里都能和外层区分开
             Surface(
                 shape = MaterialTheme.shapes.small,
                 color = Color.Transparent,

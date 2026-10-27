@@ -9,7 +9,6 @@ import org.json.JSONObject
 import kotlin.random.Random
 import io.github.libxposed.api.*
 
-// 辅助函数：安全反射调用 onScanResult
 internal fun LocationHooker.dispatchScanResultToCallback(callback: Any, scanResultObj: Any) {
         var dispatched = false
         var c: Class<*>? = callback.javaClass
@@ -19,7 +18,7 @@ internal fun LocationHooker.dispatchScanResultToCallback(callback: Any, scanResu
                     if (m.parameterCount == 2) {
                         try {
                             m.isAccessible = true
-                            m.invoke(callback, 1 /* CALLBACK_TYPE_ALL_MATCHES */, scanResultObj)
+                            m.invoke(callback, 1, scanResultObj)
                             dispatched = true
                             break
                         } catch (e: Throwable) {
@@ -62,7 +61,6 @@ internal fun LocationHooker.dispatchScanResultToCallback(callback: Any, scanResu
         }
     }
 
-// 辅助函数：安全反射调用 onBatchScanResults
 internal fun LocationHooker.dispatchBatchResultsToCallback(callback: Any, results: List<Any>) {
         var dispatched = false
         var c: Class<*>? = callback.javaClass
@@ -87,7 +85,6 @@ internal fun LocationHooker.dispatchBatchResultsToCallback(callback: Any, result
         }
     }
 
-// BLE 扫描结果伪造的核心分发逻辑
 internal val syntheticBleDelivery = com.vincenthzr.locationspoofer.xposed.utils.CallScope<Boolean>()
 
 internal fun LocationHooker.deliverBleScanResults(config: JSONObject, callback: Any, cl: ClassLoader) {

@@ -13,8 +13,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
-// MainViewModel 的环境数据序列化、导出与导入相关扩展函数
-
 internal suspend fun MainViewModel.saveEnvironmentData(
     lat: Double,
     lng: Double,
@@ -28,7 +26,6 @@ internal suspend fun MainViewModel.saveEnvironmentData(
     val locId = if (mergeNearby) {
         environmentDao.findOrCreateCollectionLocation(lat, lng, collectionRouteId)
     } else if (existingLocation != null) {
-        // REPLACE 会删除父记录并级联清空已有设备关联，复用点位只更新时间。
         environmentDao.updateCollectionTimestamp(existingLocation.id, System.currentTimeMillis())
         existingLocation.id
     } else {
@@ -263,7 +260,6 @@ internal fun MainViewModel.locationToJson(
         null
     }
 
-    // 2. 插值附近的 Wi-Fi
     val wifiMap = mutableMapOf<String, com.vincenthzr.locationspoofer.data.db.LocationWithWifi>()
     val wifiLevels = mutableMapOf<String, Double>()
     val wifiWeights = mutableMapOf<String, Double>()
@@ -302,7 +298,7 @@ internal fun MainViewModel.locationToJson(
         put("connectedWifi", connectedObj ?: org.json.JSONObject.NULL)
         put("nearbyWifi", nearbyArr)
     }
-    val wifiArr = wifiResultObj // 根据需要赋值以匹配其余的方法变量，或者直接返回 wifiResultObj.toString()
+    val wifiArr = wifiResultObj
 
     val cellMap = mutableMapOf<String, com.vincenthzr.locationspoofer.data.db.LocationWithCell>()
     val cellDbms = mutableMapOf<String, Double>()
@@ -388,8 +384,6 @@ internal fun MainViewModel.locationToJson(
     return Triple(wifiArr.toString(), cellArr.toString(), btArr.toString())
 }
 
-/** 供导出对话框展示"当前设备上每个分类各有多少条" */
-
 internal fun MainViewModel.collectExportCounts(onResult: (ImportExportCounts) -> Unit) {
     viewModelScope.launch(Dispatchers.IO) {
         val counts = try {
@@ -421,7 +415,6 @@ internal fun MainViewModel.exportEnvironmentData(
 ) {
     viewModelScope.launch(Dispatchers.IO) {
         try {
-            // 未勾选的分类直接留空/留 null，不写进文件
             val locations = if (selection.locations) environmentDao.getAllCompleteLocations().filter { it.location.collectionRouteId == null } else emptyList()
             val collectionRoutes = if (selection.locations) environmentDao.getCollectionRoutes() else emptyList()
             val savedLocations = if (selection.savedLocations) settingsRepository.getSavedLocations() else emptyList()
@@ -468,11 +461,6 @@ internal fun MainViewModel.exportEnvironmentData(
             }
             val jsonStr = json.encodeToString(dataPackage)
 
-            // 优先用 "wt"（write + truncate）而不是默认的 "w"：
-            // SAF 的 "w" 对多数 DocumentsProvider 不会截断原文件，当新内容比旧内容短时，
-            // 旧文件的尾巴会残留在后面，导出的 JSON 直接损坏。
-            // 但少数 OEM 的 DocumentsProvider 不认 "t" 标志会直接抛异常，
-            // 所以失败时降级回 "w"，保证导出至少能成功而不是彻底不可用。
             val bytes = jsonStr.toByteArray(Charsets.UTF_8)
             val written = try {
                 context.contentResolver.openOutputStream(uri, "wt")
@@ -493,19 +481,12 @@ internal fun MainViewModel.exportEnvironmentData(
     }
 }
 
-/**
- * 兼容入口：解析并全量导入（API 密钥除外，避免静默覆盖掉用户自己的密钥）。
- * 需要按分类选择时走 parseImportPackage + applyImportPackage。
- */
-
 internal fun MainViewModel.importEnvironmentData(uri: android.net.Uri, onComplete: () -> Unit) {
     parseImportPackage(uri) { pkg ->
         if (pkg == null) onComplete()
         else applyImportPackage(pkg, ImportExportSelection(), onComplete)
     }
 }
-
-/** 只解析不落库：先让用户看清文件里有什么，再决定导入哪些分类 */
 
 internal fun MainViewModel.parseImportPackage(
     uri: android.net.Uri,
@@ -536,7 +517,6 @@ private fun MainViewModel.parseImportPackageInternal(
         encodeDefaults = true
     }
 
-    // 1. 优先按标准数据包格式解析（version 2 的文件没有 settings/apiKeys 字段，会落到默认 null）
     val pkg = try {
         json.decodeFromString<com.vincenthzr.locationspoofer.data.db.LocationSpooferDataPackage>(jsonStr)
     } catch (e: Exception) {
@@ -549,7 +529,6 @@ private fun MainViewModel.parseImportPackageInternal(
             )
     if (pkgHasContent) return pkg
 
-    // 2. 兼容旧版本历史 JSON 导出格式 (List<CompleteLocation> 或 List<SavedLocation>)
     try {
         val legacyLocations =
             json.decodeFromString<List<com.vincenthzr.locationspoofer.data.db.CompleteLocation>>(jsonStr)
@@ -570,8 +549,6 @@ private fun MainViewModel.parseImportPackageInternal(
     return pkg
 }
 
-/** 按用户勾选的分类落库，各分类的合并语义与此前保持一致 */
-
 internal fun MainViewModel.applyImportPackage(
     pkg: com.vincenthzr.locationspoofer.data.db.LocationSpooferDataPackage,
     selection: ImportExportSelection,
@@ -579,13 +556,11 @@ internal fun MainViewModel.applyImportPackage(
 ) {
     viewModelScope.launch(Dispatchers.IO) {
         try {
-            // 安全导入环境定位点 (通过 copy(id = 0) 消除主键冲突，并正确绑定关联设备外键)
             if (selection.locations) {
                 pkg.locations.forEach { environmentDao.insertCompleteLocationData(it) }
                 pkg.collectionRoutes.forEach { environmentDao.insertCompleteCollectionRoute(it) }
             }
 
-            // 合并收藏点位 (避免重复点位)
             if (selection.savedLocations && pkg.savedLocations.isNotEmpty()) {
                 val currentSaved = settingsRepository.getSavedLocations().toMutableList()
                 pkg.savedLocations.forEach { loc ->
@@ -596,14 +571,12 @@ internal fun MainViewModel.applyImportPackage(
                 settingsRepository.setSavedLocations(currentSaved)
             }
 
-            // 合并保存的路线
             if (selection.savedRoutes && pkg.savedRoutes.isNotEmpty()) {
                 pkg.savedRoutes.forEach { route ->
                     locationRepository.insertSavedRouteEntity(route.copy(id = 0))
                 }
             }
 
-            // 软件设置与 API 密钥都是标量配置，没有合并语义，导入即覆盖
             if (selection.settings) {
                 pkg.settings?.let { s ->
                     settingsRepository.mockWifi = s.mockWifi

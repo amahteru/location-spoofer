@@ -48,10 +48,8 @@ fun FeaturesTab(
     val context = LocalContext.current
     val resources = LocalResources.current
 
-    // 导出：先让用户选内容，再拉起系统选择器（SAF 必须在拉起前就知道要写什么）
     var exportCounts by remember { mutableStateOf<ImportExportCounts?>(null) }
     var exportSelection by remember { mutableStateOf(ImportExportSelection()) }
-    // 导入：先解析出文件里有什么，再让用户勾选要应用的部分
     var pendingImportPackage by remember {
         mutableStateOf<com.vincenthzr.locationspoofer.data.db.LocationSpooferDataPackage?>(null)
     }
@@ -144,7 +142,6 @@ fun FeaturesTab(
                 contentPadding = PaddingValues(bottom = tabBarHeight + AppSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
-                // 1. 采集本地数据
                 item {
                     ScannerMapCard(
                         uiState = uiState,
@@ -152,14 +149,12 @@ fun FeaturesTab(
                     )
                 }
 
-                // 2. 管理本地数据
                 item {
                     ManageDataCard(
                         onClick = onNavigateToManageData
                     )
                 }
 
-                // 3. 系统级模拟（全局 / 指定应用）
                 item {
                     SystemHookAppsConfigCard(
                         uiState = uiState,
@@ -167,19 +162,12 @@ fun FeaturesTab(
                     )
                 }
 
-
-                // 4. 导入与导出数据
                 item {
                     ImportExportDataCard(
                         onImportClick = {
                             importLauncher.launch(arrayOf("application/json", "*/*"))
                         },
                         onExportClick = {
-                            // 先查各分类数量，弹出选择对话框；实际拉起 SAF 在对话框确认之后。
-                            // 文件名在那里再带上时间戳，保证每次导出都是新文件名：
-                            // 固定用 environment_data.json 时第二次导出必然撞名，而部分 ROM 的
-                            // DocumentsProvider 处理重名的方式是另建一个 xxx_1.json 空占位文件、
-                            // 却把返回的 Uri 指向原来那个旧文件，导致"旧备份被覆盖 + 多出 0B 空文件"（issue #57）。
                             viewModel.collectExportCounts { counts -> exportCounts = counts }
                         }
                     )

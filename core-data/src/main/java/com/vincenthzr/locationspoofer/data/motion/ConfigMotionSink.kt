@@ -6,13 +6,10 @@ import com.vincenthzr.locationspoofer.utils.ConfigManager
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** [MotionController] 的生产实现：只改配置里的运动字段，路线保存到"已保存路线" */
 class ConfigMotionSink(
     private val locationRepository: LocationRepository,
     private val configManager: ConfigManager
 ) : MotionController.MotionSink {
-
-    /** 非路线模式，Xposed 端在两次写入之间按方向和速度推算位置（见 RouteEngine 的 JOYSTICK 分支） */
     override suspend fun writeManual(lat: Double, lng: Double, bearing: Float, speedMs: Double, timestamp: Long) {
         locationRepository.patchConfig { json ->
             configManager.putPosition(json, lat, lng)

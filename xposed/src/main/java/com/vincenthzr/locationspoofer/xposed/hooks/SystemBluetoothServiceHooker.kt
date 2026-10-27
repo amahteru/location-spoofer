@@ -16,21 +16,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 private fun sysLog(msg: String) = XposedBridge.log(msg)
 
-/**
- * com.android.bluetooth 系统级蓝牙与 BLE 信标拦截派发引擎
- *
- * 核心原理：
- * 全设备所有应用通过 BluetoothLeScanner 进行 BLE 扫描时，均会经由 IBluetoothGatt
- * 远程 IPC 路由至 com.android.bluetooth 进程中的 GattService。
- *
- * 本模块在 com.android.bluetooth 进程内拦截 BLE 扫描入口（Android 17 起是 le_scan.ScanBinder，Android 15/16 是 le_scan.TransitionalScanHelper，更早是 GattService）：
- * 1. 当目标应用调用 registerScanner / startScan / registerAndStartScan 时，记录其 IScannerCallback 监听句柄；
- * 2. 绑定 IBinder.linkToDeath，客户端退出时自动移除；
- * 3. 启动系统级 BLE 周期性主动派发定时器：当配置开启 mock_bluetooth 且包含虚拟蓝牙设备（如打卡信标）时，
- *    周期性向目标应用的 IScannerCallback 派发伪造的 ScanResult，彻底解决室内无真实打卡机信号的问题；
- * 4. 拦截并阻止向目标应用派发真实物理硬件捕获的外部蓝牙信标，防止真实环境特征泄露。
- */
-
 private data class BleScannerRegistration(
     val callbackRef: WeakReference<Any>,
     val packageName: String,
@@ -69,8 +54,6 @@ internal fun LocationHooker.hookSystemBluetoothService(classLoader: ClassLoader)
     if (isBluetoothServiceHooked) return
     if (com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry.active.usesFrameworkBleDelivery) return
 
-    // 扫描入口类：Android 17 的 le_scan.ScanBinder、Android 15/16 的 le_scan.TransitionalScanHelper，或更早版本的 GattService（可能在 bluetooth APEX 里）；
-    // 都找不到时从 ServiceManager 里已注册的 GATT 服务实例拿真实类
     var scanServiceClass = SystemClassLocator.locate(
         SystemComponent.BLUETOOTH_SCAN_SERVICE, classLoader,
         apexJars = listOf(
@@ -105,11 +88,6 @@ internal fun LocationHooker.hookSystemBluetoothService(classLoader: ClassLoader)
 
     startSystemBleHeartbeat(classLoader)
 
-    // 三个方法名分属不同 Android 版本，每个版本上只存在其中一部分（Hook 运行状态里其余的显示 ×0）：
-    // - registerScanner：旧版本的第一步，只登记回调，此时还没开始扫描；
-    // - startScan：旧版本的第二步，扫描开始，立即派发一次虚拟信标；
-    // - registerAndStartScan：Android 17 合并成一步。此刻客户端还没收到 scannerId，
-    //   BluetoothLeScanner 会丢弃这之前到达的结果，所以首次派发延后一点，之后由心跳定时器持续推送。
     hookScannerEntry(scanServiceClass, "registerScanner", classLoader, dispatchDelayMs = null)
     hookScannerEntry(scanServiceClass, "startScan", classLoader, dispatchDelayMs = 0L, register = false)
     hookScannerEntry(scanServiceClass, "registerAndStartScan", classLoader, dispatchDelayMs = 500L)
@@ -117,11 +95,6 @@ internal fun LocationHooker.hookSystemBluetoothService(classLoader: ClassLoader)
     isBluetoothServiceHooked = true
 }
 
-/**
- * 在扫描入口方法前置拦截目标应用：
- * @param register 是否从参数里取出 IScannerCallback 登记为活跃扫描者（之后由心跳定时器持续派发虚拟信标）
- * @param dispatchDelayMs 非空时表示这次调用会开始扫描，在这么久之后立即派发一次虚拟信标
- */
 private fun LocationHooker.hookScannerEntry(
     serviceClass: Class<*>,
     methodName: String,
@@ -166,7 +139,6 @@ private fun LocationHooker.hookScannerEntry(
     }
 }
 
-/** 从扫描入口的参数里取出目标应用的 IScannerCallback，登记为活跃扫描者并在客户端退出时自动移除 */
 private fun LocationHooker.registerTargetScanner(args: List<Any?>, explicitPkg: String?) {
     val callback = args.firstOrNull { arg ->
         arg != null && (LocationHooker.hasTypeByName(arg.javaClass, "android.bluetooth.le.IScannerCallback") ||
@@ -185,7 +157,6 @@ private fun LocationHooker.registerTargetScanner(args: List<Any?>, explicitPkg: 
     sysLog("[SysBle] Registered target BLE scanner for $pkgName (total active: ${activeBleScanners.size})")
 }
 
-/** 启动系统级 BLE 主动派发定时器（每 1200ms 向活跃的目标应用推送虚拟信标） */
 private fun LocationHooker.startSystemBleHeartbeat(classLoader: ClassLoader) {
     if (isBleTimerStarted) return
     synchronized(activeBleScanners) {
@@ -207,7 +178,6 @@ private fun LocationHooker.startSystemBleHeartbeat(classLoader: ClassLoader) {
     }, 1200L, 1200L)
 }
 
-/** 向当前所有处于活跃状态的目标应用 IScannerCallback 派发配置中的虚拟 BLE 信标 */
 private fun LocationHooker.dispatchFakeBeaconsToActiveScanners(config: JSONObject, classLoader: ClassLoader) {
     val bluetoothArray = config.optJSONArray("bluetooth_json") ?: return
     if (bluetoothArray.length() == 0) return
@@ -240,7 +210,6 @@ private fun LocationHooker.ensureScannerCallbackHooked(callback: Any) {
                 val isGlobal = config?.optBoolean("system_hook_global_mode", false) == true
                 val isTarget = (binder != null && activeBleScanners.containsKey(binder)) || isGlobal
                 if (syntheticBleDelivery.current != true && isTarget && config != null && config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)) {
-                    // 阻止真实物理硬件扫描到的外部蓝牙设备特征泄漏给目标应用
                     return@hookAllMethods null
                 }
                 return@hookAllMethods innerChain.proceed(innerChain.args.toTypedArray())

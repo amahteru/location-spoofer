@@ -15,31 +15,13 @@ import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * system_server 系统级定位服务拦截与主动派发引擎
- *
- * 核心原理：
- * 全设备所有 App 的原生定位请求（LocationManager / FusedLocation）最终均通过 Binder IPC
- * 汇聚至 system_server 的 LocationManagerService。
- *
- * 本模块直接拦截 LocationManagerService，并在每次 IPC 入口处根据调用方 UID 与包名进行规则判定：
- * 1. 命中用户在 LocationSpoofer 中指定的应用白名单，或开启了【全局模拟模式】时，向该应用派发伪造的
- *    Location 对象、GNSS 20+ 卫星星座以及 NMEA-0183 报文流；
- * 2. 严禁污染 LocationSpoofer 自身与系统核心组件（SystemUI、电话、紧急呼叫）；
- * 3. 内置主动心跳推送定时器：当物理 GPS 芯片在室内无锁定时，主动向目标应用的 ILocationListener
- *    周期性推送平滑的伪造坐标序列，彻底杜绝目标应用无限期等待真实 GPS 回调的问题；
- * 4. 监听者通过 IBinder.linkToDeath 实现自动垃圾回收，客户端进程退出即刻清理，保证系统服务零内存泄露。
- */
-
 private fun logLoc(msg: String) {
     XposedBridge.log(msg)
 }
 
-// 存储被标记为目标应用的 ILocationListener / ILocationCallback 实例
 private val spoofedListenerInstances: MutableSet<Any> =
     Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
 
-// 存储当前处于活跃状态的目标应用 ILocationListener 代理对象及其 Binder 映射（强引用避免 GC 导致失联）
 private data class ListenerRegistrationInfo(
     val listener: Any,
     val packageName: String,
@@ -49,7 +31,6 @@ private data class ListenerRegistrationInfo(
 
 private val activeListenerBinders = ConcurrentHashMap<IBinder, ListenerRegistrationInfo>()
 
-// 存储当前活跃的目标应用 IGnssStatusListener 映射
 private data class GnssStatusRegistrationInfo(
     val listener: Any,
     val packageName: String,
@@ -57,7 +38,6 @@ private data class GnssStatusRegistrationInfo(
 )
 private val activeGnssStatusBinders = ConcurrentHashMap<IBinder, GnssStatusRegistrationInfo>()
 
-// 存储当前活跃的目标应用 IGnssNmeaListener 映射
 private data class GnssNmeaRegistrationInfo(
     val listener: Any,
     val packageName: String,
@@ -65,7 +45,6 @@ private data class GnssNmeaRegistrationInfo(
 )
 private val activeGnssNmeaBinders = ConcurrentHashMap<IBinder, GnssNmeaRegistrationInfo>()
 
-// 存储当前活跃的目标应用 ILocationCallback (单次定位) 映射
 private data class CallbackRegistrationInfo(
     val callback: Any,
     val packageName: String,
@@ -73,29 +52,20 @@ private data class CallbackRegistrationInfo(
 )
 private val activeCallbackBinders = ConcurrentHashMap<IBinder, CallbackRegistrationInfo>()
 
-// 存储当前活跃的目标应用 PendingIntent 映射
 private val activePendingIntents = ConcurrentHashMap<android.app.PendingIntent, String>()
 
-// 全局模式下应当改写的监听者 Binder：注册时按调用方记下（不论当时模拟是否已开启），
-// 投递时据此区分目标应用与本 App / 电话 / GMS 等豁免进程——它们共用同一个 Binder 代理类
 private val globalModeListenerBinders: MutableSet<IBinder> =
     Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
 
-// 注册时判定为目标应用的 GNSS 测量 / 导航电文监听者，模拟进行中投递给它们的真实原始数据会被吞掉
 private val suppressedGnssRawBinders: MutableSet<IBinder> =
     Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
 
-// 全局模式下 provider 的上报会在 onReportLocation 就地改写成模拟位置（走 GMS 融合定位的 App 靠这一层才能被模拟），
-// 系统的"最近位置"缓存也随之变成模拟位置。改写前留一份真实上报：分发给本 App、电话、系统内部等豁免方时换回真实位置，
-// 它们查询最近位置时也返回真实位置；停止模拟后缓存里残留的模拟位置也不再交给任何人。
 private val realReportInFlight = ThreadLocal<Any?>()
 private val lastRealLocations = ConcurrentHashMap<String, android.location.Location>()
 private val spoofedCacheProviders: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
-/** 与系统 getCurrentLocation 直接返回缓存的时效一致（LocationProviderManager.MAX_CURRENT_LOCATION_AGE_MS） */
 private const val MAX_CURRENT_LOCATION_AGE_MS = 30_000L
 
-/** 全局模式下仍应拿真实位置的调用方：不属于全局模拟对象、且不是 GMS（GMS 拿模拟位置，融合定位才会跟着变） */
 private fun receivesRealLocation(serviceInstance: Any?, pkg: String?, uid: Int?): Boolean =
     pkg?.substringBefore(":") != "com.google.android.gms" &&
         !SystemHookUtils.isGlobalModeCaller(serviceInstance, pkg, uid)
@@ -109,7 +79,6 @@ private fun providerNameOf(manager: Any?): String? =
 @Volatile
 private var isHeartbeatTimerStarted = false
 
-/** Flatten module-defined registrations into bootstrap arrays before handing them to new code. */
 internal fun saveSystemLocationReloadState(): Array<Any> = arrayOf(
     activeListenerBinders.mapTo(java.util.ArrayList()) { (binder, info) ->
         arrayOf<Any>(binder, info.listener, info.packageName, info.provider, info.registeredTime)
@@ -184,7 +153,6 @@ internal fun LocationHooker.restoreSystemLocationReloadState(value: Any?) {
     (state.getOrNull(7) as? List<*>)?.filterIsInstance<IBinder>()?.filter { it.isBinderAlive }?.let { globalModeListenerBinders.addAll(it) }
 }
 
-/** 在 args 里递归找出所有 android.location.Location（单个、List、或 LocationResult 形态）并就地改写 */
 private fun rewriteLocationArgs(
     args: List<Any?>,
     motion: SpoofedMotion,
@@ -226,7 +194,6 @@ private fun rewriteLocationArgs(
     }
 }
 
-/** 找到目标监听者/回调对象类之后，Hook 一次，按实例身份决定要不要改写投递内容 */
 private fun LocationHooker.ensureCallbackHooked(callback: Any, vararg deliveryMethodNames: String) {
     val clazz = callback.javaClass
     if (hookedCallbackClasses.putIfAbsent(clazz, true) != null) return
@@ -238,7 +205,6 @@ private fun LocationHooker.ensureCallbackHooked(callback: Any, vararg deliveryMe
                 val isGlobal = config?.optBoolean("system_hook_global_mode", false) == true
                 val isTracked = (binder != null && (activeListenerBinders.containsKey(binder) || activeCallbackBinders.containsKey(binder))) ||
                         spoofedListenerInstances.contains(innerChain.thisObject)
-                // 同一个回调类被所有客户端共用，全局模式也只改写注册时判定为目标应用的监听者
                 val isTarget = isTracked || (isGlobal && binder != null && globalModeListenerBinders.contains(binder))
                 if (isTarget && config != null && config.optBoolean("active", false)) {
                     val motion = getCurrentSpoofedMotion("WGS-84")
@@ -259,11 +225,6 @@ private fun LocationHooker.ensureCallbackHooked(callback: Any, vararg deliveryMe
     }
 }
 
-/**
- * 启动 system_server 内部的主动心跳推送定时器
- * 当目标应用处于活动状态时，此定时器主动向客户端 Binder 投递平滑的伪造坐标、
- * 20+ 真实多星座卫星（GnssStatus）以及标准 NMEA-0183 报文，彻底消除 GPS 状态测试工具卫星数为 0 的问题。
- */
 private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader) {
     if (isHeartbeatTimerStarted) return
     synchronized(activeListenerBinders) {
@@ -287,7 +248,6 @@ private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader
                 val altitude = RouteEngine.realisticAltitude(config)
                 val accuracy = getJitteredAccuracy()
 
-                // 1. 推送定位坐标给目标应用 ILocationListener
                 if (activeListenerBinders.isNotEmpty()) {
                     for ((binder, info) in activeListenerBinders) {
                         if (!binder.isBinderAlive) {
@@ -314,7 +274,6 @@ private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader
                     }
                 }
 
-                // 2. 推送 20+ 真实卫星星座给目标应用 IGnssStatusListener (GnssStatus / GpsStatus)
                 if (activeGnssStatusBinders.isNotEmpty()) {
                     val satCount = config.optInt("satellite_count", 20)
                     val enableJitter = config.optBoolean("enable_jitter", true)
@@ -340,7 +299,6 @@ private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader
                     }
                 }
 
-                // 3. 推送标准 NMEA-0183 报文流给目标应用 IGnssNmeaListener
                 if (activeGnssNmeaBinders.isNotEmpty()) {
                     val nmeas = buildMockNmeaSentences(motion, altitude, accuracy, config)
                     val nowMs = System.currentTimeMillis()
@@ -366,11 +324,9 @@ private fun LocationHooker.startSystemLocationHeartbeat(classLoader: ClassLoader
     }, 1000L, 1000L)
 }
 
-/** 向 IGnssStatusListener 代理对象主动反射调用 onSvStatusChanged，支持 Android 11+ (GnssStatus) 与 Android 7~10 */
 private fun LocationHooker.dispatchGnssStatus(listener: Any, gnssStatus: Any?, classLoader: ClassLoader) {
     val clazz = listener.javaClass
 
-    // 确保 GNSS 引擎启动状态已告知客户端
     try {
         clazz.methods.firstOrNull { it.name == "onGnssStarted" && it.parameterCount == 0 }?.invoke(listener)
     } catch (_: Throwable) {}
@@ -382,7 +338,6 @@ private fun LocationHooker.dispatchGnssStatus(listener: Any, gnssStatus: Any?, c
     if (svMethod != null) {
         try {
             if (svMethod.parameterCount == 1) {
-                // Android 11+ 标准：GnssStatus 对象 (Parcelable 跨进程分发)
                 val statusObj = gnssStatus ?: GnssFastMockEngine.getOrCreateSpoofedGnssStatus(
                     classLoader, 20, true, null
                 )
@@ -390,7 +345,6 @@ private fun LocationHooker.dispatchGnssStatus(listener: Any, gnssStatus: Any?, c
                     svMethod.invoke(listener, statusObj)
                 }
             } else if (svMethod.parameterCount == 6) {
-                // Android 7~10 兼容：6 数组签名
                 val svCount = 20
                 val svidWithFlags = IntArray(svCount)
                 val cn0DbHz = FloatArray(svCount)
@@ -418,8 +372,6 @@ private fun LocationHooker.dispatchGnssStatus(listener: Any, gnssStatus: Any?, c
     }
 }
 
-/** 向 IGnssNmeaListener 反射分发 NMEA 语句 */
-/** NMEA-0183 校验和：`$` 与 `*` 之间所有字符的异或，两位十六进制 */
 private fun calculateNmeaChecksum(sentence: String): String {
     var checksum = 0
     val startIndex = if (sentence.startsWith("$")) 1 else 0
@@ -450,7 +402,6 @@ private fun dispatchNmea(listener: Any, timestamp: Long, sentence: String) {
     }
 }
 
-/** 动态构造符合当前运动轨迹与坐标的标准 NMEA-0183 报文序列 */
 private fun LocationHooker.buildMockNmeaSentences(
     motion: SpoofedMotion,
     altitude: Double,
@@ -496,19 +447,15 @@ private fun LocationHooker.buildMockNmeaSentences(
     val altStr = String.format(java.util.Locale.US, "%.1f", altitude)
     val satCount = config.optInt("satellite_count", 20)
 
-    // $GPRMC
     val rmc = "GPRMC,$timeUtc,A,$latStr,$latHem,$lngStr,$lngHem,$speedStr,$bearingStr,$dateUtc,,,A"
     sentences.add("$$rmc*${calculateNmeaChecksum(rmc)}")
 
-    // $GPGGA
     val gga = "GPGGA,$timeUtc,$latStr,$latHem,$lngStr,$lngHem,1,$satCount,0.8,$altStr,M,0.0,M,,"
     sentences.add("$$gga*${calculateNmeaChecksum(gga)}")
 
-    // $GPGSA
     val gsa = "GPGSA,A,3,01,02,03,04,05,06,07,08,09,10,,,1.2,0.8,0.9"
     sentences.add("$$gsa*${calculateNmeaChecksum(gsa)}")
 
-    // $GPGSV (GPS 10颗)
     val gsv1 = "GPGSV,3,1,10,01,65,045,41,02,55,120,38,03,45,210,36,04,38,090,39"
     sentences.add("$$gsv1*${calculateNmeaChecksum(gsv1)}")
     val gsv2 = "GPGSV,3,2,10,05,32,315,35,06,28,180,37,07,22,270,33,08,18,045,34"
@@ -516,7 +463,6 @@ private fun LocationHooker.buildMockNmeaSentences(
     val gsv3 = "GPGSV,3,3,10,09,15,135,32,10,12,300,31"
     sentences.add("$$gsv3*${calculateNmeaChecksum(gsv3)}")
 
-    // $BDGSV (北斗 6颗)
     val bdgsv1 = "BDGSV,2,1,06,201,70,060,42,202,60,150,40,203,52,240,39,204,45,320,38"
     sentences.add("$$bdgsv1*${calculateNmeaChecksum(bdgsv1)}")
     val bdgsv2 = "BDGSV,2,2,06,205,35,110,36,206,25,200,35"
@@ -525,12 +471,10 @@ private fun LocationHooker.buildMockNmeaSentences(
     return sentences
 }
 
-/** 向 ILocationListener 代理对象主动反射调用 onLocationChanged */
 private fun dispatchFakeLocationToListener(listener: Any, fakeLoc: Any) {
     val clazz = listener.javaClass
     val methods = clazz.methods
 
-    // 优先尝试 onLocationChanged(Location)
     val singleLocMethod = methods.firstOrNull {
         it.name == "onLocationChanged" && it.parameterTypes.size == 1 &&
                 LocationHooker.hasTypeByName(it.parameterTypes[0], "android.location.Location")
@@ -540,7 +484,6 @@ private fun dispatchFakeLocationToListener(listener: Any, fakeLoc: Any) {
         return
     }
 
-    // Android 12+ 批量位置接口: onLocationChanged(List<Location>, IRemoteCallback)
     val batchMethod = methods.firstOrNull {
         it.name == "onLocationChanged" && it.parameterTypes.isNotEmpty() &&
                 List::class.java.isAssignableFrom(it.parameterTypes[0])
@@ -572,10 +515,6 @@ private fun createDummyRemoteCallback(): Any {
     }
 }
 
-/**
- * 已主动投递定位、跳过原方法时 getCurrentLocation 的返回值：系统声明的是 ICancellationSignal（可为 null），
- * 不能返回其它类型。位置已经投递完，没有可取消的请求，返回 null 即可；更老的版本声明的是 boolean。
- */
 private fun cancellationResultFor(method: java.lang.reflect.Executable): Any? =
     if ((method as? java.lang.reflect.Method)?.returnType == Boolean::class.javaPrimitiveType) true else null
 
@@ -594,9 +533,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
     startSystemLocationHeartbeat(classLoader)
 
     if (!VendorRegistry.active.usesFrameworkLocationDelivery) {
-    // =========================================================================
-    // 1. getLastLocation：同步返回，命中目标应用直接替换为伪造 Location
-    // =========================================================================
     try {
         XposedHelpers.hookAllMethods(serviceClazz, "getLastLocation") { chain, _ ->
             val config = readConfig() ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -608,8 +544,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
             if (!isTarget) {
                 val result = chain.proceed(chain.args.toTypedArray())
                 if (result == null || !spoofedCacheProviders.contains(provider)) return@hookAllMethods result
-                // 缓存里是全局模式留下的模拟位置：模拟进行中 GMS 和全局模拟对象照常拿缓存，
-                // 豁免方换成真实位置；停止模拟后谁都不再拿到残留的模拟位置（没有真实位置可还时返回 null）
                 val isGlobalActive = config.optBoolean("active", false) && config.optBoolean("system_hook_global_mode", false)
                 val wantsReal = receivesRealLocation(chain.thisObject, explicitPkg, overrideUid)
                 if (isGlobalActive && !wantsReal) return@hookAllMethods result
@@ -642,9 +576,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         logLoc("[SysHook] hook getLastLocation failed: $e")
     }
 
-    // =========================================================================
-    // 2. registerLocationListener (Android 12+), requestLocationUpdates & registerLocationPendingIntent
-    // =========================================================================
     val listenerRegisterMethodNames = arrayOf("registerLocationListener", "requestLocationUpdates", "registerLocationPendingIntent")
     for (methodName in listenerRegisterMethodNames) {
         try {
@@ -691,8 +622,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                 logLoc("[SysHook] Registered target location listener for ${explicitPkg ?: "caller"} (total active: ${activeListenerBinders.size})"
                                 )
 
-                                // ★ 核心修复: 注册瞬间立即主动同步派发首帧伪造位置，实现 0ms 瞬间定位，
-                                // 彻底消除等待 1 秒心跳导致的定位重试与真实位置闪现
                                 val motion = getCurrentSpoofedMotion("WGS-84")
                                 if (motion != null) {
                                     val fakeLoc = SystemHookUtils.buildFakeLocation(
@@ -733,9 +662,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         }
     }
 
-    // =========================================================================
-    // 3. unregisterLocationListener (Android 12+) & removeUpdates (Android 8-11)
-    // =========================================================================
     val unregisterMethodNames = arrayOf("unregisterLocationListener", "removeUpdates")
     for (methodName in unregisterMethodNames) {
         try {
@@ -765,9 +691,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         } catch (_: Throwable) {}
     }
 
-    // =========================================================================
-    // 4. getCurrentLocation：单次定位回调拦截与主动投递
-    // =========================================================================
     try {
         XposedHelpers.hookAllMethods(serviceClazz, "getCurrentLocation") { chain, method ->
             try {
@@ -805,7 +728,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                             logLoc("[SysLoc] Registered getCurrentLocation callback for $pkgName (active callbacks: ${activeCallbackBinders.size})"
                             )
 
-                            // 主动推送单次定位结果，防止在室内真实 GPS 未锁定导致目标 App 持续等待超时
                             val motion = getCurrentSpoofedMotion("WGS-84")
                             if (motion != null) {
                                 val provider = SystemHookUtils.extractProvider(chain.args)
@@ -847,9 +769,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
 
     }
 
-    // =========================================================================
-    // 5. isProviderEnabled & isProviderEnabledForUser：对目标应用强制汇报 GPS 可用
-    // =========================================================================
     val providerEnabledMethods = arrayOf("isProviderEnabled", "isProviderEnabledForUser")
     for (methodName in providerEnabledMethods) {
         try {
@@ -872,9 +791,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         } catch (_: Throwable) {}
     }
 
-    // =========================================================================
-    // 6. GNSS 卫星与 NMEA 拦截与注册 (registerGnssStatusCallback / registerGnssNmeaCallback)
-    // =========================================================================
     val registerGnssMethods = arrayOf("registerGnssStatusCallback", "addGpsStatusListener")
     for (mName in registerGnssMethods) {
         try {
@@ -908,7 +824,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                         }
                                     } catch (_: Throwable) {}
 
-                                    // 立即向新注册的监听器派发一次卫星数据，避免等待心跳周期
                                     val gnssStatus = GnssFastMockEngine.getOrCreateSpoofedGnssStatus(
                                         classLoader,
                                         config.optInt("satellite_count", 20),
@@ -1029,8 +944,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
         }
     } catch (_: Throwable) {}
 
-    // 屏蔽目标应用的底层伪距与导航电文回调，防止泄露真实原始测量特征
-    // 服务端方法名是 add…Listener（register…Callback 是客户端 LocationManager 的叫法，留着兼容定制 ROM）
     val suppressCallbackMethods = arrayOf("addGnssMeasurementsListener", "addGnssNavigationMessageListener",
         "registerGnssMeasurementsCallback", "registerGnssNavigationMessageCallback")
     for (mName in suppressCallbackMethods) {
@@ -1041,7 +954,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                     val explicitPkg = SystemHookUtils.extractPackageName(chain.args)
                     val overrideUid = SystemHookUtils.extractCallerUid(chain.args)
                     if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config, overrideUid)) {
-                        // Android 12+ 第一个参数是 GnssMeasurementRequest，监听者要按 IInterface 找
                         val cb = chain.args.firstOrNull { it is IInterface } as? IInterface
                         if (cb != null) {
                             suppressedGnssRawBinders.add(cb.asBinder())
@@ -1064,11 +976,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
     }
 
     if (!VendorRegistry.active.usesFrameworkLocationDelivery) {
-    // =========================================================================
-    // 7. LocationProviderManager 底层引擎挂载 (Android 12+)
-    // 直接在 providerManager 层拦截 getLastLocation 与 getCurrentLocation，
-    // 全面覆盖所有原生与定制 provider ("gps", "network", "fused", "passive")
-    // =========================================================================
     val providerManagerClazz = SystemClassLocator.locate(SystemComponent.LOCATION_PROVIDER_MANAGER, classLoader)
     if (providerManagerClazz != null && hookedCallbackClasses.putIfAbsent(providerManagerClazz, true) == null) {
         try {
@@ -1158,8 +1065,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                 }
                             }
                         } else {
-                            // 缓存够新时系统会直接把缓存交给回调（不经过 acceptLocationChange），全局模式下缓存是模拟位置：
-                            // 豁免方改为直接拿最近一次真实位置；真实位置也不够新时缓存同样不够新，系统会重新定位
                             val provider = providerNameOf(chain.thisObject)
                             val real = provider?.takeIf { spoofedCacheProviders.contains(it) }?.let { lastRealLocations[it] }
                             val callback = chain.args.firstOrNull { arg ->
@@ -1227,7 +1132,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                 spoofedListenerInstances.add(listener)
                                 ensureCallbackHooked(listener, "onLocationChanged")
 
-                                // 立即主动投递首帧伪造位置
                                 val motion = getCurrentSpoofedMotion("WGS-84")
                                 if (motion != null) {
                                     val fakeLoc = SystemHookUtils.buildFakeLocation(
@@ -1285,13 +1189,10 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
             } catch (_: Throwable) {}
         }
 
-        // 核心修复: 拦截底层 Provider 上报真实位置 (onReportLocation)
-        // 在全局模拟模式下，直接就地改写 LocationResult，防止 MetokNLP/GPS 真实数据污染系统内部缓存
         try {
             XposedHelpers.hookAllMethods(providerManagerClazz, "onReportLocation") { chain, _ ->
                 val config = readConfig()
                 val provider = providerNameOf(chain.thisObject)
-                // passive provider 收到的是其他 provider 已改写过的上报，真实位置沿用外层那一份
                 val outerReal = realReportInFlight.get()
                 val real = outerReal ?: chain.args.firstOrNull()?.let { copyLocationResult(it) }
                 val realLast = real?.let { try { XposedHelpers.callMethod(it, "getLastLocation") } catch (_: Throwable) { null } }
@@ -1300,7 +1201,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                 val motion = if (config != null && config.optBoolean("active", false) &&
                     config.optBoolean("system_hook_global_mode", false)) getCurrentSpoofedMotion("WGS-84") else null
                 if (config == null || motion == null) {
-                    // 真实上报重新写进缓存，之前残留的模拟位置被覆盖
                     if (outerReal == null && provider != null) spoofedCacheProviders.remove(provider)
                     return@hookAllMethods chain.proceed(chain.args.toTypedArray())
                 }
@@ -1320,13 +1220,10 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
             logLoc("[SysLoc] hook LocationProviderManager.onReportLocation failed: $e")
         }
 
-        // 核心修复: 拦截向目标注册客户端 (Registration) 分发真实位置的关键节点 acceptLocationChange
-        // 彻底解决抖音/淘宝两边跳：当 MetokNLP 或真实 GPS 产生定位推向目标 App 时，在 Registration 处直接改写为模拟坐标
         val regClasses = listOfNotNull(
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$Registration", classLoader),
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationRegistration", classLoader),
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationListenerRegistration", classLoader),
-            // getCurrentLocation 的单次注册自己重写了 acceptLocationChange，不经过上面几个类
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$GetCurrentLocationListenerRegistration", classLoader)
         )
         for (regClazz in regClasses) {
@@ -1337,7 +1234,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                     val active = config?.optBoolean("active", false) == true
                     val reported = chain.args.firstOrNull()
                     val provider = providerNameOf(try { XposedHelpers.getObjectField(chain.thisObject, "this\$0") } catch (_: Throwable) { null })
-                    // 注册时系统会先把缓存里的"最近位置"投递一次，全局模式下这份缓存是模拟位置
                     val cacheSpoofed = provider != null && spoofedCacheProviders.contains(provider)
                     val realInFlight = realReportInFlight.get()
                     if (config == null || (!active && !cacheSpoofed)) return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -1365,8 +1261,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                             logLoc("[SysLoc] Registration.acceptLocationChange rewrote location for $pkg (lat=${motion.lat}, lng=${motion.lng})")
                         }
                     } else if (reported != null && (realInFlight != null || cacheSpoofed)) {
-                        // 全局模式改写过的位置：模拟进行中 GMS 和全局模拟对象照常收到；豁免方换回真实位置，
-                        // 停止模拟后残留的模拟缓存不再投递给任何应用（豁免方有真实位置时给真实位置）
                         val wantsReal = receivesRealLocation(chain.thisObject, pkg, uid)
                         val isGlobalActive = active && config.optBoolean("system_hook_global_mode", false)
                         if (!isGlobalActive || wantsReal) {
@@ -1395,7 +1289,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
             }
         }
 
-        // 核心修复: 拦截向目标 Binder 派发位置的 ProviderTransport
         val transportClasses = listOfNotNull(
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationListenerTransport", classLoader),
             XposedHelpers.findClassIfExists("com.android.server.location.provider.LocationProviderManager\$LocationPendingIntentTransport", classLoader),
@@ -1407,7 +1300,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                 XposedHelpers.hookAllMethods(tClazz, "deliverOnLocationChanged") { chain, _ ->
                     val config = readConfig()
                     if (config != null && config.optBoolean("active", false)) {
-                        // Transport 类被所有客户端共用，全局模式也要按客户端区分，不能改写本 App / 电话 / GMS 的投递
                         val isGlobal = config.optBoolean("system_hook_global_mode", false)
                         var isTarget = false
                         run {
@@ -1455,10 +1347,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
 
     }
 
-    // =========================================================================
-    // 8. 逆地理编码 Geocoder 拦截 (reverseGeocode / getFromLocation)
-    // 防止系统 Geocoder（如小米 MetokGeocodeService / MetokNLP）返回真实住址
-    // =========================================================================
     val geocodeMethods = arrayOf("reverseGeocode", "forwardGeocode", "getFromLocation")
     for (mName in geocodeMethods) {
         try {
@@ -1487,7 +1375,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                 XposedHelpers.callMethod(addressObj, "setThoroughfare", street)
                                 XposedHelpers.callMethod(addressObj, "setAddressLine", 0, fullAddr)
 
-                                // 1. 回调式接口 (Android 13+ IGeocodeListener)
                                 val listener = chain.args.firstOrNull { arg ->
                                     arg != null && (arg is IInterface || arg is IBinder ||
                                             arg.javaClass.simpleName.contains("Listener") ||
@@ -1513,7 +1400,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
                                     }
                                 }
 
-                                // 2. 入参集合修改 (Android 11-12 inout List<Address>)
                                 @Suppress("UNCHECKED_CAST")
                                 val addrs = chain.args.firstOrNull { it is List<*> } as? MutableList<Any>
                                 if (addrs != null) {
@@ -1542,7 +1428,6 @@ internal fun LocationHooker.hookSystemLocationService(classLoader: ClassLoader) 
     if (!VendorRegistry.active.usesFrameworkLocationDelivery) hookPendingIntentDelivery(classLoader)
 }
 
-/** 拦截 PendingIntent.send(...) 改写通过 PendingIntent 投递给目标应用的 Location 广播与服务 Intent */
 private fun LocationHooker.hookPendingIntentDelivery(classLoader: ClassLoader) {
     val piClass = XposedHelpers.findClassIfExists("android.app.PendingIntent", classLoader) ?: return
     if (hookedCallbackClasses.putIfAbsent(piClass, true) != null) return
@@ -1585,7 +1470,6 @@ private fun LocationHooker.hookPendingIntentDelivery(classLoader: ClassLoader) {
     logLoc("[SysLoc] PendingIntent.send hooked for location intent rewrite")
 }
 
-/** 把投递给目标应用的卫星状态换成伪造的星座；回调类只挂一次，按监听者实例区分 */
 private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     val clazz = listener.javaClass
     if (hookedCallbackClasses.putIfAbsent(clazz, true) != null) return
@@ -1593,7 +1477,6 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     try {
         XposedHelpers.hookAllMethods(clazz, "onSvStatusChanged") { chain, _ ->
             val config = readConfig()
-            // 回调代理类被所有客户端共用，只改写注册时判定为目标应用的监听者
             val binder = (chain.thisObject as? IInterface)?.asBinder()
             val isTarget = binder != null && activeGnssStatusBinders.containsKey(binder)
             if (isTarget && config != null && config.optBoolean("active", false)) {
@@ -1602,7 +1485,6 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
                 val enableJitter = config.optBoolean("enable_jitter", true)
 
                 if (args.size == 1) {
-                    // Android 11+ 标准：GnssStatus 单参数
                     val fakeStatus = GnssFastMockEngine.getOrCreateSpoofedGnssStatus(
                         clazz.classLoader ?: ClassLoader.getSystemClassLoader(),
                         satCount,
@@ -1613,7 +1495,6 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
                         return@hookAllMethods chain.proceed(arrayOf(fakeStatus))
                     }
                 } else if (args.size >= 6) {
-                    // Android 7~10 兼容：6 个数组参数 (svCount, svidWithFlags, cn0DbHz, elevations, azimuths, carrierFrequencies)
                     val svCount = satCount.coerceIn(4, 32)
                     val svidWithFlags = IntArray(svCount)
                     val cn0DbHz = FloatArray(svCount)
@@ -1650,10 +1531,6 @@ private fun LocationHooker.hookGnssStatusListenerCallback(listener: Any) {
     } catch (_: Throwable) {}
 }
 
-/**
- * 吞掉目标应用的真实 GNSS 测量 / 导航电文回调。回调代理类被所有客户端共用，每个类只 Hook 一次，
- * 投递时按实例判断：只有模拟进行中、且注册时判定为目标应用的监听者才吞掉，其余照常投递。
- */
 private fun LocationHooker.suppressRawGnssCallbacks(callback: Any, vararg methodNames: String) {
     val clazz = callback.javaClass
     if (hookedCallbackClasses.putIfAbsent(clazz, true) != null) return

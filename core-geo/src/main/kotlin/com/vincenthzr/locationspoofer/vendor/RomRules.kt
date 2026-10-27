@@ -1,15 +1,6 @@
 package com.vincenthzr.locationspoofer.vendor
 
-/**
- * 从 [VendorProfile] 识别 ROM 家族与版本的唯一一套规则。
- * xposed 模块的厂商级适配器（`matches()`）和 App 的"本机系统"显示都走这里，改识别规则只改这一处。
- *
- * 识别顺序即优先级：先认 ROM 自身暴露的标识属性，属性被裁剪时再按厂商 / 品牌名兜底。
- * 新增一个家族：在 [RomFamily] 加一项、在 [familyOf] 加识别条件（需要读新的系统属性时同步加到 [PROBED_PROPS]），
- * 并在 [VendorScheme.forFamily] 里指定它用哪个适配器。
- */
 object RomRules {
-    /** ColorOS 16 真机属性为 V16.0.0；同时限定 Android API，避免跨版本套用私有接口。 */
     fun isColorOs16(profile: VendorProfile): Boolean {
         val version = profile.prop("ro.build.version.oplusrom")
             .ifBlank { profile.prop("ro.build.version.opporom") }
@@ -17,28 +8,20 @@ object RomRules {
         return profile.family == RomFamily.COLOROS && profile.sdkInt == 36 && major == 16
     }
 
-
-    /** 采集设备画像时会尝试读取的系统属性——各 OEM 用来标识自身 ROM 与版本的关键属性都放这里。 */
     val PROBED_PROPS = listOf(
-        // 小米 HyperOS / MIUI
         "ro.mi.os.version.name",
         "ro.mi.os.version.code",
         "ro.miui.ui.version.name",
         "ro.miui.ui.version.code",
-        // OPPO / OnePlus / realme ColorOS
         "ro.build.version.oplusrom",
         "ro.build.version.opporom",
         "ro.oplus.image.my_product.type",
-        // 三星 One UI
         "ro.build.version.oneui",
         "ro.build.version.sem",
-        // vivo / iQOO
         "ro.vivo.os.version",
         "ro.vivo.product.series",
-        // 华为 / 荣耀
         "ro.build.version.emui",
         "ro.build.version.magic",
-        // 魅族 Flyme
         "ro.flyme.published",
         "persist.sys.flyme.pushsdk",
     )
@@ -65,14 +48,12 @@ object RomRules {
         }
     }
 
-    /** 界面上显示的系统名：小米系按是否暴露 HyperOS 属性区分 HyperOS / MIUI */
     fun romName(p: VendorProfile): String = when (val family = familyOf(p)) {
         RomFamily.HYPEROS_MIUI ->
             if (!p.hasProp("ro.mi.os.version.name") && p.hasProp("ro.miui.ui.version.name")) "MIUI" else family.displayName
         else -> family.displayName
     }
 
-    /** ROM 自身的版本号（如 HyperOS "OS4.0" → "4.0"，One UI "60100" → "6.1"），读不到时为空 */
     fun romVersion(p: VendorProfile): String = when (familyOf(p)) {
         RomFamily.HYPEROS_MIUI -> p.prop("ro.mi.os.version.name").removePrefix("OS")
             .ifBlank { p.prop("ro.miui.ui.version.name") }
@@ -91,7 +72,6 @@ object RomRules {
         return if (version.isBlank()) "${romName(p)} · $android" else "${romName(p)} $version · $android"
     }
 
-    /** ro.build.version.oneui 形如 "60100"，表示 One UI 6.1 */
     private fun formatOneUi(raw: String): String {
         val v = raw.toIntOrNull() ?: return raw
         return "${v / 10000}.${v % 10000 / 100}"

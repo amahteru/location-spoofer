@@ -12,7 +12,6 @@ import java.lang.reflect.Modifier
 import java.util.Collections
 import java.util.WeakHashMap
 
-/** Transform only the recipient's final callback, after TelephonyRegistry's permission checks. */
 internal class TelephonyCallbackDelivery(
     private val module: LocationHooker,
     private val loader: ClassLoader
@@ -24,7 +23,7 @@ internal class TelephonyCallbackDelivery(
 
     fun install(registry: Class<*>) {
         try {
-            registry.getDeclaredField("mRecords") // Probe before changing any delivery.
+            registry.getDeclaredField("mRecords")
             for (name in registry.declaredMethods.filter { it.name.startsWith("listen") }.map { it.name }.distinct()) {
                 handles += XposedHelpers.hookAllMethods(registry, name) { chain, _ ->
                     if (live) {
@@ -40,8 +39,6 @@ internal class TelephonyCallbackDelivery(
                     chain.proceed(chain.args.toTypedArray())
                 }
             }
-            // This includes notifyNow, subscriber updates, and cached user/subscription updates.
-            // Keep callback calls from being inlined past the recipient-level hook.
             registry.declaredMethods.filter { !Modifier.isAbstract(it.modifiers) && !Modifier.isNative(it.modifiers) }
                 .forEach { check(module.deoptimize(it)) { "Cannot deoptimize ${it.name}" } }
         } catch (error: Throwable) {
@@ -107,7 +104,6 @@ internal class TelephonyCallbackDelivery(
                 }
             }
         }
-        // Deregistration and binder death are owned by the framework; no stale local target cache.
         return null
     }
 

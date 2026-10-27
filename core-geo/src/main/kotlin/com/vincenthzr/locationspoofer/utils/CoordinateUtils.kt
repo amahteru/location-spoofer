@@ -5,21 +5,15 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-/**
- * 国家测绘局标准坐标偏移算法（GCJ-02 ↔ WGS-84 ↔ BD-09）
- */
 object CoordinateUtils {
 
     private const val PI = Math.PI
-    private const val A = 6378245.0           // 克拉索夫斯基椭球体长半轴
-    private const val EE = 0.00669342162296594 // 偏心率平方
+    private const val A = 6378245.0
+    private const val EE = 0.00669342162296594
     private const val BD_PI = PI * 3000.0 / 180.0
 
     data class LatLng(val lat: Double, val lng: Double)
 
-    /**
-     * WGS-84 → GCJ-02（正向加偏）
-     */
     fun wgs84ToGcj02(wgsLat: Double, wgsLng: Double): LatLng {
         if (outOfChina(wgsLat, wgsLng)) return LatLng(wgsLat, wgsLng)
         val dLat = transformLat(wgsLng - 105.0, wgsLat - 35.0)
@@ -33,9 +27,6 @@ object CoordinateUtils {
         return LatLng(newLat, newLng)
     }
 
-    /**
-     * GCJ-02 → WGS-84（高精度逆向逼近迭代算法，误差小于 0.5 毫米）
-     */
     fun gcj02ToWgs84(gcjLat: Double, gcjLng: Double): LatLng {
         if (outOfChina(gcjLat, gcjLng)) return LatLng(gcjLat, gcjLng)
         var wgsLat = gcjLat
@@ -48,9 +39,6 @@ object CoordinateUtils {
         return LatLng(wgsLat, wgsLng)
     }
 
-    /**
-     * GCJ-02 → BD-09(百度坐标系)
-     */
     fun gcj02ToBd09(gcjLat: Double, gcjLng: Double): LatLng {
         val x = gcjLng
         val y = gcjLat
@@ -61,9 +49,6 @@ object CoordinateUtils {
         return LatLng(bdLat, bdLng)
     }
 
-    /**
-     * BD-09 → GCJ-02
-     */
     fun bd09ToGcj02(bdLat: Double, bdLng: Double): LatLng {
         val x = bdLng - 0.0065
         val y = bdLat - 0.006

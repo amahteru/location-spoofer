@@ -10,9 +10,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 统一的 M3 Modal Bottom Sheet：拖动手柄 + 标题 / 副标题 + 可选的标题栏操作，内容区由调用方填充。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBottomSheet(
@@ -56,7 +53,6 @@ fun AppBottomSheet(
     }
 }
 
-/** 列表为空时的占位：大图标 + 标题 + 说明 */
 @Composable
 fun EmptyState(
     icon: ImageVector,

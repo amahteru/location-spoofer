@@ -51,12 +51,6 @@ private val REQUIRED_PERMISSIONS: List<String>
         }
     }
 
-/**
- * 没有 root 时的落地页：主功能（虚拟定位注入）用不了，但环境数据采集
- * （EnvironmentScanner.scanWifi/scanCell/scanBluetooth）纯走标准 Android API，
- * 不依赖 root/LSPosed，所以让没有 root 的设备也能完成"实地采集 + 导出"，
- * 交给另一台有 root 的设备导入使用。
- */
 @Composable
 fun DataCollectionAssistScreen(
     viewModel: MainViewModel,
@@ -114,7 +108,6 @@ fun DataCollectionAssistScreen(
                 .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xl),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
         ) {
-            // 说明卡：视觉呼应 BlockingScreen，同时说明依然能帮忙采集数据
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 insideMargin = PaddingValues(AppSpacing.lg)
@@ -143,7 +136,6 @@ fun DataCollectionAssistScreen(
                 )
             }
 
-            // 权限缺失提示
             if (missingPermissions.isNotEmpty()) {
                 AppCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -182,7 +174,6 @@ fun DataCollectionAssistScreen(
                 }
             }
 
-            // 采集状态与操作卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 insideMargin = PaddingValues(AppSpacing.lg)
@@ -268,7 +259,6 @@ fun DataCollectionAssistScreen(
                 }
             }
 
-            // 导出卡
             AppCard(
                 modifier = Modifier.fillMaxWidth(),
                 insideMargin = PaddingValues(AppSpacing.lg)

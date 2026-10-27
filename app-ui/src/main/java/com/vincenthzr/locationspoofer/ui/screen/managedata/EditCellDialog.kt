@@ -63,7 +63,6 @@ fun EditCellDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
-                // 制式选择
                 Text(
                     text = stringResource(R.string.cell_type_label),
                     style = MaterialTheme.typography.labelLarge,
@@ -127,7 +126,6 @@ fun EditCellDialog(
                 )
                 }
 
-                // 信号强度
                 Text(
                     text = stringResource(R.string.cell_dbm_label, dbm),
                     style = MaterialTheme.typography.labelLarge,

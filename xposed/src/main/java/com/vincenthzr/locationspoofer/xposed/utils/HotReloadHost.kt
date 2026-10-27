@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.xposed.utils
 
-/** Only a host loader and bootstrap-owned values cross module generations. */
 internal data class HotReloadHost(val packageName: String, val classLoader: ClassLoader) {
     fun save(): Array<Any> = arrayOf(packageName, classLoader)
 
@@ -14,7 +13,6 @@ internal data class HotReloadHost(val packageName: String, val classLoader: Clas
     }
 }
 
-/** Resolve first, so an unavailable host never silently removes the working hooks. */
 internal fun reinstallAfterHotReload(
     state: Any?,
     resolveHost: () -> HotReloadHost?,

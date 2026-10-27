@@ -42,8 +42,6 @@ fun LocalEnvironmentDataDialog(
     var searchQuery by remember { mutableStateOf("") }
     val timeFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
 
-    // 优先按 sourceLocationId 判断是否已收藏（编辑坐标后依然认得出）；
-    // 没有来源 id 的老收藏才退回按坐标匹配。
     val favoritedLocationIds = remember(savedLocations) {
         savedLocations.mapNotNullTo(HashSet()) { it.sourceLocationId }
     }
@@ -77,7 +75,6 @@ fun LocalEnvironmentDataDialog(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-            // 标题与导入操作
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,7 +99,6 @@ fun LocalEnvironmentDataDialog(
                 }
             }
 
-            // 搜索过滤框
             if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
                 AppSearchField(
                     query = searchQuery,
@@ -112,14 +108,12 @@ fun LocalEnvironmentDataDialog(
                 )
             }
 
-        // 采集点列表
         val listState = when {
             isLoading -> 0
             dataList.isEmpty() && collectionRoutes.isEmpty() -> 1
             filteredList.isEmpty() && filteredRoutes.isEmpty() -> 2
             else -> 3
         }
-        // 加载 / 空状态 / 无匹配 / 列表 之间切换时淡入淡出
         AnimatedContent(
             targetState = listState,
             transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
@@ -138,7 +132,6 @@ fun LocalEnvironmentDataDialog(
                     }
                 }
                 1 -> {
-                    // 空数据状态
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -236,7 +229,6 @@ private fun LocalDataItem(
 ) {
     val hasRemark = item.location.remark.isNotBlank()
     val hasPlaceName = item.location.placeName.isNotBlank()
-    // 与「管理采集数据」一致：优先地名，其次备注；两者都有时备注作为副标题
     val primaryTitle = when {
         hasPlaceName -> item.location.placeName
         hasRemark -> item.location.remark
@@ -262,9 +254,6 @@ private fun LocalDataItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
-                // 主标题与时间。标题不再限死单行，但仍要设上限，
-                // 否则几百字的长备注会把卡片撑得很高；顶部对齐而不是垂直居中，
-                // 这样标题一旦换行，时间戳依旧停在第一行同一水平线上，不会飘到文字块中间。
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Top,
@@ -287,7 +276,6 @@ private fun LocalDataItem(
                     )
                 }
 
-                // 备注副标题
                 if (subtitle != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -307,7 +295,6 @@ private fun LocalDataItem(
                     }
                 }
 
-                // 经纬度
                 Text(
                     text = "${String.format(Locale.US, "%.5f", item.location.lat)}, ${
                         String.format(Locale.US, "%.5f", item.location.lng)
@@ -316,7 +303,6 @@ private fun LocalDataItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // 信号设备标签组（按类型分色，与管理页保持一致）
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically

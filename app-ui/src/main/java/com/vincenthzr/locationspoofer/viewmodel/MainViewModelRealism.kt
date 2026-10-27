@@ -3,8 +3,6 @@ package com.vincenthzr.locationspoofer.viewmodel
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 import kotlinx.coroutines.flow.update
 
-// 运动真实度设置（issue #67 / #68）：随机强度、速度浮动范围
-
 internal fun MainViewModel.setRealismLevel(levelId: Int) {
     settingsRepository.realismLevel = levelId
     _uiState.update { it.copy(realismLevel = levelId) }

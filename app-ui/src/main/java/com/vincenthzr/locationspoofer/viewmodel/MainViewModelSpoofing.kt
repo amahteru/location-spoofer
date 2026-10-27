@@ -13,8 +13,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// MainViewModel 的模拟开关、摇杆移动与持续扫描相关扩展函数
-
 internal fun MainViewModel.startSpoofing() {
     val state = _uiState.value
 
@@ -67,7 +65,6 @@ internal fun MainViewModel.startSpoofing() {
         )
         motionController.onStaticStarted(lat, lng)
 
-        // 稍作等待，确保 root shell 完全同步到磁盘
         kotlinx.coroutines.delay(200)
 
         if (updatedState.restartAppsOnSpoof) {
@@ -80,19 +77,11 @@ internal fun MainViewModel.startSpoofing() {
     }
 }
 
-/**
- * 强制重启已勾选作用域的目标 App，让它们加载当前模块并订阅框架配置。
- * 由"开始模拟"弹窗里的开关驱动，用户已经通过默认打开的开关预先同意，这里不再二次确认。
- */
-
 private suspend fun MainViewModel.restartHookedAppsSilently() {
     val targetPackages = mutableSetOf<String>()
-    // 1. LSPosed 传统作用域勾选的应用
     targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
-    // 2. 系统级 Hook 目标应用包名列表
     targetPackages.addAll(settingsRepository.getSystemHookPackages())
 
-    // 严格排除系统核心组件、电话服务、SystemUI 与自身，避免误杀核心服务或导致自身退出
     val exempt = setOf(
         context.packageName,
         "android",
@@ -107,7 +96,7 @@ private suspend fun MainViewModel.restartHookedAppsSilently() {
     )
     val toKill = targetPackages.filter { it.isNotBlank() && !exempt.contains(it) }
     if (toKill.isNotEmpty()) {
-        locationRepository.checkRootAccess() // 确认 Root 授权，以便强制停止目标应用
+        locationRepository.checkRootAccess()
         locationRepository.forceStopApps(toKill)
     }
 }
@@ -125,10 +114,6 @@ internal fun MainViewModel.stopSpoofing() {
     }
 }
 
-/**
- * 悬浮摇杆只服务于"摇杆手动控制"的路线模拟，没有"显示在其他应用上层"权限时无法操作。
- * 缺权限时提示并跳到系统授权页，返回 false，由调用方放弃这次启动；用户授权回来后重新开始即可。
- */
 internal fun MainViewModel.ensureOverlayPermission(): Boolean {
     if (android.provider.Settings.canDrawOverlays(context)) return true
     android.widget.Toast.makeText(
@@ -144,10 +129,6 @@ internal fun MainViewModel.ensureOverlayPermission(): Boolean {
     )
     return false
 }
-
-// 路线规划状态机
-
-/** 进入全屏地图，进入选点阶段 */
 
 internal fun MainViewModel.toggleMockWifi() {
     val newVal = !_uiState.value.mockWifi
@@ -177,8 +158,6 @@ internal fun MainViewModel.toggleEnableJitter() {
     syncMockSettings()
 }
 
-/** 只影响下一次"开始模拟"的行为，不需要像其他 mock 开关那样实时同步到运行中的配置 */
-
 internal fun MainViewModel.toggleRestartAppsOnSpoof() {
     val newVal = !_uiState.value.restartAppsOnSpoof
     settingsRepository.restartAppsOnSpoof = newVal
@@ -188,7 +167,6 @@ internal fun MainViewModel.toggleRestartAppsOnSpoof() {
 private fun MainViewModel.syncMockSettings() {
     if (!_uiState.value.isSpoofingActive) return
     val state = _uiState.value
-    // 只改开关字段，不动位置与路线状态（整份重写会用界面里过时的状态覆盖掉悬浮窗 / 路线的运动状态）
     viewModelScope.launch {
         locationRepository.patchConfig { json ->
             json.put("mock_wifi", state.mockWifi && state.canMockWifi)
@@ -213,7 +191,6 @@ internal fun MainViewModel.toggleContinuousScanning() {
 
     if (state.isContinuousScanning) {
         _uiState.update { it.copy(isContinuousScanning = false, isStoppingCollection = true) }
-        // 最后一轮 NonCancellable 扫描与保存结束后，finally 才显示信息弹窗。
         continuousScanJob?.cancel()
         return
     }

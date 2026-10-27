@@ -13,7 +13,6 @@ import java.lang.reflect.Method
 import java.util.Timer
 import java.util.TimerTask
 
-/** 只补充定位关闭时的可用性判断，不替换通用定位、GNSS、环境数据 Hook。 */
 internal class ColorOs16LocationAvailability(
     private val module: LocationHooker,
     private val loader: ClassLoader
@@ -73,7 +72,6 @@ internal class ColorOs16LocationAvailability(
                 }.getOrDefault(false)
                 val args = chain.args.toTypedArray()
                 val signature = method as Method
-                // 仅覆盖“定位开关可用”入参，保留原方法中的用户、权限与电源策略判断。
                 if (force && signature.parameterTypes.contentEquals(arrayOf(
                         Boolean::class.javaPrimitiveType, identity?.javaClass))) {
                     args[0] = true

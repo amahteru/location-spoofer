@@ -23,9 +23,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class ConfigManager(private val context: Context, private val rootManager: RootManager) {
-
-    // system_hook_packages 是独立于每次模拟会话的常驻勾选项（在"系统级模拟应用"页面里配置），
-    // 不随 lat/lng/active 这类瞬时状态一起在调用方逐层透传，这里每次发布时直接读取最新值即可。
     private val settingsManager = SettingsManager(context)
 
     private var lastGeocodedLat = -999.0
@@ -96,17 +93,9 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
 
     private val _writeFailures = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    /** 框架配置发布失败时发出，界面据此提示用户（core-data 没有字符串资源，不在这里直接弹提示） */
     val writeFailures: SharedFlow<Unit> = _writeFailures
 
-    /**
-     * 在上一次写入的配置基础上只改动部分字段，其余字段原样保留；常驻设置项每次都刷新为最新值。
-     * 暂停、摇杆、周边环境数据、开关设置等局部更新都走这里，避免某个调用方用自己手里过时的整份状态
-     * 覆盖掉别人刚写入的字段（例如悬浮窗刚把路线暂停，界面的周边数据刷新又把路线模式写回去）。
-     * 还没有配置（未开始模拟）或发布失败时返回 false；未发布的最新状态会在框架重连后重试。
-     */
     suspend fun patchConfig(mutate: (JSONObject) -> Unit): Boolean = withContext(Dispatchers.IO) {
-        // 读取、修改、写入整体放在锁内：并发的局部更新若各自基于同一份旧配置修改，后写的会冲掉先写的改动
         writeMutex.withLock {
             val base = lastJson ?: return@withLock false
             val json = JSONObject(base.toString())
@@ -116,7 +105,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         }
     }
 
-    /** 写入坐标及其派生字段（WGS-84 / BD-09 坐标、逆地理编码地址）；移动超过 500 米才重新逆地理编码。需在 IO 线程调用 */
     fun putPosition(json: JSONObject, lat: Double, lng: Double) {
         refreshGeocodeIfMoved(lat, lng)
         json.put("province", cachedProvince)
@@ -153,7 +141,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         json.put("bluetooth_json", JSONArray(bluetoothJson))
     }
 
-    /** 独立于每次模拟会话的常驻设置项，调用方不逐层透传，每次发布时直接读取最新值 */
     private fun putPersistentSettings(json: JSONObject) {
         val systemHookPackagesArr = JSONArray()
         settingsManager.getSystemHookPackages().forEach { systemHookPackagesArr.put(it) }
@@ -162,7 +149,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         json.put("vendor_override", settingsManager.vendorOverride)
         json.put("force_location_enabled", settingsManager.forceLocationEnabled)
         json.put("debug_dump_system_services", settingsManager.debugDumpSystemServices)
-        // 运动真实度：Xposed 端据此给速度、步频、海拔、加速度加起伏；随机强度与速度浮动在会话内取开始时的快照
         json.put("realism_level", SpoofingState.realismLevel.takeIf { it >= 0 } ?: settingsManager.realismLevel)
         json.put("speed_fluctuation_pct", SpoofingState.speedFluctuationPct.takeIf { it >= 0 } ?: settingsManager.speedFluctuationPct)
         json.put("altitude_variation_m", settingsManager.altitudeVariationM)
@@ -178,8 +164,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         lastGeocodedLng = lng
         try {
             val geocoder = android.location.Geocoder(context, java.util.Locale.CHINA)
-            // lat/lng 是 GCJ-02，而 Geocoder 按 Android 规范接收 WGS-84；直接传 GCJ-02 会被后端再加密一次，
-            // 偏出数百米、反查到错误的街道（issue #62：广州塔 → 赏湖街）
             val wgs = CoordinateUtils.gcj02ToWgs84(lat, lng)
 
             @Suppress("DEPRECATION")
@@ -196,7 +180,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
                 cachedPoiName = addr.featureName ?: ""
             }
         } catch (e: Exception) {
-            // 逆地理编码失败时静默降级
         }
     }
 
@@ -212,12 +195,10 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
     }
     @Volatile private var publicationPending = lastJson != null
 
-    /** 最后一次要发布的完整配置的副本；它持久化保存，进程重启后仍在。还没开始过模拟时为 null */
     fun desiredConfig(): JSONObject? = lastJson?.let { JSONObject(it.toString()) }
     private var nextCleanupAttemptAt = 0L
 
     init {
-        // StateFlow delivers an already-connected service too, so initialization order is harmless.
         scope.launch {
             XposedModuleStatus.service.collect { service ->
                 if (service != null) writeMutex.withLock {
@@ -241,11 +222,8 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
 
     private suspend fun write(json: JSONObject): Boolean = writeMutex.withLock { writeLocked(json) }
 
-    // 要用 commit() 的返回值判断是否落盘，KTX 的 edit {} 拿不到
     @android.annotation.SuppressLint("UseKtx")
     private fun writeLocked(json: JSONObject): Boolean {
-        // Remember the desired state even if a stop/pause happens while the service is disconnected.
-        // Reconnection must never replay an older active session over a newer stop request.
         if (!transportPrefs.edit().putString("desired_config", json.toString()).commit()) {
             _writeFailures.tryEmit(Unit)
             return false
@@ -269,7 +247,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         return try {
             val prefs = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
             publisher.publish(json.toString(), object : FrameworkConfigStore {
-                @android.annotation.SuppressLint("UseKtx") // 返回值即框架是否接受了这次发布
+                @android.annotation.SuppressLint("UseKtx")
                 override fun commit(snapshot: String): Boolean =
                     prefs.edit().putString(FrameworkConfigChannel.SNAPSHOT_KEY, snapshot).commit()
 
@@ -279,7 +257,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
 
                 override fun writeHead(snapshot: String) {
                     ParcelFileDescriptor.AutoCloseOutputStream(service.openRemoteFile(FrameworkConfigChannel.HEAD_FILE)).use {
-                        // The same name is rewritten every time; drop any longer previous content.
                         it.channel.truncate(0)
                         it.write(snapshot.toByteArray(Charsets.UTF_8))
                     }
@@ -289,11 +266,9 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
                 override fun deleteFile(name: String) { service.deleteRemoteFile(name) }
             })
             publicationPending = false
-            // Migration runs only after the replacement channel accepted a complete snapshot.
             val now = System.currentTimeMillis()
             if (!transportPrefs.getBoolean("legacy_files_removed", false) && now >= nextCleanupAttemptAt) {
                 nextCleanupAttemptAt = now + 60_000
-                // Root authorization/cleanup must not delay subsequent stop or coordinate updates.
                 scope.launch {
                     if (rootManager.executeCommand(SystemFileCommands.removeLegacyConfigs()) != "ERROR") {
                         transportPrefs.edit { putBoolean("legacy_files_removed", true) }

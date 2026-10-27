@@ -483,7 +483,6 @@ Error details: %s</string>
     <string name="collection_no_saved_points">No points were saved. Check location and collection permissions, then try again.</string>
     <string name="collection_info_save_failed">Could not save point details. Please try again.</string>
 
-    <!-- Named route collection -->
     <string name="collection_point_mode">Point collection</string>
     <string name="collection_route_mode">Route collection</string>
     <string name="collection_route_draw_hint">Move the map to place the crosshair, then add waypoints in order. The route covers 50 m on each side.</string>

@@ -38,7 +38,6 @@ class EnvironmentScanner(private val context: Context) {
             for (network in networks) {
                 val caps = connectivityManager.getNetworkCapabilities(network)
                 if (caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) {
-                    // 确保这个 Wi-Fi 网络具备基础的连接能力
                     if (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
                         caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
                     ) {
@@ -58,7 +57,6 @@ class EnvironmentScanner(private val context: Context) {
             }
             val results = wifiManager.scanResults ?: emptyList()
 
-            // 1. 优先提取当前正在连接的 Wi-Fi 信息
             if (isWifiConnected && connectedBssid != null && connectedBssid != "02:00:00:00:00:00") {
                 val connObj = JSONObject()
                 connObj.put("bssid", connectedBssid)
@@ -71,7 +69,6 @@ class EnvironmentScanner(private val context: Context) {
                     }
 
                 val match = results.find { it.BSSID == connectedBssid }
-                // 如果是 unknown ssid 或为空，尝试从扫描结果中恢复真实 SSID
                 if (cleanSsid == "<unknown ssid>" || cleanSsid.isEmpty()) {
                     if (match != null && !match.SSID.isNullOrEmpty()) {
                         cleanSsid = match.SSID
@@ -84,7 +81,6 @@ class EnvironmentScanner(private val context: Context) {
                 connObj.put("frequency", connectionInfo.frequency)
                 connObj.put("channel", MacVendorHelper.frequencyToChannel(connectionInfo.frequency))
                 connObj.put("capabilities", match?.capabilities ?: "[WPA2-PSK-CCMP][ESS]")
-                // 普通 App 自 Android 6 起只能拿到占位值 02:00:00:00:00:00，直接写占位值，不再调用 getMacAddress
                 connObj.put("macAddress", "02:00:00:00:00:00")
                 try {
                     connObj.put("linkSpeed", connectionInfo.linkSpeed)
@@ -105,7 +101,6 @@ class EnvironmentScanner(private val context: Context) {
                 resultObj.put("connectedWifi", JSONObject.NULL)
             }
 
-            // 2. 提取周围扫描到的其他 Wi-Fi（去重，不包含当前已连接的）
             val nearbyArray = JSONArray()
             val seenBssids = mutableSetOf<String>()
             if (isWifiConnected && connectedBssid != null) {
@@ -138,9 +133,6 @@ class EnvironmentScanner(private val context: Context) {
 
     @SuppressLint("MissingPermission")
     suspend fun scanCell(): String = withContext(Dispatchers.IO) {
-        // 之前这里连了 Wi-Fi 就直接跳过基站扫描，但 Wi-Fi 和基站是同一个物理位置的两个
-        // 独立维度，并不互斥，跳过只会导致最常见的采集场景（家里/公司都连着 Wi-Fi）
-        // 永远采不到基站数据，纯属早期写错，去掉这个限制。
         val telephonyManager =
             context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val jsonArray = JSONArray()
@@ -186,7 +178,7 @@ class EnvironmentScanner(private val context: Context) {
                     obj.put("lac", cellLoc.lac)
                     obj.put("cid", cellLoc.cid)
                     obj.put("psc", cellLoc.psc)
-                    obj.put("dbm", -85) // 虚拟一个信号值
+                    obj.put("dbm", -85)
                     obj.put("mcc", 460)
                     obj.put("mnc", 0)
                     jsonArray.put(obj)
@@ -305,10 +297,8 @@ class EnvironmentScanner(private val context: Context) {
                     }
                 }
 
-                // 开始扫描
                 scanner.startScan(callback)
 
-                // 2 秒后停止扫描；绑定到外层挂起协程的 context，避免脱离生命周期成为孤儿协程
                 kotlinx.coroutines.CoroutineScope(cont.context).launch {
                     delay(2000)
                     try {
@@ -316,7 +306,6 @@ class EnvironmentScanner(private val context: Context) {
                     } catch (e: Exception) {
                     }
 
-                    // 去重并转换为 JSON
                     val deduped = resultsList.distinctBy { it.device.address }
                     deduped.forEach { res ->
                         val obj = JSONObject()
@@ -324,7 +313,6 @@ class EnvironmentScanner(private val context: Context) {
                         obj.put("name", res.device.name ?: "")
                         obj.put("rssi", res.rssi)
 
-                        // 如果可用，解析扫描记录的字节
                         val recordBytes = res.scanRecord?.bytes
                         if (recordBytes != null) {
                             val hexString = recordBytes.joinToString("") { "%02X".format(it) }

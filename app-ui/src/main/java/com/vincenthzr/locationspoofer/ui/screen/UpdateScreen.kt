@@ -55,14 +55,12 @@ fun UpdateScreen(
 
     BackHandler(onBack = onBack)
 
-    // 进入页面时自动检查一次最新版本
     LaunchedEffect(Unit) {
         if (uiState.releases.isEmpty()) {
             updateViewModel.fetchReleases()
         }
     }
 
-    // 根据是否接收 Beta 通道过滤候选版本
     val filteredReleases = remember(uiState.releases, appState.checkBetaUpdates) {
         if (appState.checkBetaUpdates) {
             uiState.releases
@@ -71,7 +69,6 @@ fun UpdateScreen(
         }
     }
 
-    // 查找比当前版本更新的未升级版本
     val missed = remember(filteredReleases, currentVersion) {
         filteredReleases.filter { isNewerVersion(it.versionName, currentVersion) }
     }
@@ -128,7 +125,6 @@ fun UpdateScreen(
                 )
             }
 
-            // 当前版本卡片（无大图标，Miuix 质感卡片，仅最新版支持忽略）
             item {
                 CurrentVersionHeroCard(
                     uiState = uiState,
@@ -146,7 +142,6 @@ fun UpdateScreen(
                 )
             }
 
-            // Beta 测试版通道开关
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     SwitchListItem(
@@ -158,7 +153,6 @@ fun UpdateScreen(
                 }
             }
 
-            // 更新日志及历史版本列表
             if (displayList.isNotEmpty()) {
                 item {
                     Text(
@@ -209,7 +203,6 @@ private fun CurrentVersionHeroCard(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            // 第一行：应用名，下方为方案与当前安装版本号徽章（同一行放不下，避免版本号被截断）
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = stringResource(R.string.app_name),
@@ -235,7 +228,6 @@ private fun CurrentVersionHeroCard(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // 状态标签：检查中 / 失败 / 发现新版本 / 已是最新 之间切换时淡入淡出
             val releaseStatus = when {
                 uiState.isLoading -> 0
                 uiState.error != null -> 1
@@ -313,7 +305,6 @@ private fun CurrentVersionHeroCard(
                 }
             }
 
-            // 下载进度或操作按钮（非全宽，精致尺寸，最新版本独有忽略此版本选项）
             val isDownloading = uiState.activeDownloadId != null
             if (isDownloading) {
                 if (uiState.downloadStatus == DownloadManager.STATUS_SUCCESSFUL) {
@@ -383,7 +374,6 @@ private fun CurrentVersionHeroCard(
                         }
                     }
 
-                    // 仅最新版显示“忽略此版本”
                     TextButton(onClick = { onIgnore(latestRelease.versionName) }) {
                         Text(stringResource(R.string.ignore_this_version))
                     }
@@ -457,10 +447,8 @@ private fun ReleaseItemCard(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // 更新说明详情（结构化渲染）
             RenderMarkdownContent(markdown = release.body)
 
-            // 操作按键（历史版本仅提供下载操作，不显示忽略）
             if (!isCurrentVersion && (release.downloadUrl != null || release.downloadUrl32Bit != null)) {
                 Spacer(Modifier.height(AppSpacing.xs))
                 Row(
@@ -486,7 +474,6 @@ private fun ReleaseItemCard(
                             }
                         }
 
-                        // 仅当包含 32 位安装包时展示
                         if (releaseDownloadUrl32Bit != null) {
                             OutlinedButton(
                                 onClick = {

@@ -93,12 +93,10 @@ fun MainScaffoldScreen(
     }
     val latestRelease = targetReleases.firstOrNull()
 
-    // 软件启动进入主界面时，立即在后台检索是否有新版本发布
     LaunchedEffect(Unit) {
         updateViewModel.fetchReleases()
     }
 
-    // 检测到未被忽略的新版本时弹出启动更新提示框
     LaunchedEffect(targetReleases, updateUiState.isLoading) {
         if (!hasAutoCheckedUpdates && !updateUiState.isLoading && targetReleases.isNotEmpty()) {
             if (latestRelease != null) {
@@ -123,14 +121,11 @@ fun MainScaffoldScreen(
         }
     }
 
-    // 底层地图被子页面盖住时不跟着切换引擎：切到百度 / 谷歌要在主线程销毁并新建地图视图，
-    // 在地图配置页里每点一次都会卡一下。等回到主界面再换成新引擎，期间只换一次。
     var mapEngineOnScreen by remember { mutableStateOf(uiState.mapEngine) }
     LaunchedEffect(currentSubScreen, uiState.mapEngine) {
         if (currentSubScreen == MainSubScreen.None) mapEngineOnScreen = uiState.mapEngine
     }
 
-    // 针对非首页 Tab（路线/功能/信息）的系统返回拦截：返回到定位首页
     BackHandler(enabled = currentSubScreen == MainSubScreen.None && selectedTab != BottomTab.Location.ordinal) {
         selectedTab = BottomTab.Location.ordinal
     }
@@ -142,7 +137,6 @@ fun MainScaffoldScreen(
         }
     }
 
-    // M3 标准动效：位移 / 尺寸用 spatial 弹簧，透明度 / 缩放等非位移效果用 effects 弹簧
     val motion = AppMotion
 
     val selectPage: (Int) -> Unit = { index ->
@@ -176,7 +170,6 @@ fun MainScaffoldScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                // 底层地图层（定位与路线 Tab 共享）
                 Box(modifier = Modifier.fillMaxSize()) {
                     AppMapView(
                         modifier = Modifier.fillMaxSize(),
@@ -213,7 +206,6 @@ fun MainScaffoldScreen(
                         }
                     )
 
-                    // 定位选点十字准心（仅在定位 Tab 显示）
                     AnimatedVisibility(
                         visible = selectedTab == 0,
                         modifier = Modifier.align(Alignment.Center),
@@ -231,7 +223,6 @@ fun MainScaffoldScreen(
                     }
                 }
 
-                // 底部 Tab 内容切换：整页左右滑动，按 Tab 顺序决定方向
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
@@ -285,7 +276,6 @@ fun MainScaffoldScreen(
             }
         }
 
-        // 全屏子页面覆盖层：从右侧整页滑入，返回时向右滑出
         SubPageOverlay(visible = currentSubScreen != MainSubScreen.None) {
             val subScreenToRender =
                 if (currentSubScreen != MainSubScreen.None) currentSubScreen else activeSubScreen
@@ -368,7 +358,6 @@ fun MainScaffoldScreen(
             }
         }
 
-        // 启动时若检测到新版本，弹出更新弹窗（支持忽略此版本、前往更新）
         if (showStartupUpdateDialog && latestRelease != null) {
             StartupUpdateDialog(
                 latestRelease = latestRelease,

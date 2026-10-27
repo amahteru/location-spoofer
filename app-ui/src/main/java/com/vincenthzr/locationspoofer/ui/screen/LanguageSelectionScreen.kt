@@ -35,7 +35,6 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
     val context = LocalContext.current
     val systemLocale = LocalLocale.current.platformLocale.language
 
-    // 如果支持，则默认为系统语言，否则使用 English
     val defaultLang = when {
         systemLocale.startsWith("zh") -> "zh"
         else -> "en"

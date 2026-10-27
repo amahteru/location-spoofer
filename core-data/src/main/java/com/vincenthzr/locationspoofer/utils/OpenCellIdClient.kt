@@ -11,7 +11,6 @@ import java.util.Locale
 class OpenCellIdClient {
     private val client = OkHttpClient()
 
-    /** 验证 token 是否有效 */
     suspend fun validateToken(token: String): Boolean = withContext(Dispatchers.IO) {
         if (token.isBlank()) {
             return@withContext false
@@ -27,8 +26,6 @@ class OpenCellIdClient {
                 val body = response.body.string() ?: return@withContext false
                 val json = JSONObject(body)
                 if (json.has("error")) {
-                    // code 1 表示“未找到基站”，这实际上验证了密钥存在并且有效。
-                    // code 2 表示“API Key not known”或其他代码指示密钥无效。
                     json.optInt("code") == 1
                 } else {
                     true
@@ -41,7 +38,6 @@ class OpenCellIdClient {
         }
     }
 
-    /** 根据经纬度获取基站数据，无数据时返回空数组字符串"[]"，不生成假数据 */
     suspend fun fetchCellData(lat: Double, lng: Double, token: String): String =
         withContext(Dispatchers.IO) {
             if (token.isBlank()) {
@@ -75,8 +71,6 @@ class OpenCellIdClient {
                             continue
                         }
                         return@withContext normalizedCells.toString()
-                    } else {
-                        // 请求未成功，尝试下一个半径
                     }
                 }
                 return@withContext "[]"

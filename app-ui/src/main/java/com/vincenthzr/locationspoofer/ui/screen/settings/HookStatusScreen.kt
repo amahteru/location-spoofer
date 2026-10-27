@@ -31,17 +31,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 本次开机的时间点，早于它写出的报告说明本次开机模块没有在该进程里生效 */
 internal fun bootTimeMs(): Long = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime()
 
-/** 一级页面上的一句话概括，例如"8/9 个组件已挂载"；没有任何有效报告时返回 null */
 internal fun hookStatusSummary(reports: Map<String, HookStatusReport?>): Pair<Int, Int>? {
     val fresh = reports.values.filterNotNull().filterNot { it.isStale(bootTimeMs()) }
     if (fresh.isEmpty()) return null
     return fresh.sumOf { it.hookedCount } to fresh.sumOf { it.components.size }
 }
 
-/** 系统适配页的二级页面：各系统进程的 Hook 运行状态 */
 @Composable
 fun HookStatusScreen(
     reports: Map<String, HookStatusReport?>,
@@ -181,7 +178,6 @@ private fun ComponentRow(component: HookStatusReport.Component) {
                     )
                 }
                 if (absent.isNotEmpty()) {
-                    // 全部 ×0 时说明类找对了但方法都不在，要重点看；部分 ×0 多为兼容其他 Android 版本的备用方法名
                     Text(
                         stringResource(R.string.hook_status_absent_methods, absent.joinToString(", ") { it.key }),
                         style = MaterialTheme.typography.bodySmall,
@@ -206,7 +202,6 @@ private fun processName(process: String): Int = when (process) {
     else -> R.string.hook_process_unknown
 }
 
-/** xposed 模块 SystemComponent 的显示名；新增组件时在这里和字符串资源里补上，没补时直接显示枚举名 */
 @StringRes
 private fun componentName(name: String): Int? = when (name) {
     "LOCATION_MANAGER_SERVICE" -> R.string.hook_component_location_manager_service

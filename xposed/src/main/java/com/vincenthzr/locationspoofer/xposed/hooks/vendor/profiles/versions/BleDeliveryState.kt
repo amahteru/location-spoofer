@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.xposed.hooks.vendor.profiles.versions
 
-/** Per-scan synthetic timing, independent from Android so lifecycle edge cases are testable. */
 internal class BleDeliveryState<T>(startedAt: Long) {
     private data class Seen<T>(var value: T, var lastSeen: Long)
     private val seen = linkedMapOf<String, Seen<T>>()

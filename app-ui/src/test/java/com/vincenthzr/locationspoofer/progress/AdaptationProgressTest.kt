@@ -10,8 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AdaptationProgressTest {
-
-    /** 直接用仓库里真实的进度文档，文档结构改坏了这里会第一时间发现 */
     private val doc = File("../ADAPTATION_PROGRESS.md").readText()
 
     @Test
@@ -43,7 +41,6 @@ class AdaptationProgressTest {
         }
     }
 
-    /** 英文版（非中文界面显示）：每个系统都能查到，且状态和中文版一致，防止两份文档改漏 */
     @Test
     fun `english edition matches the chinese status of every system family`() {
         val en = File("../ADAPTATION_PROGRESS_EN.md").readText()

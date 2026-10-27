@@ -52,7 +52,6 @@ interface AppMapController {
     fun setDarkMode(isDark: Boolean, context: android.content.Context)
 }
 
-// Re-export implementations for backwards compatibility if needed
 typealias AMapControllerImpl = com.vincenthzr.locationspoofer.ui.components.map.AMapControllerImpl
 typealias BaiduMapControllerImpl = com.vincenthzr.locationspoofer.ui.components.map.BaiduMapControllerImpl
 typealias GMapControllerImpl = com.vincenthzr.locationspoofer.ui.components.map.GMapControllerImpl

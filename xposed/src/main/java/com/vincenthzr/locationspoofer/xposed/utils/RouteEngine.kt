@@ -15,19 +15,9 @@ data class SpoofedMotion(
     val speed: Float
 )
 
-/**
- * 根据配置和当前时间推导模拟位置：路线模式沿路线插值，摇杆模式按方向和速度推算，其余返回配置里的固定坐标。
- * 路线几何与 App 端共用 [RoutePath]，保证两端对同一时刻算出同一位置。
- */
 object RouteEngine {
-
-    /**
-     * 摇杆模式：App 约每秒写一次"当前位置 + 方向 + 速度"，两次写入之间在这里按方向和速度往前推算，
-     * 让被 Hook 的 App 看到连续移动而不是每秒跳一下。推算时长有上限，防止 App 被杀后位置一直漂走。
-     */
     private const val JOYSTICK_MAX_EXTRAPOLATION_MS = 3000L
 
-    // 配置 JSON 只在文件变化时才重新解析，同一个 JSONArray 实例对应同一条路线，按实例缓存即可
     @Volatile private var cachedRouteArray: JSONArray? = null
     @Volatile private var cachedPath: RoutePath? = null
 
@@ -75,7 +65,6 @@ object RouteEngine {
         val startTime = if (rawStartTime > 0L) rawStartTime else now
         val elapsedSec = (now - startTime).coerceAtLeast(0L) / 1000.0
         val realism = realismSession(config, startTime)
-        // 暂停后继续时，路线从暂停处的累计距离接着走（start_timestamp 重置为继续的时刻）
         val offset = config.optDouble("route_distance_offset", 0.0).coerceAtLeast(0.0)
         val traveled = offset + realism.distance(speed, elapsedSec)
 
@@ -84,10 +73,6 @@ object RouteEngine {
         return SpoofedMotion(pos.lat, pos.lng, pos.bearing, currentSpeed)
     }
 
-    /**
-     * 当前位置的海拔：基准海拔 ± 变化范围内随地形起伏，叠加随机强度对应的缓慢漂移（见 [AltitudeModel]），
-     * 各进程对同一时刻给出一致的值。旧版配置没有变化范围字段时，按随机强度的漂移幅度处理。
-     */
     fun realisticAltitude(config: JSONObject, now: Long = System.currentTimeMillis()): Double {
         val base = config.optDouble("altitude", 25.0)
         val drift = MotionRealism.Level.fromId(config.optInt("realism_level", MotionRealism.Level.OFF.id)).altitudeAmplitudeM
@@ -97,7 +82,6 @@ object RouteEngine {
         return AltitudeModel.altitude(base, variation, drift, pos.lat, pos.lng, now)
     }
 
-    /** 配置里缺少真实度字段（旧版 App 写的配置）时按"关闭 + 不浮动"处理，行为与旧版一致 */
     fun realismSession(config: JSONObject, startTimestamp: Long = config.optLong("start_timestamp", 0L)): MotionRealism.Session =
         MotionRealism.session(
             startTimestamp,

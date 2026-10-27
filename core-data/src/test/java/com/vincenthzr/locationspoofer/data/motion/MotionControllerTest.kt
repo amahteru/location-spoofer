@@ -36,7 +36,6 @@ class MotionControllerTest {
         }
     }
 
-    /** 配置写入在后台协程里异步执行，等它落到 FakeSink */
     private fun awaitUntil(condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + 2000
         while (!condition() && System.currentTimeMillis() < deadline) Thread.sleep(10)
@@ -49,7 +48,7 @@ class MotionControllerTest {
     private val controller = MotionController(sink, realismParams = { 0 to 0 }, clock = { now }, autoTick = false)
 
     private val start = LatLng(30.0, 120.0)
-    private val end = GeoMath.destination(start, 0.0, 1000.0) // 正北 1000 米
+    private val end = GeoMath.destination(start, 0.0, 1000.0)
 
     private fun here() = LatLng(controller.state.value.lat, controller.state.value.lng)
 
@@ -79,7 +78,7 @@ class MotionControllerTest {
         startRoute()
         controller.joystick(90.0, 1f)
         advance(5_000)
-        assertEquals(10.0, GeoMath.distance(start, here()), 0.1) // 仍沿路线正北行进，没有被摇杆带偏
+        assertEquals(10.0, GeoMath.distance(start, here()), 0.1)
     }
 
     @Test
@@ -92,10 +91,10 @@ class MotionControllerTest {
         awaitUntil { sink.manual.isNotEmpty() }
         assertEquals(0.0, sink.manual.last().speed, 0.0)
 
-        advance(5_000) // 没推摇杆，位置不动
+        advance(5_000)
         assertEquals(0.0, GeoMath.distance(paused, here()), 1e-6)
 
-        controller.joystick(90.0, 1f) // 推满向东
+        controller.joystick(90.0, 1f)
         advance(1_000)
         assertEquals(2.0, GeoMath.distance(paused, here()), 0.05)
         controller.joystick(0.0, 0f)
@@ -105,17 +104,16 @@ class MotionControllerTest {
     @Test
     fun `resume walks back to the pause point and continues from the paused distance`() {
         startRoute()
-        advance(10_000) // 路线上走了 20 米
+        advance(10_000)
         controller.pause()
         val pausePoint = here()
         controller.joystick(90.0, 1f)
-        repeat(5) { advance(1_000) } // 向东走开 10 米
+        repeat(5) { advance(1_000) }
         controller.joystick(0.0, 0f)
         assertEquals(10.0, GeoMath.distance(pausePoint, here()), 0.1)
 
         controller.resume()
         assertTrue(controller.state.value.returning)
-        // 以 2 m/s 走回 10 米，全程逐步靠近、没有瞬移
         var last = GeoMath.distance(pausePoint, here())
         repeat(20) {
             if (!controller.state.value.returning) return@repeat
@@ -130,7 +128,7 @@ class MotionControllerTest {
         awaitUntil { sink.routes.isNotEmpty() }
         assertEquals(20.0, sink.routes.last().offset, 0.01)
 
-        advance(5_000) // 接着原路线走：20 + 10 = 30 米
+        advance(5_000)
         assertEquals(30.0, GeoMath.distance(start, here()), 0.1)
     }
 
@@ -143,7 +141,7 @@ class MotionControllerTest {
         controller.tick(now)
         assertEquals(0.0, GeoMath.distance(before, here()), 0.01)
         advance(5_000)
-        assertEquals(40.0, GeoMath.distance(start, here()), 0.1) // 20 米 + 4 m/s × 5 秒
+        assertEquals(40.0, GeoMath.distance(start, here()), 0.1)
     }
 
     @Test
@@ -152,9 +150,9 @@ class MotionControllerTest {
         controller.setSpeedPreset(walking)
         controller.tick(now)
         controller.startRecording()
-        controller.joystick(90.0, 1f) // 向东 30 米
+        controller.joystick(90.0, 1f)
         repeat(15) { advance(1_000) }
-        controller.joystick(0.0, 1f) // 转向正北 10 米
+        controller.joystick(0.0, 1f)
         repeat(5) { advance(1_000) }
         controller.joystick(0.0, 0f)
         controller.stopRecording()
@@ -167,7 +165,6 @@ class MotionControllerTest {
         val (name, points) = sink.saved!!
         assertEquals("测试路线", name)
         assertEquals(start.lat, points.first().lat, 1e-9)
-        // 直线段约每 5 米一个点，不会每 100ms 记一次
         assertTrue(points.size in 7..12)
         assertFalse(controller.state.value.hasPendingRecording)
     }
@@ -183,18 +180,18 @@ class MotionControllerTest {
         assertTrue(controller.state.value.hasRoute)
         assertEquals(MotionController.Mode.MANUAL, controller.state.value.mode)
 
-        controller.joystick(90.0, 1f) // 先用摇杆向东走开 6 米
+        controller.joystick(90.0, 1f)
         repeat(3) { advance(1_000) }
         controller.joystick(0.0, 0f)
 
-        controller.resume() // "开始"：先走回路线起点
+        controller.resume()
         assertTrue(controller.state.value.returning)
         repeat(10) { if (controller.state.value.returning) advance(1_000) }
         assertEquals(MotionController.Mode.ROUTE, controller.state.value.mode)
         awaitUntil { sink.routes.isNotEmpty() }
         assertEquals(0.0, sink.routes.last().offset, 1e-9)
 
-        advance(5_000) // 然后沿路线正北前进 10 米
+        advance(5_000)
         assertEquals(10.0, GeoMath.distance(start, here()), 0.1)
     }
 

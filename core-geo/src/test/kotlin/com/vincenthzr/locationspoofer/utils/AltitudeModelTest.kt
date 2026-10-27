@@ -10,7 +10,6 @@ class AltitudeModelTest {
     private val start = CoordinateUtils.LatLng(23.1066, 113.3245)
     private val t0 = 1_789_398_037_217L
 
-    /** 沿正东方向每隔 stepM 采样一次海拔 */
     private fun profile(variation: Double, drift: Double, lengthM: Double, stepM: Double, epochMs: Long = t0): List<Double> =
         (0..(lengthM / stepM).toInt()).map {
             val p = GeoMath.destination(start, 90.0, it * stepM)
@@ -36,7 +35,6 @@ class AltitudeModelTest {
         val a = AltitudeModel.altitude(50.0, 20.0, 0.0, start.lat, start.lng, t0)
         val b = AltitudeModel.altitude(50.0, 20.0, 0.0, start.lat, start.lng, t0 + 3_600_000)
         assertEquals(a, b, 0.0)
-        // 有漂移时站着不动，1 秒内的变化远小于 1 米
         val c = AltitudeModel.altitude(50.0, 20.0, 3.0, start.lat, start.lng, t0)
         val d = AltitudeModel.altitude(50.0, 20.0, 3.0, start.lat, start.lng, t0 + 1000)
         assertTrue(abs(c - d) < 0.5)

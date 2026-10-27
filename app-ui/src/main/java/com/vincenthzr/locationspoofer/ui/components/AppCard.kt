@@ -11,9 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 全局通用卡片：Material3 Filled Card（surfaceContainerHighest 底色、medium 形状）
- */
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,

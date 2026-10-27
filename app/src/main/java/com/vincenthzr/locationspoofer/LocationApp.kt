@@ -61,7 +61,6 @@ class LocationApp : Application(), XposedServiceHelper.OnServiceListener {
             modules(appModules)
         }
 
-        // Create the config publisher before registering; it observes the current service and rebinds.
         org.koin.java.KoinJavaComponent.get<com.vincenthzr.locationspoofer.utils.ConfigManager>(
             com.vincenthzr.locationspoofer.utils.ConfigManager::class.java
         )

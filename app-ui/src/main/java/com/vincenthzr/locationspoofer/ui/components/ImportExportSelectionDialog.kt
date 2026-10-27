@@ -23,10 +23,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 导入 / 导出共用的分类选择对话框。
- * 导出时 counts 是"当前设备上有多少"，导入时是"文件里有多少"；数量为 0 的分类禁用。
- */
 @Composable
 fun ImportExportSelectionDialog(
     isExport: Boolean,

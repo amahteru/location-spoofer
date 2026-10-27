@@ -17,7 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng
 import com.vincenthzr.locationspoofer.utils.GeoMath
 
-/** Real Room invalidation and ViewModel regression, isolated from the user's database. */
 internal fun Instrumentation.verifyEnvironmentRefresh(): Bundle {
     val output = Bundle()
     val database = Room.inMemoryDatabaseBuilder(targetContext, AppDatabase::class.java).build()
@@ -179,7 +178,6 @@ private suspend fun verifyCollectionMerge(dao: EnvironmentDao, checks: MutableLi
     check(merged.location.selectedBluetoothAddress == bluetooth.address)
     checks += "merge-19.9m-preserves-anchor-metadata-devices"
 
-    // 更新全局设备信息不能通过 REPLACE 级联删除任何点位的关联。
     val otherId = dao.insertLocation(LocationRecord(lat = 40.0, lng = 117.0))
     dao.insertLocationWifi(LocationWifi(otherId, wifi.bssid))
     dao.insertLocationBluetooth(LocationBluetooth(otherId, bluetooth.address))

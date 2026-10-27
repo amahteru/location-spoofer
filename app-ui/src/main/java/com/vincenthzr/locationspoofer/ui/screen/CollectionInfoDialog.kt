@@ -19,7 +19,6 @@ import com.vincenthzr.locationspoofer.viewmodel.skipCollectionRouteInfo
 import java.util.Locale
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 位于主界面层，采集中切换页面也能在停止后填写点位信息。 */
 @Composable
 fun CollectionInfoDialogHost(viewModel: MainViewModel, uiState: AppState) {
     val route = uiState.pendingCollectionRoute

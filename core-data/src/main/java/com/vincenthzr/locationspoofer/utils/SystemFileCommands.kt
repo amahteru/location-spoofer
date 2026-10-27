@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.utils
 
-/** Root is used for diagnostics and one-time legacy cleanup, never configuration delivery. */
 internal object SystemFileCommands {
     private const val ROOT = "/proc/1/root"
     private fun quote(value: String) = "'" + value.replace("'", "'\"'\"'") + "'"
@@ -10,7 +9,6 @@ internal object SystemFileCommands {
         return paths.joinToString(" || ") { "cat ${quote(ROOT + it)} 2>/dev/null" }
     }
 
-    // 这是交给 root shell 执行的清理命令，目标就是系统和其它进程的固定数据目录，不是本 App 自己的文件
     @android.annotation.SuppressLint("SdCardPath")
     fun removeLegacyConfigs(): String = """
         set -e

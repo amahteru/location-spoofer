@@ -7,22 +7,6 @@ import java.lang.reflect.*
 import kotlin.math.*
 import io.github.libxposed.api.*
 
-/**
- * Xposed 反射辅助工具类 (Xposed Helpers)
- * 
- * 上下文:
- * LSPosed 等 Xposed 框架提供了底层的 Hook 能力，但在实际开发中，直接操作 Java 反射 (Reflection) 
- * 查找类、方法、修改私有字段的过程极其繁琐，且容易抛出异常。
- * 
- * 作用:
- * 提供一层封装，简化对类、方法、字段的查找和修改操作。
- * 关键部分解释:
- * 1. findAndHookMethod / hookAllMethods: 最核心的 Hook 方法，通过它我们可以拦截目标 App 甚至 Android 系统的任意函数调用。
- * 2. getObjectField / setObjectField: 绕过 Java 的 private 权限控制，强行读取或修改任意对象的私有变量。
- *    这在清除系统原生的 `mIsFromMockProvider` 标志位时起到了决定性作用。
- */
-
-
 object XposedHelpers {
     lateinit var module: XposedModule
 
@@ -176,10 +160,6 @@ object XposedHelpers {
         throw NoSuchMethodException("Constructor for " + clazz.name + " not found")
     }
 
-
-    /**
-     * 现代 Kotlin DSL 语法的 hookAllMethods 封装
-     */
     inline fun hookAllMethods(
         clazz: Class<*>,
         methodName: String,
@@ -203,7 +183,6 @@ object XposedHelpers {
                 }
             }
         }
-        // 记进 Hook 状态报告：0 表示这个系统版本上该类没有这个方法（方法被改名或挪走了）
         com.vincenthzr.locationspoofer.xposed.diagnostics.HookStatus.methodHooked(clazz.name, methodName, hooked)
         return handles
     }

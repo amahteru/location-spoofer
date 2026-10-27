@@ -85,10 +85,6 @@ fun LocationControlPanel(
         )
     }
 
-    // 抽屉单通道物理 Spring 滑动位移：
-    // EXPANDED（完全展开）：偏移为 0dp，整张收藏卡片向上抽拉拉出至屏幕中央，完整展现
-    // DEFAULT（默认下沉状态）：向下偏移 savedCardHeightDp + 8dp，定点模拟按钮正好保持在 TabBar 上方稍微一点点（~8dp），收藏卡片全部自然下沉延伸至屏幕下方边缘外
-    // COLLAPSED（折叠状态）：向下偏移 savedCardHeightDp + coordCardHeightDp + 16dp，坐标卡片也顺畅下沉隐藏，仅留单行搜索操作栏稳稳停留在 TabBar 上方
     val rawDrawerOffsetY by animateDpAsState(
         targetValue = when (panelState) {
             LocationPanelState.EXPANDED -> 0.dp
@@ -113,7 +109,6 @@ fun LocationControlPanel(
             verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 顶部阻尼拖拽药丸指示条（支持点击快速折叠/展开与拖拽）
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,7 +124,6 @@ fun LocationControlPanel(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                // M3 拖动手柄：32x4dp、onSurfaceVariant 40%
                 Surface(
                     modifier = Modifier.size(width = 32.dp, height = 4.dp),
                     shape = MaterialTheme.shapes.extraLarge,
@@ -137,7 +131,6 @@ fun LocationControlPanel(
                 ) {}
             }
 
-            // 顶部常驻搜索栏行（无论是否折叠都平滑存在，右侧操作按钮采用柔和弥散阴影与平滑横向伸展）
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,7 +144,6 @@ fun LocationControlPanel(
                         .height(56.dp)
                 )
 
-                // 正在模拟时的停止模拟按钮
                 AnimatedVisibility(
                     visible = uiState.isSpoofingActive,
                     enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
@@ -167,7 +159,6 @@ fun LocationControlPanel(
                     )
                 }
 
-                // 未模拟且处于 COLLAPSED 状态下的定点模拟胶囊按钮（间距内聚，收缩与渐隐严格同周期，绝无二次伸长）
                 AnimatedVisibility(
                     visible = !uiState.isSpoofingActive && panelState == LocationPanelState.COLLAPSED,
                     enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
@@ -194,7 +185,6 @@ fun LocationControlPanel(
                 }
             }
 
-            // 目标坐标及操作卡片（包含定点模拟按钮，随抽屉 offset 顺畅沉降）
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -231,7 +221,6 @@ fun LocationControlPanel(
                 }
             }
 
-            // 收藏地点卡片：支持海量坐标平滑滚动，并支持抽拉下沉
             SavedLocationsCard(
                 modifier = Modifier.onGloballyPositioned {
                     if (it.size.height > 0) {

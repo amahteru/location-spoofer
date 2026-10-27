@@ -14,9 +14,6 @@ android {
     defaultConfig {
         minSdk = 26
 
-        // 库模块没有自己的 versionName，这里手动生成一个同名 BuildConfig 字段，
-        // 和 :app 共用 gradle.properties 里的同一个版本号来源，
-        // 供 UpdateScreen/InfoTab/MainScaffoldScreen 里的 BuildConfig.VERSION_NAME 读取当前版本号
         buildConfigField(
             "String",
             "VERSION_NAME",
@@ -39,7 +36,6 @@ android {
     }
 }
 
-/** 把仓库根目录的适配进度文档（中英文两份）复制进 assets，App 联网取不到最新版时显示这份 */
 abstract class BundleAdaptationProgress : DefaultTask() {
     @get:InputFiles
     abstract val sources: ConfigurableFileCollection

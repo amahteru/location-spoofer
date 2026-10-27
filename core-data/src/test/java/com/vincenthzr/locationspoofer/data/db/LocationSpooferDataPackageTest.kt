@@ -7,22 +7,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * 导入导出数据包的序列化契约测试。
- * 这里锁住两件最容易悄悄出问题、又最难靠手测发现的事：
- * 1. 没勾选 API 密钥时，导出的 JSON 里绝不能出现密钥内容（分享场景下这是隐私事故）。
- * 2. 旧的 version 2 文件（没有 settings/apiKeys 字段）必须还能被解析。
- */
 class LocationSpooferDataPackageTest {
-
-    // 与 MainViewModel.exportEnvironmentData 中使用的配置保持一致
     private val exportJson = Json {
         prettyPrint = true
         encodeDefaults = true
         ignoreUnknownKeys = true
     }
 
-    // 与 MainViewModel.parseImportPackageInternal 中使用的配置保持一致
     private val importJson = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -42,9 +33,7 @@ class LocationSpooferDataPackageTest {
 
         val text = exportJson.encodeToString(pkg)
 
-        // 结构上 apiKeys 必须是 null，而不是一个内容为空字符串的对象
         assertTrue(text.contains("\"apiKeys\": null"))
-        // 任何一个密钥字段名都不应该出现在文件里
         listOf(
             "amapApiKey", "baiduApiKey", "googleApiKey",
             "wigleApiToken", "opencellidApiToken"
@@ -65,7 +54,6 @@ class LocationSpooferDataPackageTest {
 
     @Test
     fun `旧的 version 2 文件仍然可以解析，settings 与 apiKeys 落到 null`() {
-        // 模拟 2.6.x 之前导出的文件：没有 settings / apiKeys 字段，还带着已删除的 appCoordinateSystems 等字段
         val legacyV2 = """
             {
               "version": 2,

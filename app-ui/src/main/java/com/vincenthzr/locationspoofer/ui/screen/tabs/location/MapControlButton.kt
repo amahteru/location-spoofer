@@ -7,7 +7,6 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** 地图上的悬浮操作按钮：M3 Small FAB（surface 容器色、primary 图标） */
 @Composable
 fun MapControlButton(
     icon: ImageVector,

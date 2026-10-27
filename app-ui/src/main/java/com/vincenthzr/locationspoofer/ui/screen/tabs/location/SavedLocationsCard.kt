@@ -25,7 +25,6 @@ import java.util.Locale
 import androidx.compose.foundation.clickable
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-// 动态可滑动高度的收藏地点卡片（支持无限数量坐标平滑滚动，并支持抽拉下沉）
 @Composable
 fun SavedLocationsCard(
     modifier: Modifier = Modifier,
@@ -37,7 +36,6 @@ fun SavedLocationsCard(
     onOpenManageDialog: () -> Unit,
     dragGestureModifier: Modifier = Modifier
 ) {
-    // 与上方坐标卡片同一层级：surfaceContainerLow + 一级阴影的 extraLarge 浮层
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge,
@@ -45,7 +43,6 @@ fun SavedLocationsCard(
         shadowElevation = 3.dp
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm)) {
-            // 卡片头部（支持拖拽展开/折叠）
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -89,7 +86,6 @@ fun SavedLocationsCard(
                 }
             }
 
-            // 卡片主体内容（海量坐标平滑滚动，限制最大高度避免溢出屏幕）
             if (savedLocations.isEmpty()) {
                 Row(
                     modifier = Modifier

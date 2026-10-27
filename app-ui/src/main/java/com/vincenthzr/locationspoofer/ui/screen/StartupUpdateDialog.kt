@@ -33,7 +33,6 @@ fun StartupUpdateDialog(
         title = { Text(stringResource(R.string.new_version_found)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                // 更新只会下载与当前安装一致的方案变体
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     StatusLabel(text = "v$cleanVersion")
                 }

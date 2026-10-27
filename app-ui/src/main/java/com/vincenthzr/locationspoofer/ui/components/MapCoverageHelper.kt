@@ -7,11 +7,6 @@ import com.vincenthzr.locationspoofer.ui.theme.success
 import androidx.compose.material3.MaterialTheme
 
 object MapCoverageHelper {
-    /**
-     * 高性能空间网格降采样覆盖圆圈绘制：
-     * 1. 密集重叠区域降采样：对距离较近（< 30米）的密集重叠点位进行空间聚合合并，避免在底层地图 SDK 中创建成千上万个 Native Circle 对象造成 GPU 渲染管线雪崩。
-     * 2. 硬性绘制上限截断：将单次绘制的原生圆圈数量控制在 180 个以内，确保地图即使在拥有几万条历史数据时依然保持 120 FPS 丝滑拖拽与缩放。
-     */
     fun drawCoverage(
         controller: AppMapController,
         locations: List<LocationRecord>,
@@ -20,7 +15,7 @@ object MapCoverageHelper {
     ) {
         if (locations.isEmpty()) return
 
-        val fillColor = argb(50, 46, 204, 113) // 带透明度的 MaterialTheme.colorScheme.success
+        val fillColor = argb(50, 46, 204, 113)
         val strokeColor = argb(100, 46, 204, 113)
 
         val targetList = if (locations.size > 180) {

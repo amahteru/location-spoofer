@@ -87,7 +87,6 @@ fun UpdateCheckCard(
         onClick = onCheckClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // 发现新版本时用 M3 Badge 标出版本号
                 if (showNew) {
                     Badge { Text("v$cleanNewVersion") }
                     Spacer(Modifier.width(AppSpacing.sm))

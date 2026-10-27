@@ -11,7 +11,6 @@ import kotlinx.serialization.decodeFromString
 
 private val collectionRouteJson = Json { ignoreUnknownKeys = true }
 
-// 路径不可变；模拟每 100 ms 更新位置时复用已解析路径，并限制缓存数量。
 private val geometryCache = object : LinkedHashMap<String, List<LatLng>>(64, 0.75f, true) {
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<LatLng>>): Boolean = size > 64
 }

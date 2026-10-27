@@ -13,7 +13,6 @@
             android:name=".FloatingJoystickService"
             android:enabled="true"
             android:exported="false" />
-        <!-- 给 Tasker / MacroDroid 等自动化 App 用的公开入口，故意不要求权限；只能启动用户已保存的收藏点 -->
         <receiver
             android:name=".SpoofingControlReceiver"
             android:exported="true"

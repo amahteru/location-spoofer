@@ -22,11 +22,6 @@ import java.util.WeakHashMap
 import java.util.function.Function
 import java.util.function.Predicate
 
-/**
- * ColorOS 16 (Android 16) adapter. Validation scope is documented in docs/adaptation/coloros16.md.
- * Only per-request copies enter the existing framework delivery path. Provider caches,
- * Binder permission checks, coarse-location filtering and cancellation remain Android's job.
- */
 @androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 internal class ColorOs16LocationDelivery(
     private val module: LocationHooker,
@@ -67,8 +62,6 @@ internal class ColorOs16LocationDelivery(
             val result = Class.forName("android.location.LocationResult", false, loader)
             val request = Class.forName("android.location.LastLocationRequest", false, loader)
 
-            // Probe all required signatures before installing anything. Do not silently fall
-            // back to the legacy global cache mutation when a different ROM changes them.
             getIdentity = registrationClass.getDeclaredMethod("getIdentity").accessible()
             getUid = identity.getMethod("getUid").accessible()
             getPackageName = identity.getMethod("getPackageName").accessible()
@@ -113,7 +106,6 @@ internal class ColorOs16LocationDelivery(
                 original
             }
             hook(reported) { chain ->
-                // Observe existing managers after a hot reload; never rewrite provider input.
                 chain.thisObject?.let { managers.add(it) }
                 chain.proceed(chain.args.toTypedArray())
             }
@@ -124,7 +116,6 @@ internal class ColorOs16LocationDelivery(
                 val target = owner != null && caller != null && config != null &&
                     isTarget(owner, caller, config)
                 val original = lastLocationScope.withValue(if (target) owner else null) {
-                    // All original enabled-state, AppOps and coarse-location checks still run.
                     chain.proceed(chain.args.toTypedArray())
                 }
                 original
@@ -141,7 +132,6 @@ internal class ColorOs16LocationDelivery(
                 hook(delivery) { chain ->
                     val registration = chain.thisObject
                     val originalResult = chain.args[0]
-                    // A null single-shot result means cancellation/timeout/inactive: keep it null.
                     val replacement = if (registration != null && originalResult != null) {
                         guarded("location delivery") {
                             val owner = ownerField.get(registration)
@@ -158,8 +148,6 @@ internal class ColorOs16LocationDelivery(
                 }
             }
 
-            // getLastLocationUnsafe may already be inlined into this system-server method.
-            // Its caller must run through the hook for the scoped replacement to take effect.
             check(module.deoptimize(getLast)) { "Unable to deoptimize getLastLocation" }
 
             enabled = true
@@ -193,8 +181,6 @@ internal class ColorOs16LocationDelivery(
         if (config == null || !config.optBoolean("active", false)) return
         for (owner in snapshot) {
             guarded("provider heartbeat") {
-                // Use Android's multiplexer lock, reentrancy guard and active-registration
-                // filter. Android performs expiration, AppOps, throttling, removal and IPC.
                 val operation = Function<Any, Any?> { registration ->
                     guarded("registration heartbeat") registration@{
                         if (!enabled) return@registration null
@@ -217,7 +203,6 @@ internal class ColorOs16LocationDelivery(
             val uid = getUid.invoke(caller) as Int
             val pkg = getPackageName.invoke(caller) as String
             if (!SystemHookUtils.isTargetCaller(owner, pkg, config, uid)) return@guarded false
-            // Protect whatever provider the ROM actually binds, in addition to known packages.
             val locationInternal = internalField.get(owner) ?: return@guarded false
             isProvider.invoke(locationInternal, null, caller) != true
         } ?: false
@@ -235,7 +220,6 @@ internal class ColorOs16LocationDelivery(
 
     private fun copyResult(original: Any, config: JSONObject): Any? {
         val motion = module.getCurrentSpoofedMotion("WGS-84") ?: return null
-        // Deep-copy both Location and extras. Never mutate data shared with another registration.
         val copy = deepCopyResult.invoke(original)
         val locations = resultAsList.invoke(copy) as List<*>
         for (item in locations) {

@@ -10,11 +10,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 
-/*
- * M3 配色方案：主界面与悬浮摇杆窗共用，故放在两者都依赖的 core-data 模块。
- */
-
-// 语义状态色（成功 / 警告）：M3 自定义配色角色，按当前配色方案的明暗取对应色调
 private val ColorScheme.isDark: Boolean get() = surface.luminance() < 0.5f
 
 val ColorScheme.success: Color get() = if (isDark) Color(0xFF9DD67D) else Color(0xFF386A20)
@@ -27,7 +22,6 @@ val ColorScheme.onWarning: Color get() = if (isDark) Color(0xFF412D00) else Colo
 val ColorScheme.warningContainer: Color get() = if (isDark) Color(0xFF5E4200) else Color(0xFFFFDEA6)
 val ColorScheme.onWarningContainer: Color get() = if (isDark) Color(0xFFFFDEA6) else Color(0xFF271900)
 
-// Android 12 以下无系统动态取色时的回退配色：由品牌种子色 #388BFD 通过 material-color-utilities（Tonal Spot，2021 规范）生成
 val AppColorSchemeLight = lightColorScheme(
     primary = Color(0xFF415E91),
     onPrimary = Color(0xFFFFFFFF),
@@ -106,7 +100,6 @@ val AppColorSchemeDark = darkColorScheme(
     surfaceContainerLowest = Color(0xFF0C0E13)
 )
 
-/** Android 12+ 使用系统动态取色，否则回退到品牌种子色生成的配色 */
 fun appColorScheme(context: Context, isDark: Boolean): ColorScheme = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
         if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

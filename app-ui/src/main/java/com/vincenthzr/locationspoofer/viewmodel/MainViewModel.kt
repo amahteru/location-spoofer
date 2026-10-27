@@ -82,7 +82,7 @@ class MainViewModel(
             speedFluctuationPct = settingsRepository.speedFluctuationPct,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
             savedLocations = settingsRepository.getSavedLocations(),
-            savedRoutes = emptyList(), // 将由 Room Flow 填充
+            savedRoutes = emptyList(),
             currentLanguage = settingsRepository.getLanguage(),
             isLanguageSet = settingsRepository.isLanguageSet(),
             systemHookPackages = settingsRepository.getSystemHookPackages(),
@@ -130,9 +130,5 @@ class MainViewModel(
     internal var lastDbQueryLat: Double = 0.0
     internal var lastDbQueryLng: Double = 0.0
 
-    /**
-     * 打开界面时恢复的模拟坐标，也就是地图镜头的初始位置。镜头停在这里不是用户选点，
-     * 不能据此重新发布配置（界面这时还没有周边数据，会把已发布的周边数据清空）；用户把地图挪开后置空。
-     */
     internal var restoredSpoofPoint: com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng? = null
 }

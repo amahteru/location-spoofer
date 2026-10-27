@@ -18,7 +18,6 @@ object GeoMath {
         return 2 * EARTH_RADIUS_M * atan2(sqrt(h), sqrt(1 - h))
     }
 
-    /** 从 from 指向 to 的方位角（度，正北为 0，顺时针） */
     fun bearing(from: LatLng, to: LatLng): Float {
         val lat1 = Math.toRadians(from.lat)
         val lat2 = Math.toRadians(to.lat)
@@ -28,7 +27,6 @@ object GeoMath {
         return ((Math.toDegrees(atan2(y, x)) + 360.0) % 360.0).toFloat()
     }
 
-    /** 从 start 沿 bearing 方向前进 meters 米后的位置 */
     fun destination(start: LatLng, bearingDeg: Double, meters: Double): LatLng {
         val angular = meters / EARTH_RADIUS_M
         val bearingRad = Math.toRadians(bearingDeg)
@@ -40,12 +38,6 @@ object GeoMath {
     }
 }
 
-/**
- * 一条路线上"已行进距离 → 位置"的映射，App 和 Xposed 两端共用，保证两边对同一距离算出同一位置。
- *
- * 规则：首尾相距 5 米以内视为闭环，走到终点后从起点继续；否则走到终点后原路折返，来回往复。
- * stopAtDestination 为真时走到终点就停下。
- */
 class RoutePath(val points: List<LatLng>) {
 
     data class Position(val lat: Double, val lng: Double, val bearing: Float, val arrived: Boolean)

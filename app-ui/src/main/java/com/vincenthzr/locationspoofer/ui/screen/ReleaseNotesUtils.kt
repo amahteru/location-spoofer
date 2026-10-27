@@ -162,12 +162,10 @@ data class SemVer(
         if (minor != other.minor) return minor.compareTo(other.minor)
         if (patch != other.patch) return patch.compareTo(other.patch)
 
-        // 正式版优先于同一版本的 Beta 版 (例如 2.1.0 > 2.1.0-beta-1)
         if (!isBeta && other.isBeta) return 1
         if (isBeta && !other.isBeta) return -1
         if (!isBeta && !other.isBeta) return 0
 
-        // 都是 Beta 版，比较 Beta 序号 (例如 beta-2 > beta-1)
         return betaNumber.compareTo(other.betaNumber)
     }
 }

@@ -30,7 +30,7 @@ class HookStatusReportTest {
         assertEquals("hyperos", report.vendorId)
         val states = report.components.associate { it.name to it.state }
         assertEquals(HookStatusReport.State.HOOKED, states["WIFI_SERVICE"])
-        assertEquals(HookStatusReport.State.HOOKED, states["CONNECTIVITY_SERVICE"]) // 个别备用方法名 ×0 不影响
+        assertEquals(HookStatusReport.State.HOOKED, states["CONNECTIVITY_SERVICE"])
         assertEquals(HookStatusReport.State.NO_METHODS, states["APPOPS_SERVICE"])
         assertEquals(HookStatusReport.State.NOT_FOUND, states["TELEPHONY_REGISTRY"])
         assertEquals(HookStatusReport.State.PENDING, states["LOCATION_PROVIDER_MANAGER"])

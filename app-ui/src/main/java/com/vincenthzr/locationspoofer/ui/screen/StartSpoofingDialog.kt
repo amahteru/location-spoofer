@@ -45,7 +45,6 @@ fun StartSpoofingDialog(
                 Text(text = stringResource(R.string.spoofing_options_desc))
                 Spacer(Modifier.height(AppSpacing.sm))
 
-                // 两种方案都根据当前点位的数据能力显示选项；在线数据源可在开始模拟时补齐数据。
                 val showWifiToggle = uiState.canMockWifi || uiState.wigleToken.isNotBlank()
                 val showCellToggle = uiState.canMockCell || uiState.opencellidToken.isNotBlank()
                 val showBluetoothToggle = uiState.canMockBluetooth

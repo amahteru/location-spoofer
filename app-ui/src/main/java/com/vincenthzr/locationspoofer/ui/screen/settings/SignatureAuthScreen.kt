@@ -54,7 +54,6 @@ fun SignatureAuthScreen(
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
-                // 应用包名、签名 SHA1：整行点击复制
                 CopyableListItem(
                     label = stringResource(R.string.app_package_name),
                     value = context.packageName,

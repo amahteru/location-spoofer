@@ -9,8 +9,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VendorRegistryTest {
-
-    /** 每个家族各一份典型的设备画像 */
     private val samples = mapOf(
         RomFamily.HYPEROS_MIUI to VendorProfile("Xiaomi", "Xiaomi", "", "", 36, "17", mapOf("ro.mi.os.version.name" to "OS4.0")),
         RomFamily.COLOROS to VendorProfile("OPPO", "OPPO", "", "", 35, "15", mapOf("ro.build.version.oplusrom" to "V15.0.0")),
@@ -29,7 +27,6 @@ class VendorRegistryTest {
 
     @Test
     fun `automatic selection matches what the app shows for every family`() {
-        // App 的"系统适配"页用 VendorScheme.forFamily 显示本机会用哪个适配器，两边必须一致
         for ((family, profile) in samples) {
             assertEquals(family.name, VendorScheme.forFamily(family).id, VendorRegistry.select(profile, null).id)
         }

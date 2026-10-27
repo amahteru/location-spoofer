@@ -77,7 +77,6 @@ class LocationHooker : XposedModule() {
         handleLoadPackage(pkg, classLoader)
     }
 
-    // LibXposed API 101/102: 系统服务专属入口
     override fun onSystemServerStarting(param: XposedModuleInterface.SystemServerStartingParam) {
         android.util.Log.e(
             "LocationSpoofer",
@@ -86,7 +85,6 @@ class LocationHooker : XposedModule() {
         handleLoadPackage("android", param.classLoader)
     }
 
-    // LibXposed API 102: 热重载请求前置确认与资源清理
     internal val vendorExtraHooks = mutableListOf<AutoCloseable>()
 
     @Volatile internal var retiringGeneration = false
@@ -104,8 +102,6 @@ class LocationHooker : XposedModule() {
     override fun onHotReloading(param: XposedModuleInterface.HotReloadingParam): Boolean {
         val loader = currentClassLoader ?: return false
         if (currentPackageName.isBlank()) return false
-        // A new module instance receives this bootstrap-owned state. Never pass this module or
-        // module-defined registration records across the classloader boundary.
         param.setSavedInstanceState(hashMapOf<String, Any>(
             "host" to HotReloadHost(currentPackageName, loader).save(),
             "system_location" to saveSystemLocationReloadState(),
@@ -145,8 +141,6 @@ class LocationHooker : XposedModule() {
         val state = param.savedInstanceState as? Map<*, *>
         reinstallAfterHotReload(
             state = state?.get("host"),
-            // First upgrade from older versions has no saved state. Recover the already-running
-            // host through its Application / system service, not module-instance fields.
             resolveHost = { resolveRunningHost(param) },
             removeOldHooks = { super.onHotReloaded(param) },
             install = { host ->
@@ -169,9 +163,6 @@ class LocationHooker : XposedModule() {
         }.getOrNull()
         if (!param.isSystemServer && app != null) return HotReloadHost(app.packageName, app.classLoader)
         if (param.isSystemServer) {
-            // Hook handles belong to the framework; their declaring classes retain the real
-            // system-service loader even when an older module did not save lifecycle state.
-            // 热重载回调本身只在 API 102 框架上出现，这里的判断只是把这一前提写明
             if (apiVersion >= io.github.libxposed.api.XposedInterface.API_102) param.oldHookHandles.forEach { handle ->
                 val clazz = handle.executable.declaringClass
                 if (clazz.name.startsWith("com.android.server.")) {
@@ -226,17 +217,10 @@ class LocationHooker : XposedModule() {
         }
 
         startConfigWorker()
-        // 模块作用域只有 system / com.android.phone / com.android.bluetooth 三个系统进程，
-        // 所有模拟都在系统服务里完成，不向任何 App 进程注入
         handleSystemProcess(pkg, processName, classLoader)
     }
 
-    /**
-     * 在 system_server / com.android.phone / com.android.bluetooth 里安装系统服务级 Hook，一次性对全设备生效。
-     * @return true 表示该进程是核心系统进程并已处理完毕
-     */
     private fun handleSystemProcess(pkg: String, processName: String, classLoader: ClassLoader): Boolean {
-        // 防止注入到 SystemUI 导致崩溃或无意义占用
         if (pkg == "com.android.systemui" || processName == "com.android.systemui") {
             return true
         }
@@ -267,14 +251,9 @@ class LocationHooker : XposedModule() {
         systemHooksInstalled = true
         XposedBridge.log("[SysHook] Deploying system framework hooks in $processName...")
 
-        // 厂商适配方案的手动覆盖（VendorRegistry.applyManualOverride）必须在下面任何一个
-        // hookSystemXxxService 之前生效——它们会通过 SystemClassLocator 查询 VendorRegistry，从而触发
-        // VendorRegistry.active 这个 by lazy 属性首次求值，晚了就再也覆盖不了。这里提前读一次
-        // 配置：readConfig() 可重复调用，后续调用只返回内存里已缓存的 lastConfig，只读内存。
         val earlyCfg = readConfig()
         VendorRegistry.applyManualOverride(earlyCfg?.optString("vendor_override", "auto"))
 
-        // Hook 运行状态报告（App 的"系统适配 → Hook 运行状态"页读取），每个系统进程各写一份
         HookStatus.begin(
             when {
                 isSystemServer -> SystemProcess.SYSTEM_SERVER
@@ -292,7 +271,6 @@ class LocationHooker : XposedModule() {
         }
 
         if (isSystemServer) {
-            // 只读侦察：把各组件候选类的方法 / 字段列表打进日志，适配新系统时才需要，由配置里的调试开关控制
             if (earlyCfg?.optBoolean("debug_dump_system_services", false) == true) {
                 deploy("dumpSystemServiceInternals") { dumpSystemServiceInternals(classLoader) }
             }
@@ -311,8 +289,6 @@ class LocationHooker : XposedModule() {
             deploy("hookSystemBluetoothService") { hookSystemBluetoothService(classLoader) }
         }
 
-        // 机型/系统适配层：先打印一次命中的适配器画像，再执行该机型专属的额外 Hook（默认空实现，
-        // 各厂商在 vendor/profiles/ 下按需覆写）。基线 Hook 已在上面装完，这里是纯追加，不影响任何机型。
         VendorRegistry.logSelectionOnce()
         deploy("installExtraHooks") { VendorRegistry.installExtraHooks(this, classLoader) }
 
@@ -324,17 +300,7 @@ class LocationHooker : XposedModule() {
         return true
     }
 
-    /**
-     * 只读侦察，不装任何会改变行为的 Hook：探索"直接改 system_server 内部服务实现，
-     * 一次性对全设备生效"这个方向时，第一步必须先摸清楚这台设备/这个安卓版本实际的
-     * 内部类结构长什么样——LocationManagerService/WifiServiceImpl 这些类不是公开 API，
-     * 字段和方法名在不同安卓版本、不同 OEM 定制 ROM 之间差异很大，且没有公开文档，
-     * 瞎猜字段名直接上 Hook 是 system_server 崩溃、设备进重启循环最常见的原因。
-     * 这里只用反射枚举候选类的方法名/字段名打进日志，不拦截、不修改任何返回值，
-     * 单个类枚举失败也只是记一条日志，不会影响 system_server 本身的运行。
-     */
     internal fun dumpSystemServiceInternals(classLoader: ClassLoader) {
-        // 各组件的候选类名（含当前适配器给出的定制候选），再加上两个只用于排查的 GNSS 内部类
         val candidateClassNames = SystemComponent.entries
             .filter { it.process == SystemProcess.SYSTEM_SERVER }
             .flatMap { VendorRegistry.classCandidates(it) } + listOf(
@@ -359,14 +325,12 @@ class LocationHooker : XposedModule() {
         }
     }
 
-    // 坐标抖动与精度起伏的随机过程状态，见 CoordinateConverter 的 getJitteredLocation / getJitteredAccuracy
     internal val rng = Random()
     internal var hookDriftLat = 0.0
     internal var hookDriftLng = 0.0
     internal var hookAccuracyDrift = 0.0
     internal var hookLastCallTime = 0L
 
-    /** Complete normalized snapshots are swapped atomically by the framework receiver. */
     @Volatile
     internal var lastConfig: JSONObject? = null
 
@@ -397,7 +361,6 @@ class LocationHooker : XposedModule() {
                 XposedBridge.log("[Config] Framework receive failed: ${error.javaClass.simpleName}: ${error.message}")
             },
             readHead = {
-                // Absent until an app version that writes it publishes once.
                 runCatching {
                     ParcelFileDescriptor.AutoCloseInputStream(openRemoteFile(FrameworkConfigChannel.HEAD_FILE))
                         .bufferedReader(Charsets.UTF_8).use { it.readText() }
@@ -428,36 +391,28 @@ class LocationHooker : XposedModule() {
 
     internal fun normalizeConfig(config: JSONObject): JSONObject {
         if (!config.has("wifi_json")) config.put("wifi_json", org.json.JSONArray())
-        // UI 使用高德地图(AMapSDK)，cameraPosition.target 返回的是 GCJ-02 坐标系。
-        // 因此 config["lat"/"lng"] 已经是 GCJ-02，不需要再做 BD-09 → GCJ-02 转换。
         val gcj02Lat = config.optDouble("lat", 0.0)
         val gcj02Lng = config.optDouble("lng", 0.0)
 
-        // 派生出 BD-09（百度定位 SDK 需要）
         val bd09 = gcj02ToBd09(gcj02Lat, gcj02Lng)
         config.put("bd09_lat", bd09.first)
         config.put("bd09_lng", bd09.second)
 
-        // 派生出 WGS-84（标准 Android Location 对象的理论坐标系）
         val wgs84 = gcj02ToWgs84(gcj02Lat, gcj02Lng)
         config.put("wgs84_lat", wgs84.first)
         config.put("wgs84_lng", wgs84.second)
 
-        // lat/lng 保持 GCJ-02 不变，作为默认坐标（高德、腾讯等直接使用）
         return config
     }
 
-    /** The hook call path performs no framework calls, parsing, or file IO. */
     internal fun readConfig(): JSONObject? = lastConfig
 
-    /** Service discovery and the cached address need a timer independently of config reception. */
     private fun startConfigWorker() {
         if (!isConfigWorkerStarted) {
             synchronized(pollingLock) {
                 if (!isConfigWorkerStarted) {
                     isConfigWorkerStarted = true
 
-                    // 后台定时器只读内存中的配置，不轮询配置文件
                     val worker = Thread {
                         val workerThread = Thread.currentThread()
                         while (configWorker === workerThread && !workerThread.isInterrupted) {
@@ -465,7 +420,6 @@ class LocationHooker : XposedModule() {
                                 Thread.sleep(1_000L)
                                 val newConfig = readConfig()
 
-                                // 若系统核心服务在初次加载时尚未初始化完成，在后台轮询线程中重试挂载，直至成功
                                 if (isSystemServerProcess && !isWifiServiceHooked && currentClassLoader != null) {
                                     try { hookSystemWifiService(currentClassLoader!!) } catch (t: Throwable) { XposedBridge.log("[SysWifi] Poller hookSystemWifiService error: $t") }
                                 }
@@ -477,7 +431,6 @@ class LocationHooker : XposedModule() {
                                 }
 
                                 if (newConfig != null && newConfig.optBoolean("active", false)) {
-                                    // 直接从前端控制台下发的 JSON 配置中读取逆地理编码信息，0网络延迟，0硬编码
                                     cachedProvince = newConfig.optString("province", "")
                                     cachedCity = newConfig.optString("city", "")
                                     cachedDistrict = newConfig.optString("district", "")

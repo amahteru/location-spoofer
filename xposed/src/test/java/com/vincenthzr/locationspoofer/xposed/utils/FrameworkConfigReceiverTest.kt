@@ -13,7 +13,6 @@ class FrameworkConfigReceiverTest {
     private class Preferences {
         @Volatile var snapshot: String? = null
         @Volatile var listener: SharedPreferences.OnSharedPreferenceChangeListener? = null
-        // Registration is intercepted separately so the tests exercise the real listener path.
         val notifyingPrefs = Proxy.newProxyInstance(
             SharedPreferences::class.java.classLoader, arrayOf(SharedPreferences::class.java)
         ) { _, method, args ->
@@ -110,7 +109,6 @@ class FrameworkConfigReceiverTest {
     }
 
     @Test fun headDeliversUpdatesWhenPreferencesAreStuck() {
-        // Reproduces system_server: preferences stay on the boot snapshot forever, without errors.
         val prefs = Preferences().apply { snapshot = snapshot("{\"active\":true}", publishedAt = 100L) }
         var head: String? = null
         val configs = mutableListOf<FrameworkConfigSnapshot>()

@@ -32,7 +32,6 @@ import com.vincenthzr.locationspoofer.ui.components.AppTopBar
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-// 本页就是引导用户关闭电池优化的保活设置页，且应用不上架 Play
 @android.annotation.SuppressLint("BatteryLife")
 @Composable
 fun BackgroundKeepAliveScreen(
@@ -52,7 +51,6 @@ fun BackgroundKeepAliveScreen(
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
-                // 忽略电池优化
                 NavigationListItem(
                     icon = Icons.Rounded.BatteryChargingFull,
                     title = stringResource(R.string.ignore_battery_optimizations_title),
@@ -82,7 +80,6 @@ fun BackgroundKeepAliveScreen(
                         }
                     }
                 )
-                // 允许应用自启动与后台活动
                 NavigationListItem(
                     icon = Icons.Rounded.AppSettingsAlt,
                     title = stringResource(R.string.app_info_settings_title),

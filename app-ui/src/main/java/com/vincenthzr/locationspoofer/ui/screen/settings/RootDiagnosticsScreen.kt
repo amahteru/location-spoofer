@@ -76,7 +76,6 @@ fun RootDiagnosticsScreen(
             }
         }
 
-        // 测试 Root 权限与框架配置通道；重启目标应用，让它们加载当前模块并重新订阅框架配置。
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                 NavigationListItem(
@@ -125,7 +124,6 @@ fun RootDiagnosticsScreen(
     }
 }
 
-/** 列表项尾部固定 24dp 的进度位：空闲时留空、执行中显示转圈，宽度不变，文字不会因此重新折行 */
 @Composable
 private fun ActionProgressSlot(running: Boolean) {
     Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {

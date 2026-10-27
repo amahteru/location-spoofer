@@ -15,9 +15,6 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 
-// MainViewModel 的当前位置获取、原生定位回退与模拟能力评估相关扩展函数
-
-// 当前位置获取
 internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((Double, Double) -> Unit)? = null) {
     viewModelScope.launch(Dispatchers.Main) {
         val client = try {
@@ -29,7 +26,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
         client.setLocationOption(AMapLocationClientOption().apply {
             locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
             isOnceLocation = true
-            isNeedAddress = false // 禁用逆地理编码，防止因未开通Web服务导致 SERVICE_NOT_EXIST 鉴权错误
+            isNeedAddress = false
         })
         client.setLocationListener { loc ->
             if (loc != null && loc.errorCode == 0) {
@@ -44,7 +41,6 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
                     forceCallback?.invoke(loc.latitude, loc.longitude)
                 }
             } else {
-                // 如果鉴权失败(如 SERVICE_NOT_EXIST)或其他错误，回退到原生定位
                 fallbackToNativeLocation(ctx, forceCallback, true)
             }
             client.stopLocation()
@@ -247,7 +243,6 @@ private fun MainViewModel.getNativeConverted(
     return Pair(finalLat, finalLng)
 }
 
-// 坐标输入
 internal fun MainViewModel.updateLongitude(value: String) {
     if (isValidCoord(value)) {
         _uiState.update { it.copy(longitudeInput = value, showCoordinateError = false) }
@@ -354,7 +349,6 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
             if (distToPinned <= 50.0) {
                 pinnedRecord = pinned
             } else {
-                // 超出 50 米有效范围，自动解除锁定
                 pinnedLocationRecordId = null
                 withContext(Dispatchers.Main) {
                     _uiState.update {
@@ -380,7 +374,6 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
 
     val validRecords = environmentRecordsAt(lat, lng).toMutableList()
 
-    // 若用户当前明确锁定了某个 50m 内的采集点，则将其置于首位最高优先级
     if (pinnedRecord != null) {
         validRecords.removeAll { it.location.id == pinnedRecord.location.id }
         validRecords.add(0, pinnedRecord)
@@ -469,7 +462,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
     withContext(Dispatchers.Main) {
         _uiState.update { it.copy(wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.LOADING) }
     }
-    // 将坐标转换对齐至 WGS-84 标准以用于 WiGLE API
     val wgs84 = com.vincenthzr.locationspoofer.utils.CoordinateUtils.gcj02ToWgs84(lat, lng)
     val wgsLat = wgs84.lat
     val wgsLng = wgs84.lng
@@ -536,7 +528,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
 
             withContext(Dispatchers.IO) {
                 saveEnvironmentData(lat, lng, formattedWifiJson, "[]", "[]")
-                // 更新 metadata 以指示 WiGLE 来源
                 val newestLocation = environmentDao.getAllLocations()
                     .firstOrNull { it.lat == lat && it.lng == lng }
                 if (newestLocation != null) {
@@ -559,7 +550,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
 
             withContext(Dispatchers.Main) {
                 evaluateMockCapabilities()
-                // 刷新记录统计总数
                 viewModelScope.launch(Dispatchers.IO) {
                     val count = environmentDao.getRecordCount()
                     _uiState.update { it.copy(environmentRecordCount = count) }
@@ -632,7 +622,6 @@ internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng:
 
             withContext(Dispatchers.Main) {
                 evaluateMockCapabilities()
-                // 刷新记录统计总数
                 viewModelScope.launch(Dispatchers.IO) {
                     val count = environmentDao.getRecordCount()
                     _uiState.update { it.copy(environmentRecordCount = count) }

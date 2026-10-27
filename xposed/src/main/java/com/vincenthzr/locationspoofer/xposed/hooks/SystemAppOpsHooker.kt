@@ -11,7 +11,6 @@ private fun sysLog(msg: String) = XposedBridge.log(msg)
 private const val OP_MOCK_LOCATION = 58
 private const val MODE_IGNORED = 1
 
-/** 把 noteOperation 的原始结果改成 MODE_IGNORED；SyncNotedAppOp 每次调用都是新对象，就地改字段不影响别人 */
 private fun withIgnoredMode(result: Any?): Any? {
     if (result is Int) return MODE_IGNORED
     if (result == null) return null
@@ -22,17 +21,6 @@ private fun withIgnoredMode(result: Any?): Any? {
     }
     return result
 }
-
-/**
- * system_server 级 AppOps 与系统设置（AppOpsService / Settings）反检测模块
- *
- * 核心原理：
- * 考勤与反作弊 SDK 会通过 AppOpsManager.checkOp(OP_MOCK_LOCATION, ...) 或读取 Settings.Secure
- * 查询系统是否开启了“允许模拟位置”。
- *
- * 本模块在 system_server 中的 AppOpsService 根节点拦截该查询，向目标应用返回 MODE_IGNORED (1)，
- * 并在设置层返回 0，从系统内核层面彻底隐蔽模拟定位的存在。
- */
 
 internal fun LocationHooker.hookSystemAppOpsService(classLoader: ClassLoader) {
     val appOpsServiceClass = SystemClassLocator.locate(SystemComponent.APPOPS_SERVICE, classLoader)
@@ -50,7 +38,6 @@ internal fun LocationHooker.hookSystemAppOpsService(classLoader: ClassLoader) {
                             if (SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config)) {
                                 val returnType = (method as? java.lang.reflect.Method)?.returnType
                                 if (returnType == Int::class.javaPrimitiveType) return@hookAllMethods MODE_IGNORED
-                                // Android 12 起 noteOperation 返回 SyncNotedAppOp：照常记录这次调用，只把结果改成 MODE_IGNORED
                                 val result = chain.proceed(chain.args.toTypedArray())
                                 return@hookAllMethods withIgnoredMode(result)
                             }
@@ -63,7 +50,6 @@ internal fun LocationHooker.hookSystemAppOpsService(classLoader: ClassLoader) {
         sysLog("[SysHook] AppOpsService OP_MOCK_LOCATION hooked")
     }
 
-    // 拦截 Settings.Secure 中 mock_location 开关读取
     try {
         val settingsSecureClass = XposedHelpers.findClassIfExists("android.provider.Settings\$Secure", classLoader)
         if (settingsSecureClass != null) {

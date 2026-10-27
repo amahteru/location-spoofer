@@ -10,9 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 二级页面骨架：M3 Scaffold + 顶栏（返回、标题、说明、操作），内容区默认纵向滚动、左右 16dp 边距。
- */
 @Composable
 fun SubPageScaffold(
     title: String,
@@ -45,7 +42,6 @@ fun SubPageScaffold(
     }
 }
 
-/** 卡片 / 列表分组上方的小标题（primary 色 titleSmall） */
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(

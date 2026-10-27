@@ -17,9 +17,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/**
- * 页内搜索 / 过滤框：M3 Search Bar 的输入框（full 形状、surfaceContainerHigh 底色），不展开搜索视图。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppSearchField(

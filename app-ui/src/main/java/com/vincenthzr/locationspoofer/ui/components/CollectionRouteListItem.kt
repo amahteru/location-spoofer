@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import com.vincenthzr.locationspoofer.data.db.CompleteCollectionRoute
 import com.vincenthzr.locationspoofer.ui.R
 
-/** 采集路线列表项：Filled Card + ListItem（路线图标、名称、备注与采样摘要、可选的编辑 / 删除） */
 @Composable
 fun CollectionRouteListItem(item: CompleteCollectionRoute, onClick: () -> Unit, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {

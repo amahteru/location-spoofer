@@ -22,27 +22,19 @@ enum class SearchMode {
     LOCAL
 }
 
-/** 路线规划阶段 */
 enum class RoutePlanStage {
-    /** 未开始，默认状态 */
     IDLE,
 
-    /** 正在点击地图添加路点 */
     SELECTING,
 
-    /** 已结束选点，等待配置并启动 */
     READY,
 
-    /** 路线模拟运行中 */
     RUNNING
 }
 
-/** 路线运行模式 */
 enum class RouteRunMode {
-    /** 手动模式：摇杆控制移动方向和速度 */
     MANUAL,
 
-    /** 循环模式：按路线自动来回移动 */
     LOOP
 }
 
@@ -56,7 +48,7 @@ data class AppState(
     val mapType: AppMapType = AppMapType.NORMAL,
     val mapEngine: MapEngine = MapEngine.AUTO,
     val isInitializing: Boolean = true,
-    val isLanguageSet: Boolean = true, // 默认为 true，以避免在不需要时发生闪烁
+    val isLanguageSet: Boolean = true,
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
     val rootSolution: RootSolution = RootSolution.AUTO,
@@ -68,7 +60,6 @@ data class AppState(
     val isTestingRootSetup: Boolean = false,
     val rootSetupTestResult: RootSetupTestResult? = null,
     val isRestartingHookedApps: Boolean = false,
-    /** 非空即触发"确认重启应用"弹窗；内容来自 lsposedManager.getHookedApps() */
     val hookedAppsToRestart: List<AppInfoItem>? = null,
     val isLSPosedActive: Boolean = false,
     val longitudeInput: String = "",
@@ -83,22 +74,14 @@ data class AppState(
     val searchResults: List<SavedLocation> = emptyList(),
     val simBearing: Float = 0f,
     val savedRoutes: List<SavedRoute> = emptyList(),
-    // 路线规划
     val routePoints: List<RoutePoint> = emptyList(),
     val routePlanStage: RoutePlanStage = RoutePlanStage.IDLE,
-    /** 路线运行模式（手动 / 循环） */
     val routeRunMode: RouteRunMode = RouteRunMode.LOOP,
-    /** 循环模式使用的速度 */
     val routeSimMode: SimMode = SimMode.WALKING,
-    /** 自定义速度 (m/s)，仅当 routeSimMode == CUSTOM 时使用 */
     val customSpeedMs: Double = 3.0,
-    /** 是否使用真实路线规划 */
     val useRealRoute: Boolean = false,
-    /** 到达终点后是否停下 */
     val stopAtDestination: Boolean = false,
-    /** 是否正在向地图API请求真实路线 */
     val isFetchingRoute: Boolean = false,
-    /** 首页地图已确认的选点（点击地图后出现确认按钮，确认后填充坐标） */
     val mapConfirmedPoint: Pair<Double, Double>? = null,
     val amapApiKey: String = "",
     val baiduApiKey: String = "",
@@ -120,19 +103,14 @@ data class AppState(
     val scannedCellCount: Int = 0,
     val scannedBluetoothCount: Int = 0,
     val hookedApps: List<AppInfoItem> = emptyList(),
-    /** system_server 级定位 Hook 勾选生效的目标 App 包名集合 */
     val systemHookPackages: Set<String> = emptySet(),
-    /** 是否开启全局模拟模式（除自身与系统核心组件外对全设备所有应用生效） */
     val isSystemHookGlobalMode: Boolean = false,
     val forceLocationEnabled: Boolean = false,
-    /** "系统级模拟应用"选择页展示的全量已安装 App 列表，进入该页时按需加载 */
     val installedAppsForSystemHook: List<AppInfoItem> = emptyList(),
     val isLoadingInstalledApps: Boolean = false,
-    // 采集到的本地环境数据
     val collectedWifiJson: String = "[]",
     val collectedCellJson: String = "[]",
     val collectedBluetoothJson: String = "[]",
-    // 模拟开关
     val mockWifi: Boolean = true,
     val mockCell: Boolean = true,
     val mockBluetooth: Boolean = true,
@@ -145,10 +123,8 @@ data class AppState(
     val canMockCell: Boolean = false,
     val canMockBluetooth: Boolean = false,
 
-    // 锁定选中的本地采集点位
     val pinnedCollectedLocationId: Long? = null,
     val pinnedLocationName: String? = null,
 
-    // 是否接收测试版更新 (Beta 通道)
     val checkBetaUpdates: Boolean = false
 )

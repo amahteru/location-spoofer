@@ -26,12 +26,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel.ClusterData
 
-// MainViewModel 的设置、语言、Root 方案、搜索、API Key 与坐标系相关扩展函数
-
-// 初始化
 @OptIn(kotlinx.coroutines.FlowPreview::class)
 internal fun MainViewModel.initialize() {
-    // 配置写入失败（多为 Root 权限被收回或系统目录不可写）时提示一次，10 秒内不重复
     viewModelScope.launch {
         var lastShown = 0L
         locationRepository.configWriteFailures.collect {
@@ -44,10 +40,8 @@ internal fun MainViewModel.initialize() {
     viewModelScope.launch(Dispatchers.IO) {
         mergeLegacyRecords()
         val root = locationRepository.recoverAfterBoot(context)
-        // 进程重启后恢复的模拟是定点状态，让运动控制器（悬浮摇杆）接上这个位置
         motionController.syncFromSpoofingStateIfIdle()
 
-        // 模拟中恢复模拟坐标；否则（开启了"停留在上次位置"时）恢复上次选定的位置，不再自动跳到真实位置（issue #68）
         val restoredPosition = when {
             settingsRepository.isSpoofingActive -> settingsRepository.lastSpoofedLat to settingsRepository.lastSpoofedLng
             settingsRepository.keepLastMapPosition -> settingsRepository.getLastMapPosition()
@@ -82,7 +76,6 @@ internal fun MainViewModel.initialize() {
 
     observeMotionController()
 
-    // 监听完整环境数据，同一坐标追加设备时记录数量不变，也必须刷新模拟能力。
     viewModelScope.launch {
         combine(environmentLocations, collectionRoutes) { locations, routes -> locations to routes }.collect { (locations, routes) ->
             _uiState.update { it.copy(environmentRecordCount = locations.count { point -> point.location.collectionRouteId == null } + routes.size) }
@@ -90,7 +83,6 @@ internal fun MainViewModel.initialize() {
         }
     }
 
-    // 持续记录当前选定的位置，供下次打开时恢复；路线模拟时位置每 100ms 变一次，按 2 秒采样落盘
     viewModelScope.launch {
         _uiState
             .map { it.latitudeInput to it.longitudeInput }
@@ -127,10 +119,7 @@ internal fun MainViewModel.initialize() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                com.vincenthzr.locationspoofer.data.model.SavedRoute(entity.name, points).apply {
-                    // 如果需要，动态附加 ID，或者直接使用名称进行删除
-                    // 目前 MapScreen 的 showSavedRoutesDialog 使用 route.name
-                }
+                com.vincenthzr.locationspoofer.data.model.SavedRoute(entity.name, points)
             }
             _uiState.update { it.copy(savedRoutes = routes) }
         }
@@ -141,7 +130,6 @@ private suspend fun MainViewModel.mergeLegacyRecords() {
     val allComplete = environmentDao.getAllCompleteLocations().filter { it.location.collectionRouteId == null }
     if (allComplete.isEmpty()) return
 
-    // 按近似坐标分组（四舍五入到4位小数，约11米）
     val grouped = allComplete.groupBy {
         Pair(
             String.format(java.util.Locale.US, "%.4f", it.location.lat),
@@ -150,29 +138,23 @@ private suspend fun MainViewModel.mergeLegacyRecords() {
     }.filter { it.value.size > 1 }
 
     for ((_, group) in grouped) {
-        // 选取时间戳最新的记录作为主记录
         val primary = group.maxByOrNull { it.location.timestamp } ?: continue
         val others = group.filter { it.location.id != primary.location.id }
 
         for (other in others) {
-            // 迁移已连接 Wi-Fi
             other.connectedWifi?.let {
                 environmentDao.insertConnectedWifi(it.copy(locationId = primary.location.id))
             }
-            // 迁移周围 Wi-Fi 列表
             other.wifis.forEach { lw ->
                 environmentDao.insertLocationWifi(lw.locationWifi.copy(locationId = primary.location.id))
             }
-            // 迁移周边蓝牙列表
             other.bluetooths.forEach { lb ->
                 environmentDao.insertLocationBluetooth(lb.locationBluetooth.copy(locationId = primary.location.id))
             }
-            // 迁移基站列表
             other.cells.forEach { lc ->
                 environmentDao.insertLocationCell(lc.locationCell.copy(locationId = primary.location.id))
             }
 
-            // 删除旧的独立记录
             environmentDao.deleteLocation(other.location.id)
         }
     }
@@ -193,15 +175,9 @@ internal fun MainViewModel.setRootSolution(solution: RootSolution) {
     _uiState.update { it.copy(rootSolution = solution) }
 }
 
-/**
- * 设置手动选择的厂商适配方案。system_server 里的 [com.vincenthzr.locationspoofer.xposed.hooks.vendor.VendorRegistry]
- * 只在进程启动、Hook 安装的那一刻读取这个值（见 `VendorRegistry.applyManualOverride`），
- * 所以切换方案后需要重启设备才能真正生效，UI 侧应提示用户这一点。
- */
 internal fun MainViewModel.setVendorScheme(scheme: VendorScheme) {
     settingsRepository.setVendorOverride(scheme.id)
     _uiState.update { it.copy(vendorScheme = scheme) }
-    // 常驻设置项在每次写配置时都会刷新；已经写过配置时立即同步一次，重启后系统进程就能读到
     viewModelScope.launch { locationRepository.patchConfig { } }
 }
 
@@ -222,8 +198,6 @@ internal fun MainViewModel.testRootSetup() {
 internal fun MainViewModel.dismissRootSetupTestResult() {
     _uiState.update { it.copy(rootSetupTestResult = null) }
 }
-
-/** 从 LSPosed 作用域与系统级 Hook 目标应用拉取当前生效的目标 App 列表，触发"确认重启应用"弹窗 */
 
 internal fun MainViewModel.requestRestartHookedApps() {
     val targetPackages = mutableSetOf<String>()
@@ -261,11 +235,6 @@ internal fun MainViewModel.dismissRestartHookedAppsDialog() {
     _uiState.update { it.copy(hookedAppsToRestart = null) }
 }
 
-/**
- * 用户确认后检查 Root 授权，再强制停止目标 App，
- * 让它们下次启动时加载当前模块并订阅框架配置。
- */
-
 internal fun MainViewModel.confirmRestartHookedApps(onDone: (Int) -> Unit = {}) {
     val apps = _uiState.value.hookedAppsToRestart ?: return
     _uiState.update { it.copy(isRestartingHookedApps = true, hookedAppsToRestart = null) }
@@ -287,7 +256,6 @@ internal suspend fun MainViewModel.performLocalSearch(): List<AppPoiItem> {
         return emptyList()
     }
 
-    // 简单的聚类逻辑：按大约 150 米的距离进行分组
     val clusters = mutableListOf<ClusterData>()
 
     for (record in allRecords) {
@@ -308,7 +276,7 @@ internal suspend fun MainViewModel.performLocalSearch(): List<AppPoiItem> {
             val distance =
                 2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
 
-            if (distance <= 150.0) { // 150 米聚类半径
+            if (distance <= 150.0) {
                 cluster.count += 1
                 cluster.hasWifi = cluster.hasWifi || hasW
                 cluster.hasBluetooth = cluster.hasBluetooth || hasB
@@ -448,8 +416,6 @@ internal fun MainViewModel.cellSignalDbm(cell: org.json.JSONObject, index: Int):
     return (-70 - index * 3).coerceAtLeast(-110)
 }
 
-// 定点模拟
-
 @android.annotation.SuppressLint("MissingPermission")
 
 internal fun MainViewModel.setAmapApiKey(key: String) {
@@ -504,7 +470,6 @@ private fun MainViewModel.getAppSignatureSHA1(): String {
     return "Unknown"
 }
 
-/** 进入"系统级模拟应用"选择页时按需加载全量已安装 App 列表 */
 internal fun MainViewModel.loadInstalledAppsForSystemHook() {
     _uiState.update { it.copy(isLoadingInstalledApps = true) }
     viewModelScope.launch(Dispatchers.IO) {
@@ -526,7 +491,6 @@ internal fun MainViewModel.setForceLocationEnabled(enabled: Boolean) {
     refreshSystemHookConfig()
 }
 
-/** 模拟中重新发布一次配置：patchConfig 每次都带上最新的常驻设置（系统级模拟目标等），不动位置与路线状态 */
 private fun MainViewModel.refreshSystemHookConfig() {
     if (_uiState.value.isSpoofingActive) {
         viewModelScope.launch { locationRepository.patchConfig { } }
@@ -601,7 +565,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
 
         is SpoofingIntent.SetStartSpoofingDialogVisible -> {
             if (intent.visible && !_spoofingUiState.value.showStartSpoofingDialog) {
-                // 仅在打开弹窗时默认开启有本地数据的模拟项，保留弹窗内的手动取消选择。
                 _uiState.update { state ->
                     state.copy(
                         mockWifi = state.canMockWifi || state.mockWifi,
@@ -641,7 +604,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
         }
 
         is SpoofingIntent.PerformSearch -> {
-            // Implement search logic later via another intent or directly here if preferred
         }
 
         is SpoofingIntent.ClearSearchResults -> _spoofingUiState.update {
@@ -681,6 +643,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
             }
         }
 
-        is SpoofingIntent.RequestCurrentLocation -> {} // Typically requires Context, will pass to a callback instead
+        is SpoofingIntent.RequestCurrentLocation -> {}
     }
 }

@@ -40,7 +40,6 @@ fun LanguageSettingsScreen(
         subtitle = stringResource(R.string.switch_language_desc),
         onBack = onClose
     ) {
-        // 语言单选列表
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.selectableGroup().padding(vertical = AppSpacing.sm)) {
                 LANGUAGES.forEach { lang ->

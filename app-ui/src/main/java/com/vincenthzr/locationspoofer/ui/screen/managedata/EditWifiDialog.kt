@@ -67,7 +67,6 @@ fun EditWifiDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 信号强度
                 Text(
                     text = stringResource(R.string.wifi_level_label, level),
                     style = MaterialTheme.typography.labelLarge,
@@ -86,7 +85,6 @@ fun EditWifiDialog(
                     }
                 }
 
-                // 工作频率
                 Text(
                     text = stringResource(R.string.wifi_freq_label),
                     style = MaterialTheme.typography.labelLarge,
@@ -105,7 +103,6 @@ fun EditWifiDialog(
                     }
                 }
 
-                // 加密属性：可手动输入，也可点选常用预设
                 OutlinedTextField(
                     value = capabilities,
                     onValueChange = { capabilities = it },

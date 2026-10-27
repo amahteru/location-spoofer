@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.xposed.utils
 
-/** A reentrant, thread-confined scope; always cleared when the original call throws. */
 internal class CallScope<T> {
     private val value = ThreadLocal<T>()
     val current: T? get() = value.get()

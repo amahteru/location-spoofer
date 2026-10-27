@@ -2,19 +2,13 @@ package com.vincenthzr.locationspoofer.ui.screen.spoofing
 
 import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
 
-/**
- * Holds all transient UI state for the SpoofingScreen.
- * This separates view-specific toggles from the core business state (AppState).
- */
 data class SpoofingUiState(
-    // Dialog Toggles
     val showSaveDialog: Boolean = false,
     val showSavedLocationsDialog: Boolean = false,
     val showMapTypeDialog: Boolean = false,
     val showCustomCoordDialog: Boolean = false,
     val showStartSpoofingDialog: Boolean = false,
 
-    // 底部抽屉与搜索状态
     val isSheetExpanded: Boolean = true,
     val isSearchActive: Boolean = false,
     val searchQuery: String = "",

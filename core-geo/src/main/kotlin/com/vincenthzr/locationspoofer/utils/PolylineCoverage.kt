@@ -4,7 +4,6 @@ import com.vincenthzr.locationspoofer.utils.CoordinateUtils.LatLng
 import kotlin.math.cos
 import kotlin.math.hypot
 
-/** 路线覆盖是线段两侧的范围，包含端点圆帽，而不是整条路线的外接矩形。 */
 object PolylineCoverage {
     fun distanceMeters(position: LatLng, points: List<LatLng>): Double {
         if (points.isEmpty()) return Double.POSITIVE_INFINITY
@@ -17,7 +16,6 @@ object PolylineCoverage {
         return points.zipWithNext().minOf { (start, end) ->
             val (ax, ay) = project(start)
             val by = (end.lat - position.lat) * scale
-            // 保持整段经度连续；跨日期变更线的短路线不能误覆盖另一侧半球。
             val longitudeDelta = ((end.lng - start.lng + 540.0) % 360.0) - 180.0
             val dx = longitudeDelta * scale * cos(Math.toRadians(position.lat))
             val dy = by - ay

@@ -52,8 +52,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // 仅在初始启动或语言变更后同步系统 Locale
-        // AppCompatDelegate.setApplicationLocales 会自动处理持久化
         val savedLang = viewModel.getSavedLanguage()
         val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
         if (savedLang.isNotEmpty() && (currentLocales.isEmpty || currentLocales.toLanguageTags() != savedLang)) {
@@ -62,7 +60,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        // 语言切换、旋转等导致的重建不重复跳转授权页，只在冷启动时检查一次
         overlayPromptHandled = savedInstanceState != null
         checkAndRequestPermissions()
 
@@ -77,8 +74,6 @@ class MainActivity : ComponentActivity() {
                     Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
                 }
 
-                // 核心：在 Compose 层级内部通过 CompositionLocalProvider 动态刷新
-                // 使用 remember(uiState.currentLanguage) 确保语言切换时重新计算 Context
                 val context = LocalContext.current
                 val wrappedContext = remember(uiState.currentLanguage) {
                     if (uiState.currentLanguage.isNotEmpty()) {
@@ -141,7 +136,6 @@ class MainActivity : ComponentActivity() {
 
     private var overlayPromptHandled = false
 
-    /** 悬浮摇杆需要"显示在其他应用上层"权限：启动时检查，没有就直接跳到系统授权页 */
     private fun requestOverlayPermissionIfNeeded() {
         if (overlayPromptHandled || android.provider.Settings.canDrawOverlays(this)) return
         overlayPromptHandled = true
@@ -169,7 +163,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 后台保活是本应用的核心需求（模拟期间要持续下发配置），且不上架 Play，按需申请忽略电池优化
     @android.annotation.SuppressLint("BatteryLife")
     private fun requestIgnoreBatteryOptimizations() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
@@ -197,7 +190,6 @@ class MainActivity : ComponentActivity() {
         if (requestCode == 100) {
             val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
             if (granted) checkBackgroundLocation()
-            // 悬浮窗权限与运行时权限无关，被拒绝时也照样检查
             requestOverlayPermissionIfNeeded()
             if (granted) requestIgnoreBatteryOptimizations()
         }
@@ -210,7 +202,6 @@ fun MainScreen(
     uiState: com.vincenthzr.locationspoofer.data.model.AppState
 ) {
     when {
-        // 初始化期间只显示背景，不再有开屏画面
         uiState.isInitializing -> Unit
         !uiState.isLanguageSet -> LanguageSelectionScreen(viewModel)
         !uiState.hasRootAccess -> com.vincenthzr.locationspoofer.ui.screen.DataCollectionAssistScreen(

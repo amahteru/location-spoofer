@@ -3,9 +3,6 @@ package com.vincenthzr.locationspoofer.xposed.hooks.network
 import com.vincenthzr.locationspoofer.xposed.utils.*
 import io.github.libxposed.api.*
 
-/**
- * 蓝牙 LE 扫描结果/设备对象构造辅助函数（纯计算，不依赖 LocationHooker 状态）。
- */
 internal fun hexStringToByteArray(s: String): ByteArray {
     val len = s.length
     val data = ByteArray(len / 2)
@@ -18,7 +15,6 @@ internal fun hexStringToByteArray(s: String): ByteArray {
     return data
 }
 
-    // 辅助函数：MAC 地址标准化（补齐冒号以防底层抛出 IllegalArgumentException）
 internal fun normalizeMacAddress(mac: String): String {
         val clean = mac.replace(":", "").replace("-", "").trim().uppercase()
         if (clean.length == 12 && clean.all { it in "0123456789ABCDEF" }) {
@@ -27,7 +23,6 @@ internal fun normalizeMacAddress(mac: String): String {
         return mac.trim().uppercase()
     }
 
-    // 检查字节数组是否为合法的 BLE 广播 AD 结构 (TLV 格式: [Length, Type, Value...])
 internal fun isValidAdStructure(bytes: ByteArray): Boolean {
         if (bytes.isEmpty()) return false
         var pos = 0
@@ -35,7 +30,6 @@ internal fun isValidAdStructure(bytes: ByteArray): Boolean {
         while (pos < bytes.size) {
             val len = bytes[pos].toInt() and 0xFF
             if (len == 0) {
-                // BLE 广播包末尾填充 00 是标准行为
                 return foundValidAd
             }
             if (pos + 1 + len > bytes.size) {
@@ -47,7 +41,6 @@ internal fun isValidAdStructure(bytes: ByteArray): Boolean {
         return foundValidAd
     }
 
-    // 辅助函数：智能构造并规范化 BLE 广播包字节数组
 internal fun buildScanRecordBytes(name: String, hexRecord: String, address: String = ""): ByteArray {
         val cleanHex = hexRecord.replace("0x", "", ignoreCase = true)
             .replace("0X", "")
@@ -69,36 +62,29 @@ internal fun buildScanRecordBytes(name: String, hexRecord: String, address: Stri
                 val inputBytes = hexStringToByteArray(validHex)
 
                 if (isValidAdStructure(inputBytes)) {
-                    // 格式 1: 完整的标准 TLV 结构广播包（例如从系统/抓包工具导出的 0201061AFF...）
                     rawPayload = inputBytes
                 } else if (validHex.startsWith("1AFF4C00") || validHex.startsWith("1EFF4C00")) {
-                    // 格式 2: 带有长度的厂商数据段，前面缺少 020106 Flags
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     rawPayload = flags + inputBytes
                 } else if (validHex.startsWith("FF4C00") || validHex.startsWith("FF")) {
-                    // 格式 3: 带有 Type(0xFF) 但缺少 Length 的厂商数据段
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     val lenByte = byteArrayOf(inputBytes.size.toByte())
                     rawPayload = flags + lenByte + inputBytes
                 } else if (validHex.startsWith("4C000215") || validHex.startsWith("004C0215") || validHex.startsWith("4C00")) {
-                    // 格式 4: 纯 Apple iBeacon 厂商数据段（从 nRF Connect 等工具复制的 Manufacturer Data）
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     val mfrHeader = byteArrayOf((inputBytes.size + 1).toByte(), 0xFF.toByte())
                     rawPayload = flags + mfrHeader + inputBytes
                 } else if (validHex.startsWith("0215") && validHex.length >= 46) {
-                    // 格式 5: 缺少 Apple 厂商 ID 的 iBeacon 数据（0215 + UUID + Major + Minor + TxPower）
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     val mfrHeader = byteArrayOf(0x1A, 0xFF.toByte(), 0x4C, 0x00)
                     rawPayload = flags + mfrHeader + inputBytes
                 } else if (validHex.length == 32) {
-                    // 格式 6: 纯 16 字节 UUID
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     val mfrData = byteArrayOf(
                         0x1A, 0xFF.toByte(), 0x4C, 0x00, 0x02, 0x15
                     ) + inputBytes + byteArrayOf(0x00, 0x01, 0x00, 0x01, 0xC5.toByte())
                     rawPayload = flags + mfrData
                 } else {
-                    // 格式 7: 其他厂商自定义数据段，自动封装 Flags + 0xFF 结构
                     val flags = byteArrayOf(0x02, 0x01, 0x06)
                     val mfrHeader = byteArrayOf((inputBytes.size + 1).toByte(), 0xFF.toByte())
                     rawPayload = flags + mfrHeader + inputBytes
@@ -110,7 +96,6 @@ internal fun buildScanRecordBytes(name: String, hexRecord: String, address: Stri
             return rawPayload
         }
 
-        // 若用户未填写，自动合成标准的 iBeacon 考勤广播包与名称结构
         val flags = byteArrayOf(0x02, 0x01, 0x06)
         val defaultIBeacon = byteArrayOf(
             0x1A, 0xFF.toByte(), 0x4C, 0x00, 0x02, 0x15,
@@ -130,12 +115,10 @@ internal fun buildScanRecordBytes(name: String, hexRecord: String, address: Stri
         return synthetic
     }
 
-    // 辅助函数：安全创建 BluetoothDevice
 internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
         val cleanAddress = normalizeMacAddress(address)
         val devClass = XposedHelpers.findClassIfExists("android.bluetooth.BluetoothDevice", cl) ?: return null
         
-        // 尝试 1: BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address)
         try {
             val adapterClass = XposedHelpers.findClassIfExists("android.bluetooth.BluetoothAdapter", cl)
             if (adapterClass != null) {
@@ -147,14 +130,12 @@ internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
             }
         } catch (_: Throwable) {}
 
-        // 尝试 2: 显式构造器 BluetoothDevice(String)
         try {
             val ctor = devClass.getDeclaredConstructor(String::class.java)
             ctor.isAccessible = true
             return ctor.newInstance(cleanAddress)
         } catch (_: Throwable) {}
 
-        // 尝试 3: 反射所有构造器兜底
         for (c in devClass.declaredConstructors) {
             try {
                 if (c.parameterTypes.size == 1 && c.parameterTypes[0] == String::class.java) {
@@ -166,7 +147,6 @@ internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
         return null
     }
 
-    // 辅助函数：智能判断对象是否为 BLE 扫描回调 (兼容匿名内部类、多层继承与动态代理)
 internal fun createScanResult(
         cl: ClassLoader,
         device: Any,
@@ -180,10 +160,6 @@ internal fun createScanResult(
 
         var result: Any? = null
 
-        // 尝试 1: 10 参数扩展构造器 (Android 8.0 ~ Android 17 标准)
-        // ScanResult(BluetoothDevice, int eventType, int primaryPhy, int secondaryPhy,
-        //            int advertisingSid, int txPower, int rssi, int periodicAdvertisingInterval,
-        //            ScanRecord, long timestampNanos)
         if (recordClass != null) {
             try {
                 val ctor10 = scanResultClass.getDeclaredConstructor(
@@ -200,20 +176,19 @@ internal fun createScanResult(
                 )
                 result = ctor10.newInstance(
                     device,
-                    0x001B /* DATA_COMPLETE | ET_CONNECTABLE | ET_SCANNABLE | ET_LEGACY_ADV */,
-                    1 /* PHY_LE_1M */,
-                    0 /* PHY_UNUSED */,
-                    255 /* SID_NOT_PRESENT */,
-                    127 /* TX_POWER_NOT_PRESENT */,
+                    0x001B,
+                    1,
+                    0,
+                    255,
+                    127,
                     rssi,
-                    0 /* periodicAdvertisingInterval */,
+                    0,
                     scanRecord,
                     timestampNanos
                 )
             } catch (_: Throwable) {}
         }
 
-        // 尝试 2: 4 参数标准构造器 (ScanResult(BluetoothDevice, ScanRecord, int, long))
         if (result == null && recordClass != null) {
             try {
                 val ctor4 = scanResultClass.getDeclaredConstructor(
@@ -224,7 +199,6 @@ internal fun createScanResult(
             } catch (_: Throwable) {}
         }
 
-        // 尝试 3: 遍历所有可用构造器进行自适应匹配
         if (result == null) {
             for (c in scanResultClass.declaredConstructors) {
                 try {
@@ -257,7 +231,6 @@ internal fun createScanResult(
             }
         }
 
-        // 强制通过反射回填内部关键属性，确保跨各系统版本属性 100% 完整与正确
         if (result != null) {
             try { XposedHelpers.setObjectField(result, "mDevice", device) } catch (_: Throwable) {}
             try { XposedHelpers.setObjectField(result, "mScanRecord", scanRecord) } catch (_: Throwable) {}

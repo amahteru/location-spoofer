@@ -23,7 +23,6 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
     ) {
         Column(Modifier.padding(AppSpacing.lg), verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             if (!busy) {
-                // 采点 / 采路线 两种模式：M3 分段按钮
                 val modes = listOf(false to R.string.collection_point_mode, true to R.string.collection_route_mode)
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     modes.forEachIndexed { index, (route, label) ->

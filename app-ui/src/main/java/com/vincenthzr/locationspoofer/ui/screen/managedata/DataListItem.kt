@@ -19,9 +19,6 @@ import java.util.Date
 import java.util.Locale
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 采集数据列表项：M3 Filled Card，点击定位到地图；收藏 / 编辑 / 删除收在右侧的溢出菜单里。
- */
 @Composable
 fun DataListItem(
     item: CompleteLocation,
@@ -44,7 +41,6 @@ fun DataListItem(
     val hasPlaceName = item.location.placeName.isNotBlank()
     val hasRemark = item.location.remark.isNotBlank()
 
-    // 优先显示地名或备注为卡片的主标题
     val primaryTitle = when {
         hasPlaceName -> item.location.placeName
         hasRemark -> item.location.remark
@@ -84,7 +80,6 @@ fun DataListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                // 信号设备标签组（Wi-Fi、基站、蓝牙）
                 Row(
                     modifier = Modifier.padding(top = AppSpacing.xs),
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)

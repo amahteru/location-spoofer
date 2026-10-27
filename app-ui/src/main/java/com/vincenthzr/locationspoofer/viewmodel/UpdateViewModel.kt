@@ -77,7 +77,6 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
                                 } else if (assetName.contains("arm64-v8a")) {
                                     downloadUrl = url
                                 } else {
-                                    // 通用安装包，如果没有专门的64位，就默认用通用包作为主链接
                                     if (downloadUrl == null) {
                                         downloadUrl = url
                                     }
@@ -171,8 +170,4 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     }
 }
 
-/**
- * Release 里的 APK 文件名形如 LocationSpoofer-global-<abi>-<tag>.apk（见 .github/workflows/release.yml）。
- * 旧 Release 里还同时挂着已移除的非全局（scoped）方案 APK，或者文件名里没有方案标记（那时只有 scoped），只挑全局方案的。
- */
 private fun isAssetForCurrentScheme(assetName: String): Boolean = assetName.contains("-global-")

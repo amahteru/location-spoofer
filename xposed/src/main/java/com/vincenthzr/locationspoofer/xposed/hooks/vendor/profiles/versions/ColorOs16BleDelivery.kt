@@ -26,13 +26,11 @@ import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
-/** ColorOS moved BLE scanning out of GattService into le_scan.TransitionalScanHelper. */
 @androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.S)
 internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader) :
     ColorOs16HookSupport(module, loader, "BLE") {
     private class Owner {
         val queued = AtomicBoolean()
-        // Accessed only on ScanManager's own handler. Keys are the actual ScanClient objects.
         val scans = WeakHashMap<Any, BleDeliveryState<ScanResult>>()
     }
     private data class Registration(val who: ColorOsCaller, val helper: WeakReference<Any>, val app: WeakReference<Any>)
@@ -63,11 +61,10 @@ internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader)
         sendIntent = method(helper, "sendResultsByPendingIntent", intentInfo, ArrayList::class.java, Int::class.javaPrimitiveType!!)
         dead = method(helper, "handleDeadScanClient", client)
         val manager = field(helper, "mScanManager").type
-        field(manager, "mHandler") // Probe before installing the callback filters.
+        field(manager, "mHandler")
         method(manager, "getRegularScanQueue")
         method(manager, "getBatchScanQueue")
 
-        // ContextMap.add is reached only after the platform accepted scanner registration.
         val mapClass = field(helper, "mScannerMap").type
         val add = mapClass.methods.first { it.name == "add" && it.parameterTypes.lastOrNull() == helper }
         hook(add) { chain ->
@@ -99,8 +96,6 @@ internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader)
                 config.optBoolean("mock_bluetooth", true) && target(who, config, chain.thisObject)) null
             else chain.proceed(chain.args.toTypedArray())
         }
-        // Only an app-requested flush may bypass reportDelay. Hardware thresholds and
-        // periodic controller flushes share the same handler and must not shorten it.
         hook(method(helper, "flushPendingBatchResults", Int::class.javaPrimitiveType!!, AttributionSource::class.java)) { chain ->
             val source = chain.args[1] as AttributionSource
             explicitFlush.withValue(source.uid >= 10000 && source.uid == Binder.getCallingUid()) {
@@ -111,7 +106,6 @@ internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader)
             if (explicitFlush.current == true) flushRequests[chain.args[0]!!] = true
             chain.proceed(chain.args.toTypedArray())
         }
-        // Preserve permission checking and ordering on ScanManager's own handler.
         val handlerClass = type(manager.name + "\$ClientHandler")
         hook(method(handlerClass, "handleFlushBatchResults", client)) { chain ->
             val forced = flushRequests.remove(chain.args[0]) == true
@@ -242,7 +236,6 @@ internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader)
         val context = get(helper, "mContext") as Context
         val pkg = who.pkg ?: return false
         val ops = context.getSystemService(AppOpsManager::class.java)
-        // Recheck revocation while a session is already running; no fabricated denied result.
         if (context.checkPermission(Manifest.permission.BLUETOOTH_SCAN, -1, who.uid) != PackageManager.PERMISSION_GRANTED) return false
         val scanOp = AppOpsManager.permissionToOp(Manifest.permission.BLUETOOTH_SCAN) ?: return false
         if (ops.noteOpNoThrow(scanOp, who.uid, pkg) != AppOpsManager.MODE_ALLOWED) return false

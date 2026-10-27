@@ -11,10 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 
-/**
- * 标签 + 单行输入框 + 清空按钮的设置项输入组件（M3 Outlined Text Field）。被"地图引擎与密钥"和
- * "环境数据源 Token"两个设置页共用，因此提升为公共组件，不能各自复制一份。
- */
 @Composable
 fun ModernSettingsInput(
     label: String,

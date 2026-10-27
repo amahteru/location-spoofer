@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
-/** 列表项前导的色调图标容器（40dp 圆形，xxxContainer 底色） */
 @Composable
 fun ToneIcon(icon: ImageVector, tone: LabelTone = LabelTone.Secondary) {
     val colors = MaterialTheme.colorScheme
@@ -37,9 +36,6 @@ fun ToneIcon(icon: ImageVector, tone: LabelTone = LabelTone.Secondary) {
     }
 }
 
-/**
- * 可点击的导航列表项：前导图标 + 标题 + 说明 + 尾部（默认右箭头）。透明底色，放在卡片或页面里均可。
- */
 @Composable
 fun NavigationListItem(
     icon: ImageVector,
@@ -62,7 +58,6 @@ fun NavigationListItem(
     )
 }
 
-/** 单独成卡的导航入口：Filled Card 包一行 [NavigationListItem] */
 @Composable
 fun NavigationCard(
     icon: ImageVector,

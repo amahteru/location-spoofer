@@ -63,7 +63,6 @@ fun RouteBottomPanel(
                                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // 确认添加路点
                                 Button(
                                     onClick = onConfirmPoint,
                                     modifier = Modifier
@@ -81,7 +80,6 @@ fun RouteBottomPanel(
                                     )
                                 }
 
-                                // 完成规划
                                 FilledTonalButton(
                                     onClick = onFinishSelecting,
                                     enabled = routePoints.size >= 2,
@@ -188,7 +186,6 @@ fun RouteBottomPanel(
                                         text = if (uiState.routeRunMode == RouteRunMode.MANUAL) {
                                         stringResource(R.string.joystick_controlling_active)
                                     } else {
-                                        // 自定义档位本身的速度是 0，实际速度在 customSpeedMs；保留一位小数，避免 1.4、5.5 被截成整数
                                         val speedMs = if (uiState.routeSimMode == SimMode.CUSTOM) uiState.customSpeedMs else uiState.routeSimMode.speedMs
                                         stringResource(R.string.cruising_speed_format, String.format(Locale.US, "%.1f", speedMs))
                                     },
@@ -199,7 +196,6 @@ fun RouteBottomPanel(
 
                                 Button(
                                     onClick = onStopRoute,
-                                    // 与选点、准备阶段的按钮同高，切换阶段时面板高度不跳动
                                     modifier = Modifier.height(AppSpacing.actionButtonHeight),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.error,

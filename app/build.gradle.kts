@@ -13,7 +13,6 @@ android {
     namespace = "com.vincenthzr.locationspoofer"
     compileSdk = 37
 
-    // 应用内可切换语言，打成 App Bundle 时不能按语言拆分资源
     bundle {
         language {
             enableSplit = false
@@ -21,7 +20,6 @@ android {
     }
 
     lint {
-        // 只发布 arm64 手机包：模块依赖 root + LSPosed，ChromeOS 上无法使用
         disable += "ChromeOsAbiSupport"
         lintConfig = file("lint.xml")
     }
@@ -65,8 +63,6 @@ android {
         }
     }
 
-
-    // CI 用环境变量（见 .github/workflows/release.yml），本地用仓库根目录的 keystore.properties（已被 gitignore）
     val keystoreProps = Properties().apply {
         val f = rootProject.file("keystore.properties")
         if (f.exists()) f.inputStream().use { load(it) }
@@ -85,7 +81,6 @@ android {
                 keyAlias = signingValue("KEY_ALIAS", "keyAlias")
                 keyPassword = signingValue("KEY_PASSWORD", "keyPassword")
             }
-            // v3 为以后的密钥轮换（lineage）预留；API 26–27 设备仍按 v2 校验，所以 v2 保持开启
             enableV2Signing = true
             enableV3Signing = true
         }
@@ -93,7 +88,6 @@ android {
 
     buildTypes {
         debug {
-            // 没配置发布密钥时回退到 debug 签名，保证新克隆仓库的人也能直接编译调试
             signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "release" else "debug")
             buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         }
@@ -137,8 +131,6 @@ dependencies {
     implementation(project(":core-data"))
     implementation(project(":service"))
     implementation(project(":app-ui"))
-    // 纯打包依赖：:app 不直接调用 :xposed 的代码，只是需要把它的产物
-    // （LocationHooker 及 META-INF/xposed/* 资源）一起打进最终 APK，供 LSPosed 扫描加载。
     implementation(project(":xposed"))
 
     implementation(libs.xposed.service)

@@ -291,7 +291,6 @@ fun RouteTab(
                 .onGloballyPositioned { searchBounds = it.boundsInRoot() }
 
             Box(modifier = Modifier.fillMaxSize()) {
-                // 搜索激活且显示联想结果时：点击外部遮罩退出联想列表
                 if (searchActive && showSearchResults) {
                     Box(
                         modifier = Modifier
@@ -312,7 +311,6 @@ fun RouteTab(
                     )
                 }
 
-                // 中心瞄准十字准心（选点阶段显示，搜索激活时隐藏）
                 if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE) && !searchActive) {
                     Icon(
                         Icons.Rounded.AddLocationAlt,
@@ -337,7 +335,6 @@ fun RouteTab(
                     )
                 }
 
-                // 顶部操作卡片：包含路径点统计与撤销操作（搜索激活时隐藏，避免与顶部搜索栏发生遮挡）
                 if (routePoints.isNotEmpty() && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) && !searchActive) {
                     Surface(
                         modifier = Modifier
@@ -362,12 +359,10 @@ fun RouteTab(
 
                             VerticalDivider(modifier = Modifier.height(24.dp))
 
-                            // 撤销上一个点
                             IconButton(onClick = { viewModel.undoLastRoutePoint() }) {
                                 Icon(Icons.AutoMirrored.Rounded.Undo, contentDescription = stringResource(R.string.undo))
                             }
 
-                            // 全部清除 / 重新选点
                             IconButton(onClick = { viewModel.restartSelectingPoints() }) {
                                 Icon(Icons.Rounded.DeleteSweep, contentDescription = stringResource(R.string.reselect))
                             }
@@ -375,7 +370,6 @@ fun RouteTab(
                     }
                 }
 
-                // 右侧悬浮地图控制按钮组
                 val animatedBottomPadding by animateDpAsState(
                     targetValue = bottomBarHeight + bottomActionHeightDp + 16.dp,
                     animationSpec = motion.defaultSpatialSpec(),
@@ -410,7 +404,6 @@ fun RouteTab(
                     }
                 }
 
-                // 底部多状态操作面板
                 RouteBottomPanel(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -465,7 +458,6 @@ fun RouteTab(
                     } else null
                 )
 
-                // 搜索激活时：顶部搜索栏与联想结果卡片
                 if (searchActive) {
                     Column(
                         modifier = Modifier

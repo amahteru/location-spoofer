@@ -123,7 +123,6 @@ fun LocationTab(
     var searchResultBounds by remember { mutableStateOf(Rect.Zero) }
     var showLocalDataDialog by remember { mutableStateOf(false) }
 
-    // 在页面顶层持久记录测量高度，绝不随搜索页面切换而重置为 0，彻底消除返回时“先回高位再跳动”的测量延迟
     var persistentSavedCardHeightPx by remember { mutableIntStateOf(0) }
     var persistentCoordCardHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
@@ -222,10 +221,6 @@ fun LocationTab(
     }
     BackHandler(enabled = isSearching, onBack = exitSearch)
 
-    // 悬浮卡片避让底部控制栏高度：
-    // COLLAPSED（仅搜索）：避让搜索框，停留在 tabBarHeight + 74dp
-    // DEFAULT（展示坐标卡片）：避让坐标卡片与搜索框顶部，停留在 tabBarHeight + coordCardHeightDp + 82dp
-    // EXPANDED（完全展开收藏卡片）：保持 DEFAULT 状态高度，无需进一步顶至屏幕最上方
     val rawFabBottomPadding by animateDpAsState(
         targetValue = when (panelState) {
             LocationPanelState.EXPANDED -> tabBarHeight + coordCardHeightDp + 82.dp
@@ -263,7 +258,6 @@ fun LocationTab(
                 .onGloballyPositioned { searchBounds = it.boundsInRoot() }
 
             Box(modifier = Modifier.fillMaxSize()) {
-                // 悬浮功能按钮（主动避让底部面板，在面板高度变化时平滑跟随）
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -344,7 +338,6 @@ fun LocationTab(
                                 focusRequester = searchFocusRequester
                             )
                         } else {
-                            // 保持占位高度与尺寸结构恒定，绝不在全屏搜索返回时发生二次重构与停顿
                             Spacer(modifier = barModifier.height(56.dp))
                         }
                     }

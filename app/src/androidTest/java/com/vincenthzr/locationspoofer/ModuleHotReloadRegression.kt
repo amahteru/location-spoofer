@@ -23,7 +23,6 @@ private suspend fun moduleService(): XposedService {
     error("Framework service unavailable")
 }
 
-/** Module-scoped diagnostics; does not start or stop a simulation. */
 internal fun Instrumentation.verifyModuleRuntime(): Bundle {
     val output = Bundle()
     try {
@@ -49,7 +48,6 @@ internal fun Instrumentation.verifyModuleRuntime(): Bundle {
     return output
 }
 
-/** Exercises actual API 102 generation replacement, preserving scope and simulation payload. */
 internal fun Instrumentation.verifyModuleHotReload(): Bundle {
     val output = Bundle()
     try {
@@ -64,7 +62,6 @@ internal fun Instrumentation.verifyModuleHotReload(): Bundle {
             }
             val preferences = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
             val original = JSONObject(requireNotNull(preferences.getString(FrameworkConfigChannel.SNAPSHOT_KEY, null)))
-            // This regression only republishes the inactive existing payload, never starts a simulation.
             check(original.optString("file").isEmpty() && !JSONObject(original.getString("payload")).optBoolean("active"))
             val root = RootManager()
             fun reports(): Map<String, JSONObject> = HookStatusFiles.PATHS.mapValues { (_, paths) ->

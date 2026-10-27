@@ -20,13 +20,8 @@ import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 设备行上的只读标签（"首选"、"已连接"等） */
 data class DeviceBadge(val text: String, val tone: LabelTone)
 
-/**
- * Wi-Fi / 基站 / 蓝牙三个选项卡共用的"首选设备"单选列表：
- * 标题 + 新增按钮、说明、"自动"选项，以及每个设备一行（单选 + 编辑 / 删除）。
- */
 @Composable
 fun <T> DesignatedDeviceList(
     title: String,

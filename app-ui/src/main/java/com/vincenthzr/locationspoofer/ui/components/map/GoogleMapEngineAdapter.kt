@@ -253,7 +253,6 @@ class GMapControllerImpl(
     }
 }
 
-// 触摸监听只让父布局别拦截手势、返回 false 不消费事件，点击仍由地图 View 自己处理
 @android.annotation.SuppressLint("ClickableViewAccessibility")
 @Composable
 fun GoogleMapViewContainer(

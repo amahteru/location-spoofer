@@ -113,7 +113,6 @@ fun SystemHookAppsScreen(
                 .fillMaxWidth(),
             contentPadding = PaddingValues(bottom = AppSpacing.xl)
         ) {
-            // 实验性功能说明
             item {
                 Card(
                     modifier = Modifier
@@ -132,7 +131,6 @@ fun SystemHookAppsScreen(
                 }
             }
 
-            // 全局模拟模式
             item {
                 Card(
                     modifier = Modifier
@@ -178,7 +176,6 @@ fun SystemHookAppsScreen(
                 }
             }
 
-            // 搜索栏
             item {
                 AppSearchField(
                     query = searchQuery,
@@ -188,7 +185,6 @@ fun SystemHookAppsScreen(
                 )
             }
 
-            // 分类快捷过滤标签
             item {
                 LazyRow(
                     modifier = Modifier
@@ -207,7 +203,6 @@ fun SystemHookAppsScreen(
                 }
             }
 
-            // 批量操作与统计行
             item {
                 Row(
                     modifier = Modifier

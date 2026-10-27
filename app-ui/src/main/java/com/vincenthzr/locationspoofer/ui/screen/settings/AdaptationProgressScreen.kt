@@ -26,7 +26,6 @@ import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import com.vincenthzr.locationspoofer.ui.components.StatusLabel
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 系统适配页的二级页面：完整的适配进度文档 */
 @Composable
 fun AdaptationProgressScreen(
     document: AdaptationProgressSource.Document,
@@ -60,7 +59,6 @@ fun AdaptationProgressScreen(
         }
     ) {
         AppCard(modifier = Modifier.fillMaxWidth()) {
-            // 页面标题已经是"适配进度"，去掉文档自己的一级标题
             RenderMarkdownContent(
                 markdown = document.markdown.lineSequence()
                     .dropWhile { it.isBlank() || it.startsWith("# ") }
@@ -70,7 +68,6 @@ fun AdaptationProgressScreen(
     }
 }
 
-/** 本机一句话状态：系统 + 方案 + 适配状态 */
 @Composable
 fun DeviceAdaptationCard(markdown: String) {
     val profile = VendorProfile.current

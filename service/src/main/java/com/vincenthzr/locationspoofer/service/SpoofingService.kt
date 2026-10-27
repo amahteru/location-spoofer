@@ -106,7 +106,7 @@ class SpoofingService : Service() {
                 }
             }
             if (wakeLock?.isHeld == false) {
-                wakeLock?.acquire(24 * 60 * 60 * 1000L) // 保持 24 小时唤醒，防止后台系统冻结
+                wakeLock?.acquire(24 * 60 * 60 * 1000L)
             }
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -144,7 +144,6 @@ class SpoofingService : Service() {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        // 用户在多任务卡片划掉 Activity 时，如果正在模拟，继续在后台保持运行
         if (isRunning) {
             acquireWakeLock()
         }

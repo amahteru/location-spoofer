@@ -3,11 +3,9 @@ package com.vincenthzr.locationspoofer.utils
 import org.json.JSONObject
 import java.util.UUID
 
-/** The framework owns storage; the app publishes one atomic snapshot pointer. */
 internal interface FrameworkConfigStore {
     fun commit(snapshot: String): Boolean
     fun writeFile(name: String, payload: ByteArray)
-    /** Replaces the whole [FrameworkConfigChannel.HEAD_FILE]. */
     fun writeHead(snapshot: String)
     fun listFiles(): List<String>
     fun deleteFile(name: String)
@@ -25,7 +23,6 @@ internal class FrameworkConfigPublisher {
         var commitAttempted = false
         val snapshot: String
         try {
-            // Finish and close the immutable file before exposing its name to readers.
             if (file != null) store.writeFile(file, bytes)
             snapshot = JSONObject().apply {
                 put("version", FrameworkConfigChannel.VERSION)
@@ -36,16 +33,11 @@ internal class FrameworkConfigPublisher {
             commitAttempted = true
             check(store.commit(snapshot)) { "Framework rejected config publication" }
         } catch (error: Exception) {
-            // A lost Binder response does not prove the commit was rejected. Keep the file
-            // until a later successful publication, so either possible pointer remains readable.
             if (file != null && !commitAttempted) runCatching { store.deleteFile(file) }
             cleanupNeeded = true
             throw error
         }
-        // Best effort: the preferences pointer is already committed and stays authoritative for
-        // processes that receive it; the head copy only helps those whose preferences went stale.
         runCatching { store.writeHead(snapshot) }
-        // A delayed reader can retry the current pointer if an older file was removed.
         if (cleanupNeeded || file != null) runCatching {
             store.listFiles().filter { FrameworkConfigChannel.isConfigFile(it) && it != file }
                 .forEach { store.deleteFile(it) }

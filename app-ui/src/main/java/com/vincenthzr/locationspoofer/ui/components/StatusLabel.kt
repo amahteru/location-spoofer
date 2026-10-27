@@ -21,7 +21,6 @@ import com.vincenthzr.locationspoofer.ui.theme.successContainer
 import com.vincenthzr.locationspoofer.ui.theme.warningContainer
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 标签的配色角色：对应 M3 的 xxxContainer / onXxxContainer 色对 */
 enum class LabelTone { Primary, Secondary, Tertiary, Success, Warning, Error, Neutral }
 
 fun ColorScheme.containerOf(tone: LabelTone): Color = when (tone) {
@@ -44,9 +43,6 @@ fun ColorScheme.onContainerOf(tone: LabelTone): Color = when (tone) {
     LabelTone.Neutral -> onSurfaceVariant
 }
 
-/**
- * 只读状态标签：small 形状的色调容器 + labelMedium 文字，用于版本号、方案、状态等非交互信息。
- */
 @Composable
 fun StatusLabel(
     text: String,

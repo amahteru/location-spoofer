@@ -14,7 +14,6 @@ import java.util.TimerTask
 
 internal data class ColorOsCaller(val uid: Int, val pkg: String?)
 
-/** Owned hooks/timers and exact, hierarchy-aware reflection for the inspected ColorOS classes. */
 internal open class ColorOs16HookSupport(
     protected val module: LocationHooker,
     protected val loader: ClassLoader,

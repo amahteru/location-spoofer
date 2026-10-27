@@ -7,9 +7,6 @@ import org.json.JSONObject
 import kotlin.math.*
 import io.github.libxposed.api.*
 
-/**
- * 伪造 ServiceState / SignalStrength / CellIdentity。
- */
 internal fun LocationHooker.buildFakeServiceState(
     classLoader: ClassLoader,
     cellArray: org.json.JSONArray?
@@ -160,14 +157,6 @@ internal fun LocationHooker.buildFakeSignalStrength(
     }
 }
 
-/**
- * 构造 CellIdentity 派生类，完整兼容 Android 9 ~ Android 14+。
- * 按以下优先级尝试：
- *   1. 各 Android 版本已知的有参构造器（最优，字段由构造器写入）
- *   2. sun.misc.Unsafe.allocateInstance + 反射写字段
- *      （字段初始值为 0 而非 MAX_VALUE，避免 JIT 内联问题）
- *   3. 最小参数构造器 + 默认值填充（最后手段）
- */
 internal fun LocationHooker.constructCellIdentityByType(
     type: String,
     clazz: Class<*>,
@@ -177,20 +166,15 @@ internal fun LocationHooker.constructCellIdentityByType(
 ): Any {
     val ctors = clazz.declaredConstructors.onEach { it.isAccessible = true }
 
-    // 按参数个数匹配构造器，调用失败则返回 null
     fun tryNewInstance(vararg args: Any?): Any? = ctors
         .firstOrNull { it.parameterCount == args.size }
         ?.runCatching { newInstance(*args) }
         ?.getOrNull()
 
-    // 阶段一：尝试各版本有参构造器
     val identity: Any? = when (type) {
         "LTE" -> {
-            // Android 9 / API 28: (int mcc, int mnc, int ci, int pci, int tac) — 5 参数
             tryNewInstance(mcc, mnc, ciOrCid, pci, tacOrLac)
-            // Android 10 / API 29: (int ci, int pci, int tac, int earfcn, int bandwidth, String mcc, String mnc, String alphaLong, String alphaShort) — 9 参数
                 ?: tryNewInstance(ciOrCid, pci, tacOrLac, 0, 0, mccStr, mncStr, "", "")
-                // Android 11+ / API 30+: (int ci, int pci, int tac, int earfcn, int[] bands, int bandwidth, String mcc, String mnc, String alphaLong, String alphaShort, Collection, ClosedSubscriberGroupInfo) — 12 参数
                 ?: tryNewInstance(
                     ciOrCid,
                     pci,
@@ -208,13 +192,9 @@ internal fun LocationHooker.constructCellIdentityByType(
         }
 
         "GSM" -> {
-            // Android 9 / API 28: (int mcc, int mnc, int lac, int cid) — 4 参数
             tryNewInstance(mcc, mnc, tacOrLac, ciOrCid)
-            // Android 9 / API 28: (int mcc, int mnc, int lac, int cid, int arfcn, int bsic) — 6 参数
                 ?: tryNewInstance(mcc, mnc, tacOrLac, ciOrCid, 0, 0)
-                // Android 10 / API 29: (int lac, int cid, int arfcn, int bsic, String mcc, String mnc, String alphaLong, String alphaShort) — 8 参数
                 ?: tryNewInstance(tacOrLac, ciOrCid, 0, 0, mccStr, mncStr, "", "")
-                // Android 11+ / API 30+: 10 参数
                 ?: tryNewInstance(
                     tacOrLac,
                     ciOrCid,
@@ -230,11 +210,8 @@ internal fun LocationHooker.constructCellIdentityByType(
         }
 
         "WCDMA", "UMTS" -> {
-            // Android 9: (int mcc, int mnc, int lac, int cid, int psc, int uarfcn) — 6 参数
             tryNewInstance(mcc, mnc, tacOrLac, ciOrCid, pci, 0)
-            // Android 10: (int lac, int cid, int psc, int uarfcn, String mcc, String mnc, String alphaLong, String alphaShort) — 8 参数
                 ?: tryNewInstance(tacOrLac, ciOrCid, pci, 0, mccStr, mncStr, "", "")
-                // Android 11+: 10 参数
                 ?: tryNewInstance(
                     tacOrLac,
                     ciOrCid,
@@ -250,9 +227,7 @@ internal fun LocationHooker.constructCellIdentityByType(
         }
 
         "NR" -> {
-            // Android 10: (int pci, int tac, int nrArfcn, String mcc, String mnc, long nci, String alphaLong, String alphaShort) — 8 参数
             tryNewInstance(pci, tacOrLac, 0, mccStr, mncStr, ciOrCid.toLong(), "", "")
-            // Android 11+: (int pci, int tac, int nrArfcn, int[] bands, String mcc, String mnc, long nci, String alphaLong, String alphaShort, Collection additionalPlmns) — 10 参数
                 ?: tryNewInstance(
                     pci,
                     tacOrLac,
@@ -309,8 +284,6 @@ internal fun LocationHooker.constructCellIdentityByType(
         return identity
     }
 
-    // 阶段二：Unsafe.allocateInstance + 反射写字段
-    // 字段初始值为 0（非 MAX_VALUE），避免 JIT 内联问题
     try {
         val unsafeClass = Class.forName("sun.misc.Unsafe")
         val unsafeField = unsafeClass.getDeclaredField("theUnsafe")
@@ -319,7 +292,6 @@ internal fun LocationHooker.constructCellIdentityByType(
         val allocate = unsafeClass.getMethod("allocateInstance", Class::class.java)
         val obj = allocate.invoke(unsafe, clazz) as Any
 
-        // 设置类型标识（CellIdentity.mType）
         val typeInt = when (type) {
             "GSM" -> 1; "LTE" -> 3; "WCDMA", "UMTS" -> 4; "NR" -> 6; else -> 3
         }
@@ -327,7 +299,6 @@ internal fun LocationHooker.constructCellIdentityByType(
             XposedHelpers.setIntField(obj, "mType", typeInt)
         } catch (_: Throwable) {
         }
-        // MCC/MNC（Int 版 Android 9，String 版 Android 10+）
         try {
             XposedHelpers.setIntField(obj, "mMcc", mcc)
         } catch (_: Throwable) {
@@ -425,7 +396,6 @@ internal fun LocationHooker.constructCellIdentityByType(
         XposedBridge.log("[LocationSpoofer][CellMock] Unsafe failed for $type: $e")
     }
 
-    // 阶段三：最小参数构造器 + 安全默认值填充（绝对保底）
     val minCtor = ctors.minByOrNull { it.parameterCount }
         ?: throw IllegalStateException("No constructors for ${clazz.name}")
     val safeArgs = minCtor.parameterTypes.map { t ->
@@ -445,7 +415,6 @@ internal fun LocationHooker.constructCellIdentityByType(
     } catch (e: Throwable) {
         throw IllegalStateException("Cannot construct ${clazz.name}: $e")
     }
-    // 写字段
     try {
         XposedHelpers.setIntField(fallbackObj, "mMcc", mcc)
     } catch (_: Throwable) {

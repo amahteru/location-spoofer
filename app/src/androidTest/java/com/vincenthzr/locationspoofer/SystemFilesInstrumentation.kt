@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
-/** Checks framework configuration and system reports without changing simulation state. */
 class SystemFilesInstrumentation : Instrumentation() {
     private var environmentRefresh = false
     private var moduleRuntime = false
@@ -71,8 +70,6 @@ class SystemFilesInstrumentation : Instrumentation() {
             check(noLegacyTmp != "ERROR") { "Legacy tmp artifacts remain or root access is unavailable" }
             val reports = runBlocking {
                 val repository = HookStatusRepository(root)
-                // Reconnecting the app may republish its snapshot; status files are debounced.
-                // Wait for that publication instead of comparing an immediately stale report.
                 repeat(40) {
                     val current = repository.readAll()
                     val latest = service.getRemotePreferences(FrameworkConfigChannel.GROUP)

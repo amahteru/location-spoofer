@@ -54,7 +54,6 @@ fun RouteConfigDialog(
                 .padding(horizontal = AppSpacing.screenMargin),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            // 运行模式选择 (循环 / 手动)
             SectionLabel(stringResource(R.string.run_mode))
             val runModes = listOf(
                 Triple(RouteRunMode.LOOP, Icons.Rounded.Autorenew, R.string.loop_auto_cruise),
@@ -80,7 +79,6 @@ fun RouteConfigDialog(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // 速度选择
             SectionLabel(stringResource(R.string.cruise_speed))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 listOf(
@@ -98,7 +96,6 @@ fun RouteConfigDialog(
                 }
             }
 
-            // 自定义速度调节模块
             if (uiState.routeSimMode == SimMode.CUSTOM) {
                 var sliderValue by remember(uiState.customSpeedMs) {
                     mutableFloatStateOf(uiState.customSpeedMs.toFloat())
@@ -130,7 +127,6 @@ fun RouteConfigDialog(
                     valueRange = 0.2f..45.0f,
                     steps = 447
                 )
-                // 微调步进按钮
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
@@ -153,7 +149,6 @@ fun RouteConfigDialog(
 
             HorizontalDivider()
 
-            // 到达终点后停下
             SwitchListItem(
                 modifier = Modifier.listItemBleed(),
                 title = stringResource(R.string.stop_at_destination_title),
@@ -171,7 +166,6 @@ fun RouteConfigDialog(
                 onVariationChange = onAltitudeVariationChange
             )
 
-            // 真实道路匹配
             SwitchListItem(
                 modifier = Modifier.listItemBleed(),
                 title = stringResource(R.string.real_road_matching),
@@ -182,9 +176,6 @@ fun RouteConfigDialog(
 
             HorizontalDivider()
 
-            // 环境模拟（Wi-Fi / 基站 / 蓝牙 / 抖动 / 卫星数）
-            // 这些参数路线模拟本来就已经传给底层了，只是之前没有入口，
-            // 用户必须回定点模拟那边才能改（issue #50）。这里复用同一份 uiState 与回调。
             SectionLabel(stringResource(R.string.env_simulation_section))
             if (uiState.canMockWifi || uiState.wigleToken.isNotBlank()) SwitchListItem(
                 modifier = Modifier.listItemBleed(),
@@ -226,7 +217,6 @@ fun RouteConfigDialog(
             )
         }
 
-        // 固定启动按钮，设置内容独立滚动。
         Button(
             onClick = onStartRoute,
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,

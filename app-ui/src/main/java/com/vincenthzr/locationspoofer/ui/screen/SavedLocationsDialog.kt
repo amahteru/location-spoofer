@@ -26,7 +26,6 @@ fun SavedLocationsDialog(
 ) {
     AppBottomSheet(
         title = stringResource(R.string.saved_locations),
-        // 列表为空时由下方空状态说明，标题下不再重复同一句话
         subtitle = if (savedLocations.isEmpty()) null else stringResource(R.string.saved_locations_count_format, savedLocations.size),
         onDismiss = onDismiss
     ) {
@@ -55,9 +54,6 @@ private fun SavedLocationRow(loc: SavedLocation, onSelect: () -> Unit, onDelete:
                 }, ${
                     String.format(java.util.Locale.US, "%.6f", loc.lng)
                 }"
-                // 没有备注/地名的收藏点，名字本身就是坐标，
-                // 再渲染一行坐标就是上下两行雷同（issue #56）。
-                // 去掉括号与空格后归一化比较，一致就只显示一行。
                 val normalize = { text: String ->
                     text.replace("(", "").replace(")", "")
                         .replace("（", "").replace("）", "")

@@ -18,9 +18,6 @@ import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 图层与地图引擎选择：M3 Modal Bottom Sheet，图层用分段按钮、引擎用单选列表。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapTypeDialog(

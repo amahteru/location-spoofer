@@ -84,7 +84,6 @@ internal fun MainViewModel.deleteCollectedRoute(id: Long) {
     _uiState.update { if (it.selectedCollectionRouteId == id) it.copy(selectedCollectionRouteId = null) else it }
 }
 
-/** 界面能力判断与模拟移动使用同一匹配规则，避免路线中部采样稀疏时丢失环境数据。 */
 internal suspend fun MainViewModel.environmentRecordsAt(lat: Double, lng: Double): List<CompleteLocation> {
     val position = LatLng(lat, lng)
     val routes = collectionRoutes.value

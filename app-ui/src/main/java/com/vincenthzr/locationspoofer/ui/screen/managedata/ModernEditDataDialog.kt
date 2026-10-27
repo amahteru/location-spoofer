@@ -59,17 +59,14 @@ fun ModernEditDataDialog(
 
     var selectedTab by remember { mutableStateOf(EditDataTab.WIFI) }
 
-    // Wi-Fi 弹窗状态
     var wifiBeingEdited by remember { mutableStateOf<EditableWifiItem?>(null) }
     var isNewWifiDialog by remember { mutableStateOf(false) }
     var wifiToDelete by remember { mutableStateOf<String?>(null) }
 
-    // 基站弹窗状态
     var cellBeingEdited by remember { mutableStateOf<EditableCellItem?>(null) }
     var isNewCellDialog by remember { mutableStateOf(false) }
     var cellToDelete by remember { mutableStateOf<String?>(null) }
 
-    // 蓝牙弹窗状态
     var btBeingEdited by remember { mutableStateOf<EditableBluetoothItem?>(null) }
     var isNewBtDialog by remember { mutableStateOf(false) }
     var btToDelete by remember { mutableStateOf<String?>(null) }
@@ -176,7 +173,6 @@ fun ModernEditDataDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
-        // M3 全屏对话框：顶栏关闭 + 保存，内容区可滚动
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -216,7 +212,6 @@ fun ModernEditDataDialog(
                     .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
             ) {
-                // 坐标
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -265,7 +260,6 @@ fun ModernEditDataDialog(
                     SignalChip(Icons.Rounded.Bluetooth, "${btList.size} ${stringResource(R.string.tag_bluetooth)}", LabelTone.Tertiary)
                 }
 
-                // 地点名称与备注
                 OutlinedTextField(
                     value = placeName,
                     onValueChange = { placeName = it },
@@ -292,7 +286,6 @@ fun ModernEditDataDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 选项卡：[Wi-Fi] [基站] [蓝牙]
                 PrimaryTabRow(selectedTabIndex = selectedTab.ordinal) {
                     EditDataTab.entries.forEach { tab ->
                         Tab(
@@ -312,7 +305,6 @@ fun ModernEditDataDialog(
                     }
                 }
 
-                // 选项卡内容区：同级内容，按选项卡顺序左右滑动
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
@@ -377,7 +369,6 @@ fun ModernEditDataDialog(
         }
     }
 
-    // 编辑或新增 Wi-Fi 详细参数弹窗
     if (wifiBeingEdited != null || isNewWifiDialog) {
         EditWifiDialog(
             initialItem = wifiBeingEdited,
@@ -396,7 +387,6 @@ fun ModernEditDataDialog(
         )
     }
 
-    // 删除单项 Wi-Fi 二次确认
     if (wifiToDelete != null) {
         val targetBssid = wifiToDelete!!
         ManageDeleteConfirmDialog(
@@ -412,7 +402,6 @@ fun ModernEditDataDialog(
         )
     }
 
-    // 编辑或新增基站详细参数弹窗
     if (cellBeingEdited != null || isNewCellDialog) {
         EditCellDialog(
             initialItem = cellBeingEdited,
@@ -431,7 +420,6 @@ fun ModernEditDataDialog(
         )
     }
 
-    // 删除单项基站二次确认
     if (cellToDelete != null) {
         val targetCellKey = cellToDelete!!
         ManageDeleteConfirmDialog(
@@ -447,7 +435,6 @@ fun ModernEditDataDialog(
         )
     }
 
-    // 编辑或新增蓝牙详细参数弹窗
     if (btBeingEdited != null || isNewBtDialog) {
         EditBluetoothDialog(
             initialItem = btBeingEdited,
@@ -466,7 +453,6 @@ fun ModernEditDataDialog(
         )
     }
 
-    // 删除单项蓝牙二次确认
     if (btToDelete != null) {
         val targetAddress = btToDelete!!
         ManageDeleteConfirmDialog(

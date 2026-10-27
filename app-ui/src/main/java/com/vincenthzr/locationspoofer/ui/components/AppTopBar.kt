@@ -22,9 +22,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 悬浮在地图等内容之上的返回按钮：Material3 Filled Tonal Icon Button
- */
 @Composable
 fun AppBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     FilledTonalIconButton(onClick = onClick, modifier = modifier) {
@@ -35,10 +32,6 @@ fun AppBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * 二级页面统一顶栏：Material3 TopAppBar，标题单行显示；说明文字作为辅助文本放在顶栏下方。
- * 页面根布局已自行处理状态栏内边距，因此这里不再叠加 windowInsets。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
@@ -80,9 +73,6 @@ fun AppTopBar(
     }
 }
 
-/**
- * 底部导航一级页面的顶栏：无返回按钮的 M3 TopAppBar，自行处理状态栏内边距；说明文字作为辅助文本放在标题下方。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppRootTopBar(

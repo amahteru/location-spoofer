@@ -7,9 +7,6 @@ import org.json.JSONObject
 import kotlin.math.*
 import io.github.libxposed.api.*
 
-/**
- * 根据经纬度构造伪基站列表（CellInfo），及相关辅助函数。
- */
 internal fun LocationHooker.buildFakeCellInfoList(
     classLoader: ClassLoader, lat: Double, lng: Double, config: org.json.JSONObject?
 ): java.util.ArrayList<Any> {
@@ -69,7 +66,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                     )
                 }
 
-                // 1. 寻找并构造具体的 CellInfo 派生类
                 val cellInfoClass = when (type) {
                     "GSM" -> XposedHelpers.findClass(
                         "android.telephony.CellInfoGsm",
@@ -94,8 +90,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 }
                 val cellInfo = XposedHelpers.newInstance(cellInfoClass)
 
-                // 设置注册标志（Android 9 及以下用 mRegistered；Android 10+ 用 mCellConnectionStatus）
-                // 连接状态: 0=无连接, 1=主服务, 2=次服务
                 val connectionStatus = if (isRegistered) 1 else 0
                 try {
                     XposedHelpers.setBooleanField(cellInfo, "mRegistered", isRegistered)
@@ -123,7 +117,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 } catch (e: Throwable) {
                 }
 
-                // 2. 构造 CellIdentity（尝试多种有参构造器，避免 final 字段反射问题）
                 val cellIdentityClass = when (type) {
                     "GSM" -> XposedHelpers.findClass(
                         "android.telephony.CellIdentityGsm",
@@ -158,7 +151,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                     XposedBridge.logOpenCellId("Built $type identity: MCC=$mcc MNC=$mnc TAC/LAC=$tacOrLac CI/CID=$ciOrCid PCI=$pci -> ${cellIdentity.javaClass.simpleName}")
                 }
 
-                // 验证注入是否成功（如果 getCi()/getLac() 返回 Integer.MAX_VALUE 说明注入失败）
                 try {
                     val verifyMethod = when (type) {
                         "LTE" -> "getCi"
@@ -176,7 +168,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 } catch (_: Throwable) {
                 }
 
-                // 将 CellIdentity 存入 CellInfo (兼容新老版本字段名)
                 val identityField = when (type) {
                     "GSM" -> "mCellIdentityGsm"
                     "WCDMA", "UMTS" -> "mCellIdentityWcdma"
@@ -192,7 +183,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 } catch (e: Throwable) {
                 }
 
-                // 3. 构造并配置对应的 CellSignalStrength
                 val cssClass = when (type) {
                     "GSM" -> XposedHelpers.findClass(
                         "android.telephony.CellSignalStrengthGsm",
@@ -279,7 +269,7 @@ internal fun LocationHooker.buildFakeCellInfoList(
                         }
                     }
 
-                    else -> { // LTE
+                    else -> {
                         try {
                             XposedHelpers.setIntField(css, "mRsrp", dbm)
                         } catch (e: Throwable) {
@@ -299,7 +289,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                     }
                 }
 
-                // 将 CellSignalStrength 存入 CellInfo (兼容新老版本字段名)
                 val cssField = when (type) {
                     "GSM" -> "mCellSignalStrengthGsm"
                     "WCDMA", "UMTS" -> "mCellSignalStrengthWcdma"
@@ -361,27 +350,23 @@ internal fun LocationHooker.buildFakeCellInfoList(
         60_000L
     )
 
-    // 中国运营商MCC/MNC组合
     val operators = listOf(
-        Pair(460, 0),  // 中国移动
-        Pair(460, 1),  // 中国联通
-        Pair(460, 11)  // 中国电信
+        Pair(460, 0),
+        Pair(460, 1),
+        Pair(460, 11)
     )
 
-    // 生成2-3个基站(1个服务小区+1-2个邻区)
     val cellCount = 2 + (coordSeed and 1).toInt()
     for (i in 0 until cellCount) {
         try {
             val mcc = operators[i % operators.size].first
             val mnc = operators[i % operators.size].second
-            // 每个基站的TAC/CI基于坐标+索引偏移,确保同一位置的多个基站参数不同但确定
             val tac = (10000 + ((coordSeed + i * 7919) and 0xFFFF).toInt() % 50000)
                 .coerceIn(1, 65534)
             val ci = (100000 + (((coordSeed shr 8) + i * 104729) and 0xFFFFFF).toInt() % 900000)
                 .coerceIn(1, 268435455)
-            val pci = (coordSeed + i * 31).toInt() and 0x1FF // 物理小区ID, 0-503
+            val pci = (coordSeed + i * 31).toInt() and 0x1FF
 
-            // 方案A: 通过反射CellIdentityLte构造器(Android 9+有多参数版本)
             val cellIdentityLteClass = XposedHelpers.findClass(
                 "android.telephony.CellIdentityLte", classLoader
             )
@@ -391,49 +376,41 @@ internal fun LocationHooker.buildFakeCellInfoList(
 
             val cellInfo = XposedHelpers.newInstance(cellInfoLteClass)
 
-            // 设置isRegistered: 第一个为服务小区
             try {
                 XposedHelpers.setBooleanField(cellInfo, "mRegistered", i == 0)
             } catch (e: Throwable) {
                 try {
                     XposedHelpers.callMethod(cellInfo, "setRegistered", i == 0)
-                } catch (e2: Throwable) { /* 忽略 */
+                } catch (e2: Throwable) {
                 }
             }
 
-            // 设置时间戳
             try {
                 XposedHelpers.setLongField(
                     cellInfo, "mTimeStamp",
                     android.os.SystemClock.elapsedRealtimeNanos()
                 )
-            } catch (e: Throwable) { /* 忽略 */
+            } catch (e: Throwable) {
             }
 
-            // 构造CellIdentityLte并注入字段（使用安全的 Unsafe/最小参数反射引擎）
             val mccStr = mcc.toString()
             val mncStr = if (mnc < 10) "0$mnc" else mnc.toString()
             val cellIdentity = constructCellIdentityByType(
                 "LTE", cellIdentityLteClass, mcc, mccStr, mnc, mncStr, tac, ci, pci
             )
 
-            // 将CellIdentityLte写入CellInfoLte
             try {
                 XposedHelpers.setObjectField(cellInfo, "mCellIdentityLte", cellIdentity)
-            } catch (e: Throwable) { /* 忽略 */
+            } catch (e: Throwable) {
             }
 
-            // 构造CellSignalStrengthLte
             try {
                 val cssClass = XposedHelpers.findClass(
                     "android.telephony.CellSignalStrengthLte", classLoader
                 )
                 val css = XposedHelpers.newInstance(cssClass)
-                // RSRP: -140~-44 dBm, 典型值-80~-100
                 val rsrp = -80 - rng.nextInt(20)
-                // RSRQ: -20~-3 dB
                 val rsrq = -10 - rng.nextInt(7)
-                // RSSI: -113~-51 dBm
                 val rssi = -70 - rng.nextInt(20)
                 try {
                     XposedHelpers.setIntField(css, "mRsrp", rsrp)
@@ -448,7 +425,7 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 } catch (e2: Throwable) {
                 }
                 XposedHelpers.setObjectField(cellInfo, "mCellSignalStrengthLte", css)
-            } catch (e: Throwable) { /* 忽略 */
+            } catch (e: Throwable) {
             }
 
             result.add(cellInfo)

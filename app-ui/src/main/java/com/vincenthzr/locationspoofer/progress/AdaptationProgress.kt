@@ -3,11 +3,6 @@ package com.vincenthzr.locationspoofer.progress
 import com.vincenthzr.locationspoofer.ui.screen.MarkdownBlock
 import com.vincenthzr.locationspoofer.ui.screen.parseMarkdownBlocks
 
-/**
- * 从 ADAPTATION_PROGRESS.md（或英文版 ADAPTATION_PROGRESS_EN.md）里查出"本机"相关的条目。文档是给人看的 Markdown，
- * 这里按它的固定结构取数："## 全局方案 / Global scheme" 下 "### 按系统 / By system" 的表格（第一列是系统名）。
- * 文档结构变了查不到时返回 null，界面按"未验证"显示，完整进度页照常显示全文。
- */
 object AdaptationProgress {
 
     enum class Status { VERIFIED, PARTIAL, BROKEN, UNVERIFIED }
@@ -26,7 +21,6 @@ object AdaptationProgress {
         else -> Status.UNVERIFIED
     }
 
-    /** 全局方案"按系统"表里第一列包含任一关键字的行 */
     fun findGlobalSystem(markdown: String, keywords: List<String>): SystemEntry? {
         val table = tableUnder(markdown, section = listOf("全局方案", "Global scheme"), subsection = listOf("按系统", "By system"))
             ?: return null
@@ -43,7 +37,6 @@ object AdaptationProgress {
         return SystemEntry(row[0], parseStatus(cell(status)), cell(versions), cell(note))
     }
 
-    /** 某个二级标题（及可选的三级标题）下的第一张表；标题按前缀匹配，传入各语言的写法 */
     private fun tableUnder(markdown: String, section: List<String>, subsection: List<String>?): MarkdownBlock.Table? {
         var inSection = false
         var inSubsection = subsection == null

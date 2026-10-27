@@ -56,14 +56,12 @@ fun VendorSchemeScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    // 文档按语言区分中英文版，语言变了要换一份
     val source = remember(LocalConfiguration.current.locales[0]) { AdaptationProgressSource(context) }
     var document by remember(source) { mutableStateOf(source.local()) }
     var loading by remember { mutableStateOf(false) }
     var showFullProgress by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // 全局方案：各系统进程写出的 Hook 运行状态报告
     val hookStatusRepository = koinInject<HookStatusRepository>()
     var hookReports by remember { mutableStateOf<Map<String, HookStatusReport?>>(emptyMap()) }
     var hookLoading by remember { mutableStateOf(false) }
@@ -89,14 +87,12 @@ fun VendorSchemeScreen(
     LaunchedEffect(Unit) {
         refreshHookStatus()
     }
-    // 换语言后重新拉取对应语言的文档
     LaunchedEffect(source) {
         refresh()
     }
 
     BackHandler(enabled = !showHookStatus && !showFullProgress, onBack = onClose)
 
-    // 下级页面（Hook 状态 / 完整适配进度）以覆盖层滑入，上级页面保留在下方
     Box(modifier = Modifier.fillMaxSize()) {
         VendorSchemeContent(
             viewModel = viewModel,
@@ -221,7 +217,6 @@ private fun VendorSchemeContent(
     }
 }
 
-/** 一行可点击的卡片：图标 + 标题 + 可选的状态标签（标题下方）+ 箭头，点进二级页面 */
 @Composable
 private fun NavigationRowCard(
     icon: ImageVector,

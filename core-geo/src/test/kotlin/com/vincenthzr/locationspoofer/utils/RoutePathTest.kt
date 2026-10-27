@@ -9,7 +9,7 @@ import org.junit.Test
 class RoutePathTest {
 
     private val a = LatLng(30.0, 120.0)
-    private val b = GeoMath.destination(a, 90.0, 1000.0) // 正东 1000 米
+    private val b = GeoMath.destination(a, 90.0, 1000.0)
 
     @Test
     fun `destination and distance are consistent`() {
@@ -24,7 +24,7 @@ class RoutePathTest {
         val out = path.positionAt(400.0, stopAtDestination = false)
         assertEquals(400.0, GeoMath.distance(a, LatLng(out.lat, out.lng)), 0.5)
         assertEquals(90.0, out.bearing.toDouble(), 0.5)
-        val back = path.positionAt(1600.0, stopAtDestination = false) // 折返途中，距起点 400 米
+        val back = path.positionAt(1600.0, stopAtDestination = false)
         assertEquals(400.0, GeoMath.distance(a, LatLng(back.lat, back.lng)), 0.5)
         assertEquals(270.0, back.bearing.toDouble(), 0.5)
     }

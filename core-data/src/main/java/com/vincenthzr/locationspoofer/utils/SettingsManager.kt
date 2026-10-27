@@ -15,11 +15,6 @@ class SettingsManager(context: Context) {
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
     init {
-        // 自动升级迁移：
-        // 修复之前版本将 mockWifi / mockCell / mockBluetooth 错误绑定导致旧配置中被意外写入 false 的历史遗留问题。
-        // 在系统级 Hook 架构下，Wi-Fi、基站与蓝牙均由系统服务自动实时合成高拟真环境数据，
-        // 必须默认保持开启以彻底杜绝高德/阿里/抖音等通过物理 Wi-Fi BSSID 与基站反查真实位置。
-        // 同时确保系统级全局模拟模式（is_system_hook_global_mode）默认开启。
         if (!prefs.getBoolean("mock_switches_migrated_v3", false)) {
             prefs.edit {
                 putBoolean("mock_wifi", true)
@@ -75,12 +70,10 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("root_solution", "AUTO") ?: "AUTO"
         set(value) = prefs.edit { putString("root_solution", value) }
 
-    /** 用户在"厂商适配方案"设置页手动选中的 [com.vincenthzr.locationspoofer.vendor.VendorScheme.id]；"auto" 表示走自动识别。 */
     var vendorOverride: String
         get() = prefs.getString("vendor_override", "auto") ?: "auto"
         set(value) = prefs.edit { putString("vendor_override", value) }
 
-    /** 适配新系统用：开机时把各系统服务候选类的方法 / 字段列表写进 Xposed 日志（全局方案，需重启生效） */
     var debugDumpSystemServices: Boolean
         get() = prefs.getBoolean("debug_dump_system_services", false)
         set(value) = prefs.edit { putBoolean("debug_dump_system_services", value) }
@@ -121,7 +114,6 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("enable_jitter", true)
         set(value) = prefs.edit { putBoolean("enable_jitter", value) }
 
-    /** 开始模拟时是否强制重启已勾选作用域的目标 App，让它们加载当前模块并订阅框架配置 */
     var restartAppsOnSpoof: Boolean
         get() = prefs.getBoolean("restart_apps_on_spoof", true)
         set(value) = prefs.edit { putBoolean("restart_apps_on_spoof", value) }
@@ -130,22 +122,18 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("altitude", "0.0") ?: "0.0"
         set(value) = prefs.edit { putString("altitude", value) }
 
-    /** 海拔相对基准值的最大起伏（±米），0 表示固定海拔 */
     var altitudeVariationM: Int
         get() = prefs.getInt("altitude_variation_m", AltitudeModel.DEFAULT_VARIATION_M)
         set(value) = prefs.edit { putInt("altitude_variation_m", value) }
 
-    /** 运动真实度随机强度，取值见 MotionRealism.Level.id */
     var realismLevel: Int
         get() = prefs.getInt("realism_level", MotionRealism.DEFAULT_LEVEL_ID)
         set(value) = prefs.edit { putInt("realism_level", value) }
 
-    /** 路线模拟速度浮动范围（±百分比） */
     var speedFluctuationPct: Int
         get() = prefs.getInt("speed_fluctuation_pct", MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT)
         set(value) = prefs.edit { putInt("speed_fluctuation_pct", value) }
 
-    /** 打开 App 时地图停留在上次选定的位置，而不是自动跳到真实位置 */
     var keepLastMapPosition: Boolean
         get() = prefs.getBoolean("keep_last_map_position", true)
         set(value) = prefs.edit { putBoolean("keep_last_map_position", value) }
@@ -177,7 +165,6 @@ class SettingsManager(context: Context) {
                         wifiJson = obj.optString("wifiJson", "[]"),
                         cellJson = obj.optString("cellJson", "[]"),
                         bluetoothJson = obj.optString("bluetoothJson", "[]"),
-                        // 老版本写入的收藏没有这个 key，has() 为 false 时保持 null
                         sourceLocationId = if (obj.has("sourceLocationId")) obj.optLong("sourceLocationId") else null
                     )
                 )
@@ -188,12 +175,6 @@ class SettingsManager(context: Context) {
         return list
     }
 
-    /**
-     * 两条收藏是否视为"同一条"：都来自同一条采集记录（sourceLocationId 相同且非空）时按
-     * 来源关联判断——这样编辑过采集点坐标也认得出来；否则退回按 name+lat+lng 精确匹配
-     * （手动收藏、或老版本写入的没有来源 id 的收藏）。不能只按坐标匹配，那样会把同一坐标
-     * 下其他名字/其他来源的收藏一并命中。
-     */
     private fun isSameSavedLocation(a: SavedLocation, b: SavedLocation): Boolean {
         if (a.sourceLocationId != null && b.sourceLocationId != null) {
             return a.sourceLocationId == b.sourceLocationId
@@ -282,7 +263,6 @@ class SettingsManager(context: Context) {
         prefs.edit { putString("saved_routes", jsonArray.toString()) }
     }
 
-    /** system_server 级定位 Hook（实验性）里被勾选生效的目标 App 包名集合 */
     fun getSystemHookPackages(): Set<String> {
         val jsonString = prefs.getString("system_hook_packages", "[]") ?: "[]"
         val set = mutableSetOf<String>()
@@ -303,7 +283,6 @@ class SettingsManager(context: Context) {
         prefs.edit { putString("system_hook_packages", jsonArray.toString()) }
     }
 
-    /** 是否开启全局模拟模式（除本应用与系统基础核心外对所有应用生效） */
     var isSystemHookGlobalMode: Boolean
         get() = prefs.getBoolean("is_system_hook_global_mode", true)
         set(value) = prefs.edit { putBoolean("is_system_hook_global_mode", value) }

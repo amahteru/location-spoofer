@@ -62,8 +62,6 @@ fun ManageDataScreen(
     var editingRoute by remember { mutableStateOf<com.vincenthzr.locationspoofer.data.db.CollectionRouteRecord?>(null) }
     var deletingRoute by remember { mutableStateOf<com.vincenthzr.locationspoofer.data.db.CollectionRouteRecord?>(null) }
 
-    // 优先按 sourceLocationId 判断是否已收藏（编辑坐标后依然认得出）；
-    // 没有来源 id 的老收藏才退回按坐标匹配。
     val favoritedLocationIds = remember(uiState.savedLocations) {
         uiState.savedLocations.mapNotNullTo(HashSet()) { it.sourceLocationId }
     }
@@ -110,7 +108,6 @@ fun ManageDataScreen(
                 subtitle = stringResource(R.string.total_collected_data_count, (dataList.size + collectionRoutes.size)),
                 onBack = onClose,
                 actions = {
-                    // 手动刷新按钮：兜底给用户一个明确的"我要看最新数据"入口（issue #60）
                     IconButton(
                         onClick = { manageDataViewModel.loadManageData() },
                         enabled = !manageDataUiState.isLoading
@@ -128,7 +125,6 @@ fun ManageDataScreen(
                     CircularProgressIndicator()
                 }
             } else if ((dataList.isEmpty() && collectionRoutes.isEmpty())) {
-                // 空数据状态质感呈现
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -158,7 +154,6 @@ fun ManageDataScreen(
                     }
                 }
             } else {
-                // 地图概览卡片
                 OutlinedCard(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -177,7 +172,6 @@ fun ManageDataScreen(
                             }
                         )
 
-                        // 地图右上角覆盖范围提示
                         StatusLabel(
                             text = stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
                             tone = LabelTone.Secondary,
@@ -188,7 +182,6 @@ fun ManageDataScreen(
                     }
                 }
 
-                // 下部数据卡片列表
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -257,7 +250,6 @@ fun ManageDataScreen(
         }
     }
 
-    // 现代化编辑数据弹窗
     if (editingItem != null) {
         val currentItem = dataList.find { it.location.id == editingItem?.location?.id } ?: editingItem!!
         ModernEditDataDialog(
@@ -274,8 +266,6 @@ fun ManageDataScreen(
                     selectedBluetoothAddress,
                     selectedCellKey
                 )
-                // 坐标可能被改了，同步一下这条记录对应的收藏（如果有），
-                // 不然收藏会因为坐标变了而找不到关联、变成孤儿数据。
                 viewModel.syncFavoriteCoordinateIfExists(currentItem.location.id, lat, lng)
                 viewModel.selectCollectedLocation(currentItem.location.id)
                 editingItem = null
@@ -363,7 +353,6 @@ fun ManageDataScreen(
         )
     }
 
-    // 删除单项采集数据二次确认弹窗
     if (itemToDelete != null) {
         val targetItem = itemToDelete!!
         val displayName = when {

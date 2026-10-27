@@ -22,7 +22,6 @@ class LocationRepository(
     private val savedRouteDao: SavedRouteDao,
     private val spoofingServiceController: SpoofingServiceController
 ) {
-    /** 用户在设置里选择的 root 方案；解析失败（脏数据/尚未设置）时退回 AUTO */
     private fun currentRootSolution(): RootSolution =
         try {
             RootSolution.valueOf(settingsManager.rootSolution)
@@ -32,18 +31,10 @@ class LocationRepository(
 
     suspend fun checkRootAccess(): Boolean = rootManager.checkRootAccess(currentRootSolution())
 
-    /** 检测 Root 权限与框架配置通道是否正常，返回完整诊断结果供设置页"测试"按钮展示 */
     suspend fun testRootSetup(): RootSetupTestResult = rootManager.testRootSetup(currentRootSolution())
 
-    /** 强制停止目标 App，让它们下次启动时加载当前模块并订阅框架配置 */
     suspend fun forceStopApps(packages: List<String>) = rootManager.forceStopApps(packages)
 
-    /**
-     * 设备重启、App 更新和每次打开界面时调用：模拟此前处于开启状态时恢复进程内状态和前台服务。
-     * 框架里保存着最后一次发布的完整配置，系统进程开机后直接读取，这里不重新发布，
-     * 否则会用不完整的参数覆盖掉周边环境数据和路线进度。
-     * 是否在模拟以这份配置为准：开始模拟时先写配置再启动前台服务，和并发的开始请求不会互相打架。
-     */
     suspend fun recoverAfterBoot(context: Context): Boolean {
         val hasRoot = rootManager.checkRootAccess(currentRootSolution())
 
@@ -53,7 +44,6 @@ class LocationRepository(
             restoreSpoofingState(desired)
             spoofingServiceController.startForeground(context, SpoofingState.latitude, SpoofingState.longitude)
         } else if (active) {
-            // 本地没有完整配置（旧版本升级上来）：只能按上次的定点坐标重新开始
             val lastLat = settingsManager.lastSpoofedLat.toDoubleOrNull() ?: 0.0
             val lastLng = settingsManager.lastSpoofedLng.toDoubleOrNull() ?: 0.0
             if (lastLat != 0.0 && lastLng != 0.0) {
@@ -74,7 +64,6 @@ class LocationRepository(
         return hasRoot
     }
 
-    /** 按已发布的配置还原进程内的模拟状态 */
     private fun restoreSpoofingState(config: JSONObject) {
         SpoofingState.isActive = true
         SpoofingState.latitude = config.optDouble("lat", 0.0)
@@ -130,8 +119,6 @@ class LocationRepository(
         SpoofingState.isRouteMode = isRouteMode
         SpoofingState.enableJitter = enableJitter
 
-        // 模拟全部在系统服务里完成，本 App 不需要、也不应该是"模拟位置应用"（风控会查这一项）；
-        // 旧版本开始模拟时会授予它，这里把残留的授权清掉
         rootManager.clearMockLocationApp()
 
         val alt = settingsManager.altitude.toDoubleOrNull() ?: 0.0
@@ -181,13 +168,10 @@ class LocationRepository(
     fun setFloatingJoystickVisible(context: Context, visible: Boolean) =
         spoofingServiceController.setFloatingJoystickVisible(context, visible)
 
-    /** 只改配置里的部分字段，见 [ConfigManager.patchConfig] */
     suspend fun patchConfig(mutate: (JSONObject) -> Unit): Boolean = configManager.patchConfig(mutate)
 
-    /** 系统进程读取的配置写入失败事件，界面据此提示用户 */
     val configWriteFailures get() = configManager.writeFailures
 
-    /** 路线 / 摇杆移动过程中刷新周边 Wi-Fi、基站、蓝牙数据，不改动位置和运动状态 */
     suspend fun updateEnvironment(wifiJson: String, cellJson: String, bluetoothJson: String) {
         SpoofingState.wifiJson = wifiJson
         SpoofingState.cellJson = cellJson

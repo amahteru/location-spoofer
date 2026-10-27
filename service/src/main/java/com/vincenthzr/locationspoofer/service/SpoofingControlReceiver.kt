@@ -11,12 +11,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-/**
- * 供 Tasker/MacroDroid 等自动化 App 通过发送广播开启/关闭模拟定位：
- * - com.vincenthzr.locationspoofer.START（附带 int extra "favorite"：收藏列表里的索引，从 0 开始）
- * - com.vincenthzr.locationspoofer.STOP
- * 只能从用户自己已保存的收藏点里选一个启动，不接受外部传入的任意坐标。
- */
 class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
     private val locationRepository: LocationRepository by inject()
     private val settingsRepository: SettingsRepository by inject()

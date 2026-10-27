@@ -19,8 +19,6 @@ import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.clearPinnedCollectedLocation
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-
-// 坐标输入区域：直接放在定位抽屉的浮层里，不再自带卡片底色
 @Composable
 fun CoordinateInputCard(
     viewModel: MainViewModel,
@@ -32,12 +30,10 @@ fun CoordinateInputCard(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // 标题占剩余宽度，空间不够时省略标题而不是挤压右侧按钮
             SectionHeader(
                 Icons.Outlined.PinDrop,
                 stringResource(R.string.target_coordinates),
                 modifier = Modifier.weight(1f))
-            // TextButton 自带右侧 16dp 内边距；整组右移 8dp，让按钮文字距卡片右缘 24dp，避开右上角大圆角处的拥挤感
             Row(modifier = Modifier.offset(x = 8.dp)) {
                 TextButton(
                     onClick = onCustomClick,
@@ -64,7 +60,6 @@ fun CoordinateInputCard(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Longitude Chip
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -89,7 +84,6 @@ fun CoordinateInputCard(
                 }
             }
 
-            // Latitude Chip
             Box(
                 modifier = Modifier
                     .weight(1f)

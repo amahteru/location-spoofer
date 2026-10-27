@@ -61,7 +61,6 @@ fun EditBluetoothDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 信号强度 RSSI
                 Text(
                     text = stringResource(R.string.bt_rssi_label, rssi),
                     style = MaterialTheme.typography.labelLarge,
@@ -90,7 +89,6 @@ fun EditBluetoothDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 设为模拟首选蓝牙
                 SwitchListItem(
                     modifier = Modifier.listItemBleed(),
                     title = stringResource(R.string.designated_bt_badge),

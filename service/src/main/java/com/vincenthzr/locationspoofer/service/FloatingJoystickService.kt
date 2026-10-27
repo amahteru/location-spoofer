@@ -70,11 +70,6 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/**
- * 悬浮摇杆：浮在其他 App 之上操作模拟位置，所有操作都转给进程级 [MotionController]，
- * 和 App 里的界面共用同一份状态。可以收起成小圆点，减少对下层 App 的遮挡。
- * 只在"摇杆手动控制"的路线模拟中出现，没有关闭按钮；路线停止（且录制的路线已保存或丢弃）后自动关闭。
- */
 class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     private val motionController: MotionController by inject()
@@ -157,7 +152,6 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
         composeView?.let { windowManager.updateViewLayout(it, params) }
     }
 
-    /** 默认不抢焦点，以免挡住下层 App 的输入；只有给录制的路线命名时才需要弹出键盘 */
     private fun setFocusable(focusable: Boolean) {
         val flags = if (focusable) {
             params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
@@ -194,7 +188,6 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
     }
 }
 
-/** 悬浮窗用到的 M3 配色角色，取自与 App 相同的配色方案（Android 12+ 动态取色） */
 private data class Palette(
     val card: Color,
     val border: Color,
@@ -277,9 +270,9 @@ private fun FloatingJoystickOverlay(
 
     Column(
         modifier = Modifier
-            .padding(AppSpacing.md) // 给阴影留出空间
+            .padding(AppSpacing.md)
             .width(208.dp)
-            .shadow(6.dp, MaterialTheme.shapes.extraLarge) // M3 第 3 级阴影
+            .shadow(6.dp, MaterialTheme.shapes.extraLarge)
             .clip(MaterialTheme.shapes.extraLarge)
             .background(palette.card)
             .border(1.dp, palette.border.copy(alpha = 0.6f), MaterialTheme.shapes.extraLarge)
@@ -287,7 +280,6 @@ private fun FloatingJoystickOverlay(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
     ) {
-        // 拖动条：按住整条区域即可移动悬浮窗
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -427,7 +419,6 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
         "CYCLING" to stringResource(R.string.fj_preset_cycling),
         "DRIVING" to stringResource(R.string.fj_preset_driving)
     )
-    // 界面里选了自定义速度时，把它作为额外一档显示，方便切回去
     val presets = MotionController.PRESETS +
         listOfNotNull(state.preset.takeIf { p -> MotionController.PRESETS.none { it.name == p.name } })
     Row(
@@ -460,7 +451,6 @@ private fun SpeedSegments(state: MotionController.State, palette: Palette, onPre
     }
 }
 
-/** 选项区：开始 / 暂停、录制、收起、关闭，纯图标，用颜色表示状态 */
 @Composable
 private fun ActionTabs(
     state: MotionController.State,

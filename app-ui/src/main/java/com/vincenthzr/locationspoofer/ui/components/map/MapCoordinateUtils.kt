@@ -12,19 +12,11 @@ import android.graphics.Typeface
 import com.vincenthzr.locationspoofer.ui.components.MarkerType
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils
 
-// 坐标系转换工具
-// config 中统一存储 GCJ-02；各地图 SDK 的原生坐标在此处统一转换
-// 实际数学实现统一收敛到 com.vincenthzr.locationspoofer.utils.CoordinateUtils（唯一 source of truth），
-// 这里保留 Pair<Double, Double> 签名只是为了不改动本文件调用方（GoogleMapEngineAdapter 等）现有的写法。
-
 fun wgs84ToGcj02(wgsLat: Double, wgsLng: Double): Pair<Double, Double> {
     val r = CoordinateUtils.wgs84ToGcj02(wgsLat, wgsLng)
     return Pair(r.lat, r.lng)
 }
 
-/**
- * GCJ-02 → WGS-84（采用3轮反向逼近迭代算法，误差小于0.5毫米）
- */
 fun gcj02ToWgs84(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
     val r = CoordinateUtils.gcj02ToWgs84(gcjLat, gcjLng)
     return Pair(r.lat, r.lng)
@@ -61,10 +53,10 @@ object GaodeMarkerHelper {
         val canvas = Canvas(bitmap)
 
         val mainColor = when (type) {
-            MarkerType.GREEN -> "#00B578".toColorInt()  // 高德起点绿
-            MarkerType.RED -> "#FA5151".toColorInt()    // 高德终点红
-            MarkerType.ORANGE -> "#FF7A00".toColorInt() // 高德导航橙
-            MarkerType.DEFAULT -> "#388BFD".toColorInt()// 高德经典蓝
+            MarkerType.GREEN -> "#00B578".toColorInt()
+            MarkerType.RED -> "#FA5151".toColorInt()
+            MarkerType.ORANGE -> "#FF7A00".toColorInt()
+            MarkerType.DEFAULT -> "#388BFD".toColorInt()
         }
 
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -73,7 +65,6 @@ object GaodeMarkerHelper {
             isDither = true
         }
 
-        // 绘制阴影
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = "#33000000".toColorInt()
             style = Paint.Style.FILL
@@ -88,7 +79,6 @@ object GaodeMarkerHelper {
             shadowPaint
         )
 
-        // 绘制外层图钉气滴路径
         val path = Path()
         val radius = width / 2f
         path.moveTo(radius, height * 0.88f)
@@ -106,14 +96,12 @@ object GaodeMarkerHelper {
         path.close()
         canvas.drawPath(path, paint)
 
-        // 绘制白色同心圆
         val whitePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = android.graphics.Color.WHITE
             style = Paint.Style.FILL
         }
         canvas.drawCircle(radius, radius, radius * 0.65f, whitePaint)
 
-        // 绘制居中文本/数字/徽标
         if (text.isNotBlank()) {
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = mainColor

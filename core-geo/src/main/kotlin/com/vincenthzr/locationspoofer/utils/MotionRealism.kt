@@ -6,17 +6,10 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 
-/**
- * 运动真实度：给路线模拟的速度和海拔加上自然起伏。
- *
- * 速度是以模拟开始时间为种子的确定性函数——system_server、电话、蓝牙进程和 App 自己的路线进度
- * 都在各自独立计算位置，必须对同一时刻算出同样的结果。随机强度为 [Level.OFF] 且速度浮动为 0 时退化为匀速。
- */
 object MotionRealism {
 
     enum class Level(
         val id: Int,
-        /** 海拔随时间漂移的幅度（米），由 [AltitudeModel] 使用 */
         val altitudeAmplitudeM: Double
     ) {
         OFF(0, 0.0),
@@ -35,11 +28,6 @@ object MotionRealism {
 
     private const val SPEED_SALT = 0x5EED5EEDL
 
-    /**
-     * 若干个周期、相位随机的正弦叠加成的平滑噪声，取值范围 [-1, 1]。
-     * 用正弦叠加而不是随机游走，是因为它的积分有解析解：任意时刻的累计距离都能直接算出来，
-     * 不依赖逐帧累加的中间状态，所以各个进程在任意时刻都能独立得到一致的结果。
-     */
     class SmoothNoise(seed: Long, minPeriodSec: Double, maxPeriodSec: Double, components: Int = 4) {
         private val periods: DoubleArray
         private val phases: DoubleArray
@@ -60,7 +48,6 @@ object MotionRealism {
             return v
         }
 
-        /** ∫₀ᵗ value(τ) dτ */
         fun integral(tSec: Double): Double {
             var v = 0.0
             for (i in periods.indices) {
@@ -79,7 +66,6 @@ object MotionRealism {
         fun speed(baseSpeed: Double, elapsedSec: Double): Double =
             baseSpeed * (1 + fluctuation * speedNoise.value(elapsedSec))
 
-        /** 从开始到 elapsedSec 的累计行进距离（米） */
         fun distance(baseSpeed: Double, elapsedSec: Double): Double =
             baseSpeed * (elapsedSec + fluctuation * speedNoise.integral(elapsedSec))
     }
@@ -87,7 +73,6 @@ object MotionRealism {
     @Volatile
     private var cached: Session? = null
 
-    /** 同一次模拟会话内复用同一个 Session，避免在高频 Hook 里反复初始化噪声参数 */
     fun session(startTimestamp: Long, levelId: Int, speedFluctuationPct: Int): Session {
         val level = Level.fromId(levelId)
         val pct = speedFluctuationPct.coerceIn(0, MAX_SPEED_FLUCTUATION_PCT)

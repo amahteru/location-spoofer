@@ -30,7 +30,6 @@ import com.vincenthzr.locationspoofer.utils.AltitudeModel
 import java.util.Locale
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
-/** 基准海拔 + 变化范围，定点模拟与路线模拟的设置弹窗共用 */
 @Composable
 fun AltitudeSettingsCard(
     altitudeInput: String,

@@ -62,7 +62,6 @@ fun HomeSearchBar(
     onBack: (() -> Unit)? = null,
     focusRequester: FocusRequester? = null
 ) {
-    // M3 Search Bar 输入框：full 形状、surfaceContainerHigh 底色，悬浮在地图上加一级阴影
     Surface(
         modifier = modifier.height(SearchBarDefaults.InputFieldHeight),
         shape = SearchBarDefaults.inputFieldShape,
@@ -76,7 +75,6 @@ fun HomeSearchBar(
             expanded = false,
             onExpandedChange = {},
             placeholder = { Text(stringResource(R.string.search_place_building_coord_hint), maxLines = 1) },
-            // M3 搜索视图：展开后前导图标换成返回箭头，用于退出搜索
             leadingIcon = if (onBack != null) {
                 {
                     IconButton(onClick = onBack) {

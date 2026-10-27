@@ -73,15 +73,12 @@ fun InfoTab(
         latestRelease != null && isNewerVersion(latestRelease.versionName, currentVersion)
     }
 
-    // 获取当前生效的语言名称
     val defaultLangText = stringResource(R.string.default_language)
     val savedLangCode = viewModel.getSavedLanguage()
     val currentLangName = remember(savedLangCode, defaultLangText) {
         LANGUAGES.firstOrNull { it.code == savedLangCode }?.nativeName ?: defaultLangText
     }
 
-    // 本机在适配进度表里的状态（只读本地缓存 / 内置文档，不联网），非全局方案不依赖系统适配，不显示
-    // 只缓存状态本身，文案每次按当前语言取，切换应用内语言后不会残留旧语言的文字
     val progressContext = LocalContext.current
     val progressLocale = LocalConfiguration.current.locales[0]
     val adaptationStatus = remember(progressLocale) {
@@ -108,7 +105,6 @@ fun InfoTab(
     )
     val currentRealismLevelName = realismLevelNames.getOrNull(uiState.realismLevel) ?: realismLevelNames[2]
 
-    // 获取当前地图引擎名称
     val autoText = stringResource(R.string.map_engine_auto)
     val amapText = stringResource(R.string.map_engine_amap)
     val baiduText = stringResource(R.string.map_engine_baidu)
@@ -134,7 +130,6 @@ fun InfoTab(
             contentPadding = PaddingValues(bottom = tabBarHeight + AppSpacing.xl),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            // 顶部软件品牌与简介 Hero 区域（替换原先单调的信息图标与标题）
             item {
                 Column(
                     modifier = Modifier
@@ -143,7 +138,6 @@ fun InfoTab(
                         .padding(top = AppSpacing.lg, bottom = AppSpacing.md),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 软件图标（原生平滑圆角与柔和阴影，无外层黑边缝隙）
                     Box(
                         modifier = Modifier
                             .size(72.dp)
@@ -159,7 +153,6 @@ fun InfoTab(
                                             ctx.packageManager.getApplicationIcon(ctx.packageName)
                                         setImageDrawable(icon)
                                     } catch (e: Exception) {
-                                        // fallback
                                     }
                                 }
                             },
@@ -169,7 +162,6 @@ fun InfoTab(
 
                     Spacer(Modifier.height(AppSpacing.lg))
 
-                    // 软件名称
                     Text(
                         text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.headlineSmall,
@@ -178,7 +170,6 @@ fun InfoTab(
 
                     Spacer(Modifier.height(AppSpacing.sm))
 
-                    // 软件简介介绍
                     Text(
                         text = stringResource(R.string.app_slogan),
                         style = MaterialTheme.typography.bodyMedium,
@@ -189,7 +180,6 @@ fun InfoTab(
                 }
             }
 
-            // 1. 软件更新卡片
             item {
                 UpdateCheckCard(
                     hasNewVersion = hasNewVersion,
@@ -198,8 +188,6 @@ fun InfoTab(
                 )
             }
 
-            // 2. 设置聚合卡片：原来的 6 个"软件配置"区块拆开后，各自独立成页，
-            // 这里收进一个紧凑列表，避免变成 6 个各自占一屏高度的大卡片。
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
@@ -224,7 +212,6 @@ fun InfoTab(
                             previewChip = currentRealismLevelName,
                             onClick = onNavigateToMotionRealism
                         )
-                        // 本机适配状态 + 厂商适配方案（仅全局方案可选），完整进度在它的二级页面
                         SettingsEntryRow(
                             icon = Icons.Rounded.Devices,
                             tone = LabelTone.Success,
@@ -260,7 +247,6 @@ fun InfoTab(
                 }
             }
 
-            // 3. 底部开源协议与项目链接
             item {
                 Spacer(Modifier.height(AppSpacing.sm))
                 FooterLinks()
@@ -269,7 +255,6 @@ fun InfoTab(
     }
 }
 
-/** 设置聚合卡片里的单行入口：色调图标 + 标题 + 当前值（辅助文本） + 箭头。 */
 @Composable
 private fun SettingsEntryRow(
     icon: ImageVector,

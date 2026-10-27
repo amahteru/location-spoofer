@@ -15,10 +15,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/**
- * 带开关的列表项：M3 ListItem + Switch，整行可点击切换（Role.Switch）。
- * 默认透明底色，可直接放进卡片或对话框中。
- */
 @Composable
 fun SwitchListItem(
     title: String,
@@ -44,10 +40,6 @@ fun SwitchListItem(
     )
 }
 
-/**
- * ListItem 自带左右 16dp 内边距；直接放在已有内边距的对话框 / 底部面板里时，
- * 用它向两侧各外扩同样距离，让列表项的文字和开关与周围内容对齐。
- */
 fun Modifier.listItemBleed(bleed: Dp = 16.dp): Modifier = layout { measurable, constraints ->
     val extra = bleed.roundToPx() * 2
     val placeable = measurable.measure(

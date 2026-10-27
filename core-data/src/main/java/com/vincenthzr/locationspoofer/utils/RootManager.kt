@@ -31,7 +31,6 @@ class RootManager {
             executeCommand(cmds) != "ERROR"
         }
 
-    /** Read-only diagnostics: no SELinux patches, probe files, or root scripts are needed. */
     suspend fun testRootSetup(solution: RootSolution = RootSolution.AUTO): RootSetupTestResult =
         withContext(Dispatchers.IO) {
             val idOutput = executeCommand("id")
@@ -62,13 +61,11 @@ class RootManager {
             )
         }
 
-    /** Force-stops selected apps so their next launch loads the current module and configuration. */
     suspend fun forceStopApps(packages: List<String>): List<Pair<String, Boolean>> =
         withContext(Dispatchers.IO) {
             packages.map { pkg -> pkg to (executeCommand("am force-stop $pkg") != "ERROR") }
         }
 
-    /** 把本 App 的 android:mock_location 恢复为默认，不再是"模拟位置应用" */
     suspend fun clearMockLocationApp(): Boolean = withContext(Dispatchers.IO) {
         val result =
             executeCommand("appops set com.vincenthzr.locationspoofer android:mock_location default")

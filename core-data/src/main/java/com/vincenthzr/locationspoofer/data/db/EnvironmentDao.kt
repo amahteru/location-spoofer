@@ -49,7 +49,6 @@ interface EnvironmentDao {
     """)
     suspend fun getLocationsInBounds(minLat: Double, maxLat: Double, minLng: Double, maxLng: Double): List<LocationRecord>
 
-    /** 复用最近的 20 米内点位；保持锚点坐标不变，避免移动采集串联成一个大点位。 */
     @Transaction
     suspend fun findOrCreateCollectionLocation(lat: Double, lng: Double, collectionRouteId: Long? = null): Long {
         val radiusM = 20.0

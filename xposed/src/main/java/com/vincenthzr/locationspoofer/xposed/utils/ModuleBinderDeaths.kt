@@ -2,7 +2,6 @@ package com.vincenthzr.locationspoofer.xposed.utils
 
 import android.os.IBinder
 
-/** Unlink module-owned callbacks before retiring their classloader. */
 internal object ModuleBinderDeaths {
     private val recipients = LinkedHashMap<IBinder.DeathRecipient, IBinder>()
     private var closed = false

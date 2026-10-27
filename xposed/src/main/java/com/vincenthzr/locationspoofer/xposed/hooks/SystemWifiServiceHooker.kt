@@ -10,18 +10,6 @@ import org.json.JSONObject
 import java.lang.reflect.Array as ReflectArray
 import java.util.Random
 
-/**
- * system_server 级 Wi-Fi 服务（WifiServiceImpl）拦截与伪造模块
- *
- * 核心原理：
- * 全设备所有应用调用 WifiManager.getScanResults() 与 WifiManager.getConnectionInfo()
- * 都会通过 IWifiManager 远程 IPC 调用至 system_server 中的 WifiServiceImpl。
- *
- * 在 Android 12+ / HyperOS 中，WifiServiceImpl 被移动至 /apex/com.android.wifi/javalib/service-wifi.jar。
- * 本模块通过 ServiceManager.getService("wifi")、addService 拦截以及 APEX 动态类加载等多重机制
- * 确保稳定捕获 WifiServiceImpl 并完成挂载。
- */
-
 @Volatile
 internal var isWifiServiceHooked = false
 
@@ -30,7 +18,6 @@ private fun logWifi(msg: String) {
 }
 
 private fun findWifiServiceClass(classLoader: ClassLoader): Class<*>? =
-    // Android 12+ 的 WifiServiceImpl 在 wifi APEX 里，默认 ClassLoader 找不到，靠后面几层兜底（见 SystemClassLocator）
     SystemClassLocator.locate(
         SystemComponent.WIFI_SERVICE, classLoader,
         threadKeywords = listOf("Wifi", "Scan", "wlan"),
@@ -69,7 +56,6 @@ internal fun LocationHooker.tryHookPendingSystemServices(classLoader: ClassLoade
     }
 }
 
-/** 服务注册入口（publishBinderService / addService）只需要拦截一次；后台轮询会反复调用 hookSystemWifiService */
 @Volatile
 private var wifiRegistrationHooksInstalled = false
 
@@ -123,7 +109,6 @@ internal fun LocationHooker.hookSystemWifiService(classLoader: ClassLoader) {
     try {
         val smClass = XposedHelpers.findClassIfExists("android.os.ServiceManager", classLoader)
         if (smClass != null) {
-            // 直接尝试 getService("wifi")
             try {
                 val service = XposedHelpers.callStaticMethod(smClass, "getService", "wifi")
                 if (service != null && !service.javaClass.name.contains("BinderProxy")) {
@@ -175,9 +160,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
         "[WPA2-PSK+SAE-CCMP][RSN-PSK+SAE-CCMP][ESS]"
     )
 
-    // =========================================================================
-    // 1. getScanResults：向目标应用派发伪造周边 Wi-Fi 列表
-    // =========================================================================
     try {
         XposedHelpers.hookAllMethods(wifiServiceClass, "getScanResults") { chain, executable ->
             val config = readConfig() ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -193,10 +175,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
 
-            // mock_wifi 单独关闭时：目标应用仍处于全局/白名单模拟范围内，绝不能把真实周边 Wi-Fi
-            // 透传给它（会暴露真实位置、与已伪造的 GPS 坐标产生矛盾触发风控），但也不能像旧版本
-            // 那样用坐标 Hash 兜底伪造一批假热点——用户关闭该开关就是不想让 Wi-Fi 子系统参与模拟，
-            // 正确行为是让目标应用看到"周边无 Wi-Fi"（空列表），而不是真实数据或另一份假数据。
             val mockWifi = config.optBoolean("mock_wifi", true)
 
             val fakeList = java.util.ArrayList<Any>()
@@ -227,7 +205,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                         wifi.optString("capabilities", realCapabilities[rng.nextInt(realCapabilities.size)])
                     )
 
-                    // 适配 Android 10+ (API 29+): 设置 wifiSsid 对象，防止高德/微信等 SDK 读不到 SSID
                     try {
                         val wifiSsidClass = XposedHelpers.findClassIfExists("android.net.wifi.WifiSsid", classLoader)
                         if (wifiSsidClass != null) {
@@ -242,8 +219,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                         }
                     } catch (_: Throwable) {}
 
-                    // 适配 ColorOS / OxygenOS / HyperOS: 必须初始化 informationElements 和 radioChainInfos，
-                    // 否则系统服务中的统计上报组件抛出 NPE
                     try {
                         val ieClass = XposedHelpers.findClassIfExists("android.net.wifi.ScanResult\$InformationElement", classLoader)
                         if (ieClass != null) {
@@ -284,7 +259,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                     }
                 }
 
-                // 若没有采集或设置 Wi-Fi 列表，按坐标 Hash 稳定生成 5 个虚拟热点（仅在开关开启时兜底）
                 if (mockWifi && fakeList.isEmpty()) {
                     val lat = config.optDouble("lat", 0.0)
                     val lng = config.optDouble("lng", 0.0)
@@ -308,8 +282,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
 
                 logWifi("[SysWifi] Dispatched ${fakeList.size} fake scan results to ${explicitPkg ?: "caller"}")
 
-                // 核心修复: Android 8~15 中 WifiServiceImpl.getScanResults 返回类型通常是 ParceledListSlice<ScanResult>
-                // 在 APEX 模块中为 com.android.wifi.x.com.android.modules.utils.ParceledListSlice，必须用原方法 returnType 实例化
                 val returnType = (executable as? java.lang.reflect.Method)?.returnType
                 if (returnType != null && returnType.name.contains("ParceledListSlice")) {
                     try {
@@ -357,9 +329,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
         logWifi("[SysWifi] hook getScanResults failed: $e")
     }
 
-    // =========================================================================
-    // 2. getConnectionInfo：向目标应用派发伪造已连接 Wi-Fi 属性
-    // =========================================================================
     try {
         XposedHelpers.hookAllMethods(wifiServiceClass, "getConnectionInfo") { chain, _ ->
             val config = readConfig() ?: return@hookAllMethods chain.proceed(chain.args.toTypedArray())
@@ -390,8 +359,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
             val networkIdVal: Int
 
             if (!mockWifi) {
-                // 开关关闭：既不能泄露真实 BSSID/SSID，也不伪造一份假连接——
-                // 直接汇报"未连接任何 Wi-Fi"，与 mock_wifi 关闭时 getScanResults 返回空列表的语义一致。
                 ssidVal = "<unknown ssid>"
                 bssidVal = "02:00:00:00:00:00"
                 freqVal = 0
@@ -409,7 +376,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 levelVal = connectedWifi.optInt("level", -65)
                 networkIdVal = connectedWifi.optInt("networkId", 1)
             } else {
-                // 目标应用处于连入状态但用户未配置虚拟连入热点：坚决不能将用户家里的真实 BSSID 泄露给目标应用！
                 val lat = config.optDouble("lat", 0.0)
                 val lng = config.optDouble("lng", 0.0)
                 val seed = ((lat * 100000).toLong() xor (lng * 100000).toLong())
@@ -427,7 +393,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 networkIdVal = 1
             }
 
-            // 优先尝试 Android 12+ (API 30+) 的 WifiInfo.Builder 构建完全干净的隔离对象
             try {
                 val builderClass = XposedHelpers.findClassIfExists("android.net.wifi.WifiInfo\$Builder", classLoader)
                 if (builderClass != null) {
@@ -447,11 +412,9 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                 }
             } catch (_: Throwable) {}
 
-            // 降级使用原有对象就地修改
             val currentResult = chain.proceed(chain.args.toTypedArray())
             if (currentResult != null) {
                 try {
-                    // Android 10+ (API 29+) 核心：通过 WifiSsid.fromBytes 改写 mWifiSsid，杜绝真实 SSID 泄露！
                     try {
                         val wifiSsidClass = XposedHelpers.findClassIfExists("android.net.wifi.WifiSsid", classLoader)
                         if (wifiSsidClass != null) {
@@ -488,11 +451,7 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
         logWifi("[SysWifi] hook getConnectionInfo failed: $e")
     }
 
-    // =========================================================================
-    // 2.1 WifiScanningServiceImpl：拦截通过 WifiScanner.getSingleScanResults 获取热点的系统定位/反作弊 SDK
-    // =========================================================================
     try {
-        // 扫描服务与 WifiServiceImpl 在同一个 APEX 里，优先用它的 ClassLoader
         val scannerClass = SystemClassLocator.locate(
             SystemComponent.WIFI_SCANNER_SERVICE, wifiServiceClass.classLoader ?: classLoader,
             extraLoaders = listOf(classLoader)
@@ -514,7 +473,6 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
                     val mockWifi = config.optBoolean("mock_wifi", true)
                     val fakeList = java.util.ArrayList<Any>()
                     if (!mockWifi) {
-                        // 与 getScanResults 一致：开关关闭时返回空列表，既不泄露真实热点也不伪造假数据
                         logWifi("[SysWifi] WifiScanningServiceImpl.getSingleScanResults suppressed (mock_wifi off) for ${explicitPkg ?: "caller"}")
                         return@hookAllMethods fakeList
                     }
@@ -551,15 +509,10 @@ internal fun LocationHooker.installWifiHooks(wifiServiceClass: Class<*>, classLo
     }
 }
 
-// =========================================================================
-// 3. ConnectivityService：拦截现代应用通过 ConnectivityManager.getNetworkCapabilities 读取真实 Wi-Fi BSSID
-// =========================================================================
-
 @Volatile
 internal var isConnectivityServiceHooked = false
 
 private fun findConnectivityServiceClass(classLoader: ClassLoader): Class<*>? =
-    // Android 12+ 的 ConnectivityService 在 tethering APEX 里
     SystemClassLocator.locate(
         SystemComponent.CONNECTIVITY_SERVICE, classLoader,
         threadKeywords = listOf("Connect", "Tether", "Net"),
@@ -617,12 +570,6 @@ internal fun LocationHooker.installConnectivityHooks(connClazz: Class<*>, classL
                 val overrideUid = SystemHookUtils.extractCallerUid(chain.args)
                 val isTarget = SystemHookUtils.isTargetCaller(chain.thisObject, explicitPkg, config, overrideUid)
                 if (!isTarget) return@hookAllMethods currentResult
-
-                // 注意：这里不受 mock_wifi 开关控制——sanitizeNetworkCapabilities 只是清除真实
-                // BSSID/SSID（关闭时退化为按坐标生成的中性标识），不是"伪造一整套假热点列表"，
-                // 所以不属于开关想要关闭的范畴；真正受开关控制的是 getScanResults/getConnectionInfo
-                // 里"是否展示一份完整的假 Wi-Fi 环境"。这里永远执行，避免真实 BSSID 通过
-                // NetworkCapabilities 泄露给目标应用，与已伪造的 GPS 坐标产生矛盾触发风控。
 
                 try {
                     sanitizeNetworkCapabilities(currentResult, config, classLoader, explicitPkg)

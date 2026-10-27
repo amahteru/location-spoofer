@@ -25,13 +25,6 @@ class LSPosedManager {
         }.sortedBy { it.appName }
     }
 
-    /**
-     * 枚举设备上所有已安装 App（不局限于 LSPosed 模块作用域勾选的那部分），
-     * 供"系统级模拟应用"选择页使用 —— 该页面选中的包名只是写进 system_hook_packages
-     * 配置项，由 system_server 里的 Hook 自己按 Binder 调用方 UID 反查包名做匹配，
-     * 完全不依赖这些 App 本身有没有被加入 LSPosed 模块作用域。
-     */
-    // app 模块的清单声明了 QUERY_ALL_PACKAGES，库模块单独检查时看不到
     @android.annotation.SuppressLint("QueryPermissionsNeeded")
     fun getAllInstalledApps(context: Context): List<AppInfoItem> {
         val pm = context.packageManager

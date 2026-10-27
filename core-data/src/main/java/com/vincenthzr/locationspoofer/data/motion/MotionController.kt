@@ -20,24 +20,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-/**
- * 进程级的运动控制器：当前模拟位置、路线播放 / 暂停 / 继续、摇杆移动、速度档位、路线录制都由它统一持有。
- *
- * App 界面和悬浮窗摇杆都只是它的"遥控器"，所以悬浮窗在其他 App 之上操作时，状态依然和界面一致，
- * 也不依赖界面所在的 Activity / ViewModel 是否还活着（模拟期间 SpoofingService 是前台服务，进程不会被回收）。
- *
- * 配置写入只改运动相关字段（见 [ConfigMotionSink]），不会覆盖周边数据、开关等其他来源写入的字段。
- */
 class MotionController(
     private val sink: MotionSink,
-    /** (随机强度, 速度浮动百分比)；会话内取开始模拟时的快照，见 SpoofingState */
     private val realismParams: () -> Pair<Int, Int>,
     private val clock: () -> Long = System::currentTimeMillis,
-    /** 测试时关闭内部节拍，由测试手动调用 [tick] 推进 */
     private val autoTick: Boolean = true
 ) {
-
-    /** 控制器的副作用出口：写运动配置、保存录制的路线 */
     interface MotionSink {
         suspend fun writeManual(lat: Double, lng: Double, bearing: Float, speedMs: Double, timestamp: Long)
         suspend fun writeRoute(
@@ -54,17 +42,12 @@ class MotionController(
     }
 
     enum class Mode {
-        /** 未在模拟 */
         IDLE,
-        /** 定点模拟，位置固定 */
         STATIC,
-        /** 路线自动播放中 */
         ROUTE,
-        /** 摇杆手动控制（定点模拟中推动摇杆、手动路线模式、或路线暂停后） */
         MANUAL
     }
 
-    /** 速度档位；name 与界面的 SimMode 枚举名一致，方便双向同步 */
     data class SpeedPreset(val name: String, val speedMs: Double)
 
     data class State(
@@ -74,19 +57,15 @@ class MotionController(
         val bearing: Float = 0f,
         val speedMs: Double = 0.0,
         val hasRoute: Boolean = false,
-        /** 路线已暂停，摇杆接管 */
         val paused: Boolean = false,
-        /** 正在自动走回暂停点，到达后继续原路线 */
         val returning: Boolean = false,
         val preset: SpeedPreset = PRESETS.first(),
         val recording: Boolean = false,
         val recordedPointCount: Int = 0,
         val recordedDistanceM: Double = 0.0,
-        /** 录制已结束、等待命名保存的路线 */
         val hasPendingRecording: Boolean = false
     ) {
         val active: Boolean get() = mode != Mode.IDLE
-        /** 路线自动播放或走回暂停点期间，摇杆不响应 */
         val joystickEnabled: Boolean get() = active && mode != Mode.ROUTE && !returning
     }
 
@@ -96,7 +75,6 @@ class MotionController(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var tickJob: Job? = null
 
-    // ---- 路线会话
     private var path: RoutePath? = null
     private var stopAtDestination = false
     private var routeStartTs = 0L
@@ -104,20 +82,16 @@ class MotionController(
     private var pausePoint: LatLng? = null
     private var pauseDistance = 0.0
 
-    // ---- 摇杆输入
     @Volatile private var joyBearing = 0.0
     @Volatile private var joyIntensity = 0f
     private var lastTickTs = 0L
 
-    // ---- 摇杆 / 走回暂停点期间的配置写入节流
     private var lastWriteTs = 0L
     private var lastWrittenBearing = 0f
     private var lastWrittenSpeed = 0.0
 
-    // ---- 录制
     private val recorded = ArrayList<LatLng>()
 
-    // ---- 合并写入：只保证执行"最新一次"请求的运动状态，避免积压的旧写入晚于新写入落盘
     @Volatile private var pendingWrite: (suspend () -> Unit)? = null
     private val writeSignal = Channel<Unit>(Channel.CONFLATED)
 
@@ -134,8 +108,6 @@ class MotionController(
         }
     }
 
-    // ================================================================ 会话生命周期（由界面在开始 / 停止模拟时调用）
-
     fun onStaticStarted(lat: Double, lng: Double) {
         clearRoute()
         joyIntensity = 0f
@@ -143,10 +115,6 @@ class MotionController(
         ensureTicking()
     }
 
-    /**
-     * @param startPaused 手动模式：路线已加载但处于暂停状态、由摇杆控制，
-     *   点"开始"时从当前位置走到路线起点再沿路线前进（暂停点即起点）
-     */
     fun onRouteStarted(
         points: List<RoutePoint>,
         preset: SpeedPreset,
@@ -193,15 +161,11 @@ class MotionController(
         tickJob = null
     }
 
-    /** 进程重启后界面状态丢失但模拟仍在进行时，按 SpoofingState 恢复成定点模拟 */
     fun syncFromSpoofingStateIfIdle() {
-        // 路线进度在系统进程里按时间推算，控制器这边恢复不了，路线模式下保持空闲，不改成定点
         if (_state.value.mode == Mode.IDLE && SpoofingState.isActive && !SpoofingState.isRouteMode) {
             onStaticStarted(SpoofingState.latitude, SpoofingState.longitude)
         }
     }
-
-    // ================================================================ 控制
 
     fun joystick(bearing: Double, intensity: Float) {
         val s = _state.value
@@ -233,7 +197,6 @@ class MotionController(
         requestManualWrite(pos.lat, pos.lng, pos.bearing, 0.0, now)
     }
 
-    /** 继续原路线：离暂停点较远时先自动走回去，全程不瞬移 */
     fun resume() {
         val s = _state.value
         val target = pausePoint ?: return
@@ -249,7 +212,6 @@ class MotionController(
     fun setSpeedPreset(preset: SpeedPreset) {
         val s = _state.value
         if (s.mode == Mode.ROUTE && path != null) {
-            // 换速度会改变"累计距离随时间的函数"，先把已走的距离固定为偏移，再按新速度从当前时刻继续
             val now = clock()
             routeOffset = traveledAt(now)
             routeStartTs = now
@@ -272,7 +234,6 @@ class MotionController(
         if (_state.value.recording) finishRecording()
     }
 
-    /** 保存录制的路线到"已保存路线"；成功返回 true */
     suspend fun saveRecording(name: String): Boolean {
         if (recorded.size < 2 || name.isBlank()) return false
         val points = recorded.map { RoutePoint(it.lat, it.lng) }
@@ -285,8 +246,6 @@ class MotionController(
         recorded.clear()
         _state.update { it.copy(recording = false, hasPendingRecording = false, recordedPointCount = 0, recordedDistanceM = 0.0) }
     }
-
-    // ================================================================ 内部
 
     private fun clearRoute() {
         path = null
@@ -306,7 +265,6 @@ class MotionController(
         return MotionRealism.session(start, level, pct)
     }
 
-    /** 与 Xposed 端 RouteEngine 同一公式：偏移 + 从本段开始时刻起按（带浮动的）速度行进的距离 */
     private fun traveledAt(now: Long): Double {
         val elapsed = (now - routeStartTs).coerceAtLeast(0L) / 1000.0
         return routeOffset + realism(routeStartTs).distance(_state.value.preset.speedMs, elapsed)
@@ -378,7 +336,6 @@ class MotionController(
         requestRouteWrite(now)
     }
 
-    /** 摇杆 / 走回暂停点：非路线模式，由 Xposed 端按方向和速度在两次写入之间推算位置 */
     private fun requestManualWrite(lat: Double, lng: Double, bearing: Float, speed: Double, now: Long) {
         lastWriteTs = now
         lastWrittenBearing = bearing
@@ -392,7 +349,6 @@ class MotionController(
         enqueueWrite { sink.writeManual(lat, lng, bearing, speed, now) }
     }
 
-    /** 路线模式：从 routeOffset 处、按当前档位速度、自 routeStartTs 起继续 */
     private fun requestRouteWrite(now: Long) {
         val routePath = path ?: return
         val s = _state.value
@@ -412,7 +368,6 @@ class MotionController(
         writeSignal.trySend(Unit)
     }
 
-    /** 录制采样：离上一个点 5 米以上，或 2 米以上且转向超过 25° 时记一个点，直线段不产生冗余点 */
     private fun appendRecordedPoint(p: LatLng, force: Boolean) {
         val last = recorded.lastOrNull()
         if (last == null) {
@@ -438,7 +393,6 @@ class MotionController(
         private const val WRITE_INTERVAL_MS = 1000L
         private const val MIN_WRITE_INTERVAL_MS = 250L
 
-        /** 速度档位，与界面 SimMode 的速度保持一致 */
         val PRESETS = listOf(
             SpeedPreset("WALKING", 1.4),
             SpeedPreset("RUNNING", 3.0),
