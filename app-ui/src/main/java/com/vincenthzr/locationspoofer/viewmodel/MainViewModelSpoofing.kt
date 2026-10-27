@@ -78,26 +78,10 @@ internal fun MainViewModel.startSpoofing() {
 }
 
 private suspend fun MainViewModel.restartHookedAppsSilently() {
-    val targetPackages = mutableSetOf<String>()
-    targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
-    targetPackages.addAll(settingsRepository.getSystemHookPackages())
-
-    val exempt = setOf(
-        context.packageName,
-        "android",
-        "system",
-        "system_server",
-        "com.android.systemui",
-        "com.android.phone",
-        "com.android.bluetooth",
-        "com.android.server.telecom",
-        "com.xiaomi.metoknlp",
-        "com.google.android.gms"
-    )
-    val toKill = targetPackages.filter { it.isNotBlank() && !exempt.contains(it) }
-    if (toKill.isNotEmpty()) {
+    val apps = lsposedManager.getHookedApps(context)
+    if (apps.isNotEmpty()) {
         locationRepository.checkRootAccess()
-        locationRepository.forceStopApps(toKill)
+        locationRepository.forceStopApps(apps.map { it.packageName })
     }
 }
 

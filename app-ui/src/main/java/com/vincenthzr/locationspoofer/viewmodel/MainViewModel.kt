@@ -11,7 +11,6 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.data.model.RootSolution
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.data.motion.MotionController
 import com.vincenthzr.locationspoofer.data.repository.LocationRepository
 import com.vincenthzr.locationspoofer.data.repository.SettingsRepository
@@ -76,18 +75,14 @@ class MainViewModel(
             } catch (e: Exception) {
                 RootSolution.AUTO
             },
-            vendorScheme = VendorScheme.fromId(settingsRepository.getVendorOverride()),
-            debugDumpSystemServices = settingsRepository.debugDumpSystemServices,
             realismLevel = settingsRepository.realismLevel,
             speedFluctuationPct = settingsRepository.speedFluctuationPct,
+            stepSimulationEnabled = settingsRepository.stepSimulationEnabled,
             keepLastMapPosition = settingsRepository.keepLastMapPosition,
             savedLocations = settingsRepository.getSavedLocations(),
             savedRoutes = emptyList(),
             currentLanguage = settingsRepository.getLanguage(),
             isLanguageSet = settingsRepository.isLanguageSet(),
-            systemHookPackages = settingsRepository.getSystemHookPackages(),
-            isSystemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
-            forceLocationEnabled = settingsRepository.forceLocationEnabled,
             mockWifi = settingsRepository.mockWifi,
             mockCell = settingsRepository.mockCell,
             mockBluetooth = settingsRepository.mockBluetooth,

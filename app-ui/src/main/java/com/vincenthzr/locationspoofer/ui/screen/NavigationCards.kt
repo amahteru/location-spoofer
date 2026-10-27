@@ -37,24 +37,6 @@ fun SectionHeader(icon: ImageVector, title: String, modifier: Modifier = Modifie
 }
 
 @Composable
-fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
-    val statusDesc = if (uiState.isSystemHookGlobalMode) {
-        stringResource(R.string.system_hook_global_mode_summary)
-    } else if (uiState.systemHookPackages.isNotEmpty()) {
-        stringResource(R.string.selected_count_format, uiState.systemHookPackages.size)
-    } else {
-        stringResource(R.string.system_hook_apps_card_desc)
-    }
-    NavigationCard(
-        icon = Icons.Rounded.Shield,
-        title = stringResource(R.string.system_hook_apps_title),
-        summary = statusDesc,
-        tone = LabelTone.Warning,
-        onClick = onClick
-    )
-}
-
-@Composable
 fun ScannerMapCard(
     uiState: AppState,
     onClick: () -> Unit

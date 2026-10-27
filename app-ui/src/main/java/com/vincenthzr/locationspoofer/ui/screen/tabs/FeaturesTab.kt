@@ -25,7 +25,6 @@ import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.ui.screen.ImportExportDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ManageDataCard
 import com.vincenthzr.locationspoofer.ui.screen.ScannerMapCard
-import com.vincenthzr.locationspoofer.ui.screen.SystemHookAppsConfigCard
 import com.vincenthzr.locationspoofer.ui.components.ImportExportSelectionDialog
 import com.vincenthzr.locationspoofer.data.model.ImportExportCounts
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
@@ -42,8 +41,7 @@ fun FeaturesTab(
     uiState: AppState,
     tabBarHeight: Dp = 90.dp,
     onNavigateToScanner: () -> Unit,
-    onNavigateToManageData: () -> Unit,
-    onNavigateToSystemHookApps: () -> Unit
+    onNavigateToManageData: () -> Unit
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -152,13 +150,6 @@ fun FeaturesTab(
                 item {
                     ManageDataCard(
                         onClick = onNavigateToManageData
-                    )
-                }
-
-                item {
-                    SystemHookAppsConfigCard(
-                        uiState = uiState,
-                        onClick = onNavigateToSystemHookApps
                     )
                 }
 

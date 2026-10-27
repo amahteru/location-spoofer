@@ -118,7 +118,7 @@ internal fun buildScanRecordBytes(name: String, hexRecord: String, address: Stri
 internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
         val cleanAddress = normalizeMacAddress(address)
         val devClass = XposedHelpers.findClassIfExists("android.bluetooth.BluetoothDevice", cl) ?: return null
-        
+
         try {
             val adapterClass = XposedHelpers.findClassIfExists("android.bluetooth.BluetoothAdapter", cl)
             if (adapterClass != null) {
@@ -145,6 +145,55 @@ internal fun createBluetoothDevice(cl: ClassLoader, address: String): Any? {
             } catch (_: Throwable) {}
         }
         return null
+    }
+
+internal fun isScanCallback(obj: Any?): Boolean {
+        if (obj == null) return false
+        if (obj is android.os.Parcelable || obj is String || obj is Number || obj is Boolean) return false
+        val cls = obj.javaClass
+        val name = cls.name
+        if (name.contains("ScanFilter") || name.contains("ScanSettings") || name.contains("PendingIntent")) return false
+
+        var c: Class<*>? = cls
+        while (c != null && c != Any::class.java) {
+            val cName = c.name
+            if (cName == "android.bluetooth.le.ScanCallback" || cName.endsWith("ScanCallback")) {
+                return true
+            }
+            for (iface in c.interfaces) {
+                if (iface.name.contains("ScanCallback") || iface.name.contains("LeScanCallback")) {
+                    return true
+                }
+            }
+            c = c.superclass
+        }
+        try {
+            if (cls.methods.any { it.name == "onScanResult" || it.name == "onBatchScanResults" } ||
+                cls.declaredMethods.any { it.name == "onScanResult" || it.name == "onBatchScanResults" }) {
+                return true
+            }
+        } catch (_: Throwable) {}
+
+        return obj is android.bluetooth.le.ScanCallback || obj is android.bluetooth.BluetoothAdapter.LeScanCallback
+    }
+
+internal fun isLeScanCallback(obj: Any?): Boolean {
+        if (obj == null) return false
+        var cls: Class<*>? = obj.javaClass
+        while (cls != null && cls != Any::class.java) {
+            val name = cls.name
+            val sName = cls.simpleName
+            if (name == "android.bluetooth.BluetoothAdapter\$LeScanCallback" || sName == "LeScanCallback" || name.endsWith("\$LeScanCallback")) {
+                return true
+            }
+            for (iface in cls.interfaces) {
+                if (iface.name.contains("LeScanCallback")) {
+                    return true
+                }
+            }
+            cls = cls.superclass
+        }
+        return obj is android.bluetooth.BluetoothAdapter.LeScanCallback
     }
 
 internal fun createScanResult(
@@ -176,13 +225,13 @@ internal fun createScanResult(
                 )
                 result = ctor10.newInstance(
                     device,
-                    0x001B,
-                    1,
-                    0,
-                    255,
-                    127,
+                    0x001B ,
+                    1 ,
+                    0 ,
+                    255 ,
+                    127 ,
                     rssi,
-                    0,
+                    0 ,
                     scanRecord,
                     timestampNanos
                 )

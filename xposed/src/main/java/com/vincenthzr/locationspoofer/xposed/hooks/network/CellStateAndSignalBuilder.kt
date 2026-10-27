@@ -18,8 +18,7 @@ internal fun LocationHooker.buildFakeServiceState(
     return try {
         val clazz = XposedHelpers.findClass("android.telephony.ServiceState", classLoader)
         val state = XposedHelpers.newInstance(clazz)
-        val cell =
-            if (cellArray != null && cellArray.length() > 0) cellArray.optJSONObject(0) else null
+        val cell = registeredCellJson(cellArray)
         val operator = if (cell != null) {
             val mcc = positiveJsonInt(cell, "mcc", default = 460)
             val mnc = positiveJsonInt(cell, "mnc", "net", default = 0)
@@ -110,7 +109,7 @@ internal fun LocationHooker.buildFakeSignalStrength(
     return try {
         val clazz = XposedHelpers.findClass("android.telephony.SignalStrength", classLoader)
         val signalStrength = XposedHelpers.newInstance(clazz)
-        val dbm = signalDbm(firstCell(config) ?: org.json.JSONObject(), 0)
+        val dbm = signalDbm(registeredCell(config) ?: org.json.JSONObject(), 0)
         val lteSignalClass =
             XposedHelpers.findClass("android.telephony.CellSignalStrengthLte", classLoader)
         val lteSignal = XposedHelpers.newInstance(lteSignalClass)

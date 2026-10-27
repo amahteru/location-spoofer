@@ -65,11 +65,9 @@ enum class MainSubScreen {
     MapEngineSettings,
     SignatureAuth,
     RootDiagnostics,
-    VendorScheme,
     MotionRealism,
     BackgroundKeepAlive,
-    EnvTokens,
-    SystemHookApps
+    EnvTokens
 }
 
 @Composable
@@ -252,8 +250,7 @@ fun MainScaffoldScreen(
                             uiState = uiState,
                             tabBarHeight = paddingValues.calculateBottomPadding(),
                             onNavigateToScanner = { currentSubScreen = MainSubScreen.ScannerMap },
-                            onNavigateToManageData = { currentSubScreen = MainSubScreen.ManageData },
-                            onNavigateToSystemHookApps = { currentSubScreen = MainSubScreen.SystemHookApps }
+                            onNavigateToManageData = { currentSubScreen = MainSubScreen.ManageData }
                         )
 
                         BottomTab.Info.ordinal -> com.vincenthzr.locationspoofer.ui.screen.tabs.InfoTab(
@@ -266,7 +263,6 @@ fun MainScaffoldScreen(
                             onNavigateToMapEngine = { currentSubScreen = MainSubScreen.MapEngineSettings },
                             onNavigateToSignatureAuth = { currentSubScreen = MainSubScreen.SignatureAuth },
                             onNavigateToRootDiagnostics = { currentSubScreen = MainSubScreen.RootDiagnostics },
-                            onNavigateToVendorScheme = { currentSubScreen = MainSubScreen.VendorScheme },
                             onNavigateToMotionRealism = { currentSubScreen = MainSubScreen.MotionRealism },
                             onNavigateToBackgroundKeepAlive = { currentSubScreen = MainSubScreen.BackgroundKeepAlive },
                             onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens }
@@ -329,12 +325,6 @@ fun MainScaffoldScreen(
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
-                    MainSubScreen.VendorScheme -> com.vincenthzr.locationspoofer.ui.screen.settings.VendorSchemeScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
-
                     MainSubScreen.BackgroundKeepAlive -> com.vincenthzr.locationspoofer.ui.screen.settings.BackgroundKeepAliveScreen(
                         viewModel = viewModel,
                         uiState = uiState,
@@ -345,12 +335,6 @@ fun MainScaffoldScreen(
                         viewModel = viewModel,
                         uiState = uiState,
                         onClose = { currentSubScreen = MainSubScreen.None }
-                    )
-
-                    MainSubScreen.SystemHookApps -> SystemHookAppsScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onBack = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.None -> Unit

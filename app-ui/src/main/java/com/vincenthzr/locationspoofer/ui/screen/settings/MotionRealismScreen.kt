@@ -31,6 +31,7 @@ import com.vincenthzr.locationspoofer.utils.MotionRealism
 import com.vincenthzr.locationspoofer.viewmodel.MainViewModel
 import com.vincenthzr.locationspoofer.viewmodel.setRealismLevel
 import com.vincenthzr.locationspoofer.viewmodel.setSpeedFluctuationPct
+import com.vincenthzr.locationspoofer.viewmodel.setStepSimulationEnabled
 import kotlin.math.roundToInt
 import com.vincenthzr.locationspoofer.ui.components.AppCard
 import com.vincenthzr.locationspoofer.ui.components.AppTopBar
@@ -53,6 +54,15 @@ fun MotionRealismScreen(
         RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
         SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
         HintRow(stringResource(R.string.realism_next_session_hint))
+        Card(modifier = Modifier.fillMaxWidth()) {
+            SwitchListItem(
+                title = stringResource(R.string.step_simulation_title),
+                summary = stringResource(R.string.step_simulation_desc),
+                icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
+                checked = uiState.stepSimulationEnabled,
+                onCheckedChange = { viewModel.setStepSimulationEnabled(it) }
+            )
+        }
     }
 }
 

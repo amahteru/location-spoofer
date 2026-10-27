@@ -10,7 +10,6 @@ import com.vincenthzr.locationspoofer.data.model.RoutePlanStage
 import com.vincenthzr.locationspoofer.data.model.AppMapType
 import com.vincenthzr.locationspoofer.data.model.MapEngine
 import com.vincenthzr.locationspoofer.data.model.RootSolution
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.data.model.SearchMode
 import com.vincenthzr.locationspoofer.ui.screen.AppPoiItem
 import com.vincenthzr.locationspoofer.ui.screen.spoofing.SpoofingIntent
@@ -175,18 +174,6 @@ internal fun MainViewModel.setRootSolution(solution: RootSolution) {
     _uiState.update { it.copy(rootSolution = solution) }
 }
 
-internal fun MainViewModel.setVendorScheme(scheme: VendorScheme) {
-    settingsRepository.setVendorOverride(scheme.id)
-    _uiState.update { it.copy(vendorScheme = scheme) }
-    viewModelScope.launch { locationRepository.patchConfig { } }
-}
-
-internal fun MainViewModel.setDebugDumpSystemServices(enabled: Boolean) {
-    settingsRepository.debugDumpSystemServices = enabled
-    _uiState.update { it.copy(debugDumpSystemServices = enabled) }
-    viewModelScope.launch { locationRepository.patchConfig { } }
-}
-
 internal fun MainViewModel.testRootSetup() {
     viewModelScope.launch(Dispatchers.IO) {
         _uiState.update { it.copy(isTestingRootSetup = true) }
@@ -200,35 +187,7 @@ internal fun MainViewModel.dismissRootSetupTestResult() {
 }
 
 internal fun MainViewModel.requestRestartHookedApps() {
-    val targetPackages = mutableSetOf<String>()
-    targetPackages.addAll(lsposedManager.getHookedApps(context).map { it.packageName })
-    targetPackages.addAll(settingsRepository.getSystemHookPackages())
-
-    val exempt = setOf(
-        context.packageName,
-        "android",
-        "system",
-        "system_server",
-        "com.android.systemui",
-        "com.android.phone",
-        "com.android.bluetooth",
-        "com.android.server.telecom",
-        "com.xiaomi.metoknlp",
-        "com.google.android.gms"
-    )
-    val pm = context.packageManager
-    val apps = targetPackages.filter { it.isNotBlank() && !exempt.contains(it) }.mapNotNull { pkg ->
-        try {
-            val info = pm.getApplicationInfo(pkg, 0)
-            val label = pm.getApplicationLabel(info).toString()
-            val isSystem = (info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-            com.vincenthzr.locationspoofer.data.model.AppInfoItem(pkg, label, isSystem)
-        } catch (_: Exception) {
-            com.vincenthzr.locationspoofer.data.model.AppInfoItem(pkg, pkg, false)
-        }
-    }.sortedBy { it.appName }
-
-    _uiState.update { it.copy(hookedAppsToRestart = apps) }
+    _uiState.update { it.copy(hookedAppsToRestart = lsposedManager.getHookedApps(context)) }
 }
 
 internal fun MainViewModel.dismissRestartHookedAppsDialog() {
@@ -468,62 +427,6 @@ private fun MainViewModel.getAppSignatureSHA1(): String {
         e.printStackTrace()
     }
     return "Unknown"
-}
-
-internal fun MainViewModel.loadInstalledAppsForSystemHook() {
-    _uiState.update { it.copy(isLoadingInstalledApps = true) }
-    viewModelScope.launch(Dispatchers.IO) {
-        val apps = lsposedManager.getAllInstalledApps(context)
-        _uiState.update { it.copy(installedAppsForSystemHook = apps, isLoadingInstalledApps = false) }
-    }
-}
-
-internal fun MainViewModel.setSystemHookGlobalMode(enabled: Boolean) {
-    settingsRepository.isSystemHookGlobalMode = enabled
-    _uiState.update { it.copy(isSystemHookGlobalMode = enabled) }
-
-    refreshSystemHookConfig()
-}
-
-internal fun MainViewModel.setForceLocationEnabled(enabled: Boolean) {
-    settingsRepository.forceLocationEnabled = enabled
-    _uiState.update { it.copy(forceLocationEnabled = enabled) }
-    refreshSystemHookConfig()
-}
-
-private fun MainViewModel.refreshSystemHookConfig() {
-    if (_uiState.value.isSpoofingActive) {
-        viewModelScope.launch { locationRepository.patchConfig { } }
-    }
-}
-
-internal fun MainViewModel.selectAllUserAppsForSystemHook() {
-    val userAppPkgs = _uiState.value.installedAppsForSystemHook
-        .filter { !it.isSystem }
-        .map { it.packageName }
-        .toSet()
-    val newSet = _uiState.value.systemHookPackages + userAppPkgs
-    settingsRepository.setSystemHookPackages(newSet)
-    _uiState.update { it.copy(systemHookPackages = newSet) }
-
-    refreshSystemHookConfig()
-}
-
-internal fun MainViewModel.clearAllSystemHookApps() {
-    val emptySet = emptySet<String>()
-    settingsRepository.setSystemHookPackages(emptySet)
-    _uiState.update { it.copy(systemHookPackages = emptySet) }
-
-    refreshSystemHookConfig()
-}
-
-internal fun MainViewModel.setSystemHookPackageEnabled(pkg: String, enabled: Boolean) {
-    val currentSet = _uiState.value.systemHookPackages.toMutableSet()
-    if (enabled) currentSet.add(pkg) else currentSet.remove(pkg)
-    settingsRepository.setSystemHookPackages(currentSet)
-    _uiState.update { it.copy(systemHookPackages = currentSet) }
-
-    refreshSystemHookConfig()
 }
 
 internal fun MainViewModel.getIgnoredVersion(): String = settingsRepository.getIgnoredVersion()

@@ -170,4 +170,4 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     }
 }
 
-private fun isAssetForCurrentScheme(assetName: String): Boolean = assetName.contains("-global-")
+private fun isAssetForCurrentScheme(assetName: String): Boolean = assetName.contains("-scoped-")

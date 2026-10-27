@@ -459,6 +459,32 @@ internal fun LocationHooker.cellAreaCode(cell: org.json.JSONObject, default: Int
 internal fun LocationHooker.cellIdentityCode(cell: org.json.JSONObject, default: Int): Int =
     positiveJsonInt(cell, "ci", "cid", "cellid", "cell", default = default)
 
+internal fun registeredCellJson(cellArray: org.json.JSONArray?): org.json.JSONObject? {
+    if (cellArray == null || cellArray.length() == 0) return null
+    for (i in 0 until cellArray.length()) {
+        val obj = cellArray.optJSONObject(i) ?: continue
+        if (obj.optBoolean("isRegistered", i == 0)) return obj
+    }
+    return cellArray.optJSONObject(0)
+}
+
+internal fun LocationHooker.registeredCellCodes(config: org.json.JSONObject, lat: Double, lng: Double): Pair<Int, Int> {
+    val cell = registeredCellJson(config.optJSONArray("cell_json"))
+        ?: return fallbackAreaCode(lat, lng) to fallbackCellIdentity(lat, lng)
+    return cellAreaCode(cell, 10000) to cellIdentityCode(cell, 100000)
+}
+
+internal fun LocationHooker.fallbackAreaCode(lat: Double, lng: Double): Int {
+    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
+    return (10000 + (coordSeed and 0xFFFF).toInt() % 50000).coerceIn(1, 65534)
+}
+
+internal fun LocationHooker.fallbackCellIdentity(lat: Double, lng: Double): Int {
+    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
+    return (100000 + ((coordSeed shr 8) and 0xFFFFFF).toInt() % 900000)
+        .coerceIn(1, 268435455)
+}
+
 internal fun LocationHooker.positiveJsonInt(
     cell: org.json.JSONObject,
     vararg keys: String,
@@ -487,7 +513,16 @@ internal fun LocationHooker.signalDbm(cell: org.json.JSONObject, index: Int): In
     return (-70 - index * 3).coerceAtLeast(-110)
 }
 
-internal fun LocationHooker.firstCell(config: org.json.JSONObject?): org.json.JSONObject? {
-    val cells = config?.optJSONArray("cell_json") ?: return null
-    return if (cells.length() > 0) cells.optJSONObject(0) else null
+internal fun LocationHooker.registeredCell(config: org.json.JSONObject?): org.json.JSONObject? =
+    registeredCellJson(config?.optJSONArray("cell_json"))
+
+internal fun LocationHooker.isTelephonyCallbackListener(
+    classLoader: ClassLoader,
+    callback: Any,
+    listenerName: String
+): Boolean {
+    return LocationHooker.hasTypeByName(
+        callback.javaClass,
+        "android.telephony.TelephonyCallback\$$listenerName"
+    )
 }

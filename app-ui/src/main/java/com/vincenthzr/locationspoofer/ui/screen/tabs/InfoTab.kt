@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.BatteryChargingFull
-import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Security
@@ -24,8 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -35,9 +32,6 @@ import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.MapEngine
-import com.vincenthzr.locationspoofer.progress.AdaptationProgress
-import com.vincenthzr.locationspoofer.progress.AdaptationProgressSource
-import com.vincenthzr.locationspoofer.vendor.VendorProfile
 import com.vincenthzr.locationspoofer.ui.screen.FooterLinks
 import com.vincenthzr.locationspoofer.ui.screen.LANGUAGES
 import com.vincenthzr.locationspoofer.ui.screen.UpdateCheckCard
@@ -58,7 +52,6 @@ fun InfoTab(
     onNavigateToMapEngine: () -> Unit = {},
     onNavigateToSignatureAuth: () -> Unit = {},
     onNavigateToRootDiagnostics: () -> Unit = {},
-    onNavigateToVendorScheme: () -> Unit = {},
     onNavigateToMotionRealism: () -> Unit = {},
     onNavigateToBackgroundKeepAlive: () -> Unit = {},
     onNavigateToEnvTokens: () -> Unit = {}
@@ -77,24 +70,6 @@ fun InfoTab(
     val savedLangCode = viewModel.getSavedLanguage()
     val currentLangName = remember(savedLangCode, defaultLangText) {
         LANGUAGES.firstOrNull { it.code == savedLangCode }?.nativeName ?: defaultLangText
-    }
-
-    val progressContext = LocalContext.current
-    val progressLocale = LocalConfiguration.current.locales[0]
-    val adaptationStatus = remember(progressLocale) {
-        val markdown = AdaptationProgressSource(progressContext).local().markdown
-        val family = VendorProfile.current.family
-        AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status ?: AdaptationProgress.Status.UNVERIFIED
-    }
-    val adaptationStatusChip = adaptationStatus?.let {
-        stringResource(
-            when (it) {
-                AdaptationProgress.Status.VERIFIED -> R.string.progress_status_verified
-                AdaptationProgress.Status.PARTIAL -> R.string.progress_status_partial
-                AdaptationProgress.Status.BROKEN -> R.string.progress_status_broken
-                AdaptationProgress.Status.UNVERIFIED -> R.string.progress_status_unverified
-            }
-        )
     }
 
     val realismLevelNames = listOf(
@@ -211,13 +186,6 @@ fun InfoTab(
                             title = stringResource(R.string.motion_realism_title),
                             previewChip = currentRealismLevelName,
                             onClick = onNavigateToMotionRealism
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Devices,
-                            tone = LabelTone.Success,
-                            title = stringResource(R.string.system_adaptation_title),
-                            previewChip = adaptationStatusChip,
-                            onClick = onNavigateToVendorScheme
                         )
                         SettingsEntryRow(
                             icon = Icons.Rounded.Security,

@@ -77,6 +77,12 @@ object XposedHelpers {
         field.setInt(obj, value)
     }
 
+    fun setDoubleField(obj: Any, fieldName: String, value: Double) {
+        val field = findFieldInternal(obj.javaClass, fieldName)
+            ?: throw NoSuchFieldException(fieldName)
+        field.setDouble(obj, value)
+    }
+
     fun setBooleanField(obj: Any, fieldName: String, value: Boolean) {
         val field = findFieldInternal(obj.javaClass, fieldName)
             ?: throw NoSuchFieldException(fieldName)
@@ -160,13 +166,39 @@ object XposedHelpers {
         throw NoSuchMethodException("Constructor for " + clazz.name + " not found")
     }
 
+    inline fun hookMethod(
+        className: String,
+        classLoader: ClassLoader?,
+        methodName: String,
+        vararg paramTypes: Any,
+        crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
+    ) {
+        try {
+            val clazz = findClass(className, classLoader)
+            val paramTypesClass = paramTypes.map {
+                when (it) {
+                    is Class<*> -> it
+                    is String -> findClass(it, clazz.classLoader)
+                    else -> throw IllegalArgumentException("Invalid argument type")
+                }
+            }.toTypedArray()
+
+            val method = findMethodExact(clazz, methodName, *paramTypesClass)
+            module.hook(method).intercept(object : io.github.libxposed.api.XposedInterface.Hooker {
+                override fun intercept(chain: io.github.libxposed.api.XposedInterface.Chain): Any? {
+                    return interceptor(chain, method)
+                }
+            })
+        } catch (e: Throwable) {
+        }
+    }
+
     inline fun hookAllMethods(
         clazz: Class<*>,
         methodName: String,
         crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
     ): List<io.github.libxposed.api.XposedInterface.HookHandle> {
         val handles = mutableListOf<io.github.libxposed.api.XposedInterface.HookHandle>()
-        var hooked = 0
         for (method in clazz.declaredMethods) {
             if (method.name == methodName && !Modifier.isAbstract(method.modifiers)) {
                 try {
@@ -177,16 +209,30 @@ object XposedHelpers {
                             }
                         })
                     handles.add(handle)
-                    hooked++
                 } catch (e: Throwable) {
-                    com.vincenthzr.locationspoofer.xposed.diagnostics.HookStatus.error("${clazz.name}#$methodName", e)
+                    XposedBridge.log("[LocationSpoofer] hook ${clazz.name}#$methodName failed: $e")
                 }
             }
         }
-        com.vincenthzr.locationspoofer.xposed.diagnostics.HookStatus.methodHooked(clazz.name, methodName, hooked)
         return handles
     }
 
+    inline fun hookAllConstructors(
+        clazz: Class<*>,
+        crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
+    ) {
+        for (constructor in clazz.declaredConstructors) {
+            try {
+                module.hook(constructor)
+                    .intercept(object : io.github.libxposed.api.XposedInterface.Hooker {
+                        override fun intercept(chain: io.github.libxposed.api.XposedInterface.Chain): Any? {
+                            return interceptor(chain, constructor)
+                        }
+                    })
+            } catch (e: Throwable) {
+            }
+        }
+    }
 }
 
 object XposedBridge {
@@ -231,4 +277,3 @@ object XposedBridge {
         } catch (_: Throwable) {}
     }
 }
-

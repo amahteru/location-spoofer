@@ -36,34 +36,6 @@ android {
     }
 }
 
-abstract class BundleAdaptationProgress : DefaultTask() {
-    @get:InputFiles
-    abstract val sources: ConfigurableFileCollection
-
-    @get:OutputDirectory
-    abstract val outputDir: DirectoryProperty
-
-    @TaskAction
-    fun copy() {
-        sources.files.forEach { src ->
-            src.copyTo(outputDir.get().asFile.resolve(src.name), overwrite = true)
-        }
-    }
-}
-
-val bundleAdaptationProgress = tasks.register<BundleAdaptationProgress>("bundleAdaptationProgress") {
-    sources.from(
-        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS.md"),
-        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS_EN.md")
-    )
-}
-
-androidComponents {
-    onVariants { variant ->
-        variant.sources.assets?.addGeneratedSourceDirectory(bundleAdaptationProgress, BundleAdaptationProgress::outputDir)
-    }
-}
-
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)

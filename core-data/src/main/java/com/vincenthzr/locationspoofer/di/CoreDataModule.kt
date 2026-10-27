@@ -14,7 +14,6 @@ import com.vincenthzr.locationspoofer.utils.OpenCellIdClient
 import com.vincenthzr.locationspoofer.utils.RootManager
 import com.vincenthzr.locationspoofer.utils.SettingsManager
 import com.vincenthzr.locationspoofer.utils.WigleClient
-import com.vincenthzr.locationspoofer.data.repository.HookStatusRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -31,7 +30,6 @@ val coreDataModule = module {
 
     single { LocationRepository(get(), get(), get(), get(), get(), get()) }
     single { SettingsRepository(get()) }
-    single { HookStatusRepository(get()) }
     single {
         val settings = get<SettingsManager>()
         MotionController(

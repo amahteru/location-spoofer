@@ -123,8 +123,7 @@ jobs:
           cat >> changelog.txt <<'NOTES'
 
           ## 安装包说明
-          - `LocationSpoofer-global-arm64-v8a-*`：全局方案，作用域为系统框架、电话、蓝牙，对全设备生效；仅支持 64 位设备
-          - 各系统的适配进度见 [ADAPTATION_PROGRESS.md](${{ github.server_url }}/${{ github.repository }}/blob/main/ADAPTATION_PROGRESS.md)
+          - `LocationSpoofer-scoped-arm64-v8a-*`：非全局方案，在 LSPosed 作用域中勾选需要模拟的应用；仅支持 64 位设备
 
           ## 自有仓库签名与首次迁移
           本仓库使用独立且持续保存的发布签名。若已安装原作者版本或此前的 Debug 包，且签名与本次安装包不同，**不能直接覆盖安装**。请先在旧版导出收藏位置、路线、采集数据等备份，在 LSPosed 中停用旧模块，卸载旧包后安装本仓库的 APK，再启用模块、设置作用域、重启设备并导入备份。完成首次迁移后，本仓库后续版本将继续使用同一发布签名。
@@ -167,16 +166,16 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon :app:assembleRelease
 
-          # 重命名为 LocationSpoofer-global-arm64-v8a-<tag>.apk 收集到 dist 目录。
-          # App 内更新检查（UpdateViewModel.isAssetForCurrentScheme）依赖文件名里的 -global- 标记，
-          # 用来跳过旧 Release 里已移除的非全局（scoped）方案安装包，文件名格式不要改。
+          # 重命名为 LocationSpoofer-scoped-arm64-v8a-<tag>.apk 收集到 dist 目录。
+          # App 内更新检查（UpdateViewModel.isAssetForCurrentScheme）依赖文件名里的 -scoped- 标记，
+          # 用来跳过旧 Release 里已移除的全局（global）方案安装包，文件名格式不要改。
           TAG="${{ steps.check_version.outputs.tag }}"
           DIST_DIR="app/build/outputs/apk/dist"
           mkdir -p "$DIST_DIR"
-          find app/build/outputs/apk/release -name "*arm64-v8a*.apk" -exec mv {} "$DIST_DIR/LocationSpoofer-global-arm64-v8a-$TAG.apk" \;
+          find app/build/outputs/apk/release -name "*arm64-v8a*.apk" -exec mv {} "$DIST_DIR/LocationSpoofer-scoped-arm64-v8a-$TAG.apk" \;
           ls -l "$DIST_DIR"
 
-          if [ ! -f "$DIST_DIR/LocationSpoofer-global-arm64-v8a-$TAG.apk" ]; then
+          if [ ! -f "$DIST_DIR/LocationSpoofer-scoped-arm64-v8a-$TAG.apk" ]; then
             echo "错误：没有找到 arm64-v8a 安装包，终止发版。"
             exit 1
           fi

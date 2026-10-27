@@ -24,22 +24,4 @@ class LSPosedManager {
             }
         }.sortedBy { it.appName }
     }
-
-    @android.annotation.SuppressLint("QueryPermissionsNeeded")
-    fun getAllInstalledApps(context: Context): List<AppInfoItem> {
-        val pm = context.packageManager
-        val selfPackage = context.packageName
-        return pm.getInstalledApplications(0).mapNotNull { info ->
-            if (info.packageName == selfPackage) return@mapNotNull null
-            try {
-                val label = pm.getApplicationLabel(info).toString()
-                val isSystem =
-                    (info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0 ||
-                            (info.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-                AppInfoItem(info.packageName, label, isSystem)
-            } catch (e: Exception) {
-                AppInfoItem(info.packageName, info.packageName, false)
-            }
-        }.sortedBy { it.appName }
-    }
 }

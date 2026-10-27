@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer.data.model
 import androidx.annotation.StringRes
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.utils.AltitudeModel
-import com.vincenthzr.locationspoofer.vendor.VendorScheme
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 
 enum class WifiLoadStatus { IDLE, LOADING, DONE }
@@ -52,10 +51,9 @@ data class AppState(
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
     val rootSolution: RootSolution = RootSolution.AUTO,
-    val vendorScheme: VendorScheme = VendorScheme.AUTO,
-    val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,
     val speedFluctuationPct: Int = MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT,
+    val stepSimulationEnabled: Boolean = true,
     val keepLastMapPosition: Boolean = true,
     val isTestingRootSetup: Boolean = false,
     val rootSetupTestResult: RootSetupTestResult? = null,
@@ -103,11 +101,6 @@ data class AppState(
     val scannedCellCount: Int = 0,
     val scannedBluetoothCount: Int = 0,
     val hookedApps: List<AppInfoItem> = emptyList(),
-    val systemHookPackages: Set<String> = emptySet(),
-    val isSystemHookGlobalMode: Boolean = false,
-    val forceLocationEnabled: Boolean = false,
-    val installedAppsForSystemHook: List<AppInfoItem> = emptyList(),
-    val isLoadingInstalledApps: Boolean = false,
     val collectedWifiJson: String = "[]",
     val collectedCellJson: String = "[]",
     val collectedBluetoothJson: String = "[]",

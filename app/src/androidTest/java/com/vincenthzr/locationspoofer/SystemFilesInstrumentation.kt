@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer
 import android.app.Instrumentation
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
-import com.vincenthzr.locationspoofer.data.repository.HookStatusRepository
 import com.vincenthzr.locationspoofer.utils.FrameworkConfigChannel
 import com.vincenthzr.locationspoofer.utils.RootManager
 import com.vincenthzr.locationspoofer.utils.XposedModuleStatus
@@ -14,22 +13,15 @@ import org.json.JSONObject
 class SystemFilesInstrumentation : Instrumentation() {
     private var environmentRefresh = false
     private var moduleRuntime = false
-    private var moduleHotReload = false
 
     override fun onCreate(arguments: Bundle?) {
         super.onCreate(arguments)
         environmentRefresh = arguments?.getString("check") == "environment-refresh"
         moduleRuntime = arguments?.getString("check") == "module-runtime"
-        moduleHotReload = arguments?.getString("check") == "module-hot-reload"
         start()
     }
 
     override fun onStart() {
-        if (moduleHotReload) {
-            val output = verifyModuleHotReload()
-            finish(if (output.getString("result") == "PASS") -1 else 0, output)
-            return
-        }
         if (moduleRuntime) {
             val output = verifyModuleRuntime()
             finish(if (output.getString("result") == "PASS") -1 else 0, output)
@@ -68,22 +60,6 @@ class SystemFilesInstrumentation : Instrumentation() {
                 done
             """.trimIndent())
             check(noLegacyTmp != "ERROR") { "Legacy tmp artifacts remain or root access is unavailable" }
-            val reports = runBlocking {
-                val repository = HookStatusRepository(root)
-                repeat(40) {
-                    val current = repository.readAll()
-                    val latest = service.getRemotePreferences(FrameworkConfigChannel.GROUP)
-                        .getString(FrameworkConfigChannel.SNAPSHOT_KEY, null)
-                        ?.let { JSONObject(it).getLong("published_at") }
-                    if (latest != null && current.values.all {
-                            it?.configPath?.startsWith("libxposed:") == true && it.configModified == latest
-                        }) return@runBlocking current
-                    delay(250)
-                }
-                error("System processes have not converged on the latest publication; retry while coordinates are stationary")
-            }
-            output.putString("receivers", reports.keys.joinToString())
-        
             output.putString("transport", if (file.isEmpty()) "remote-preferences" else "remote-file")
             output.putString("result", "PASS")
             finish(-1, output)
