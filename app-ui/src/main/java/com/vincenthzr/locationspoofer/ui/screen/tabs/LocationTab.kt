@@ -13,7 +13,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -54,6 +53,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
@@ -92,6 +92,7 @@ import com.vincenthzr.locationspoofer.viewmodel.toggleRestartAppsOnSpoof
 import com.vincenthzr.locationspoofer.viewmodel.updateLatitude
 import com.vincenthzr.locationspoofer.viewmodel.updateLongitude
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 import com.vincenthzr.locationspoofer.ui.screen.tabs.location.*
 import java.util.Locale
@@ -221,16 +222,8 @@ fun LocationTab(
     }
     BackHandler(enabled = isSearching, onBack = exitSearch)
 
-    val rawFabBottomPadding by animateDpAsState(
-        targetValue = when (panelState) {
-            LocationPanelState.EXPANDED -> tabBarHeight + coordCardHeightDp + 82.dp
-            LocationPanelState.DEFAULT -> tabBarHeight + coordCardHeightDp + 82.dp
-            LocationPanelState.COLLAPSED -> tabBarHeight + 74.dp
-        },
-        animationSpec = motion.defaultSpatialSpec(),
-        label = "location_fab_bottom_padding"
-    )
-    val fabBottomPadding = rawFabBottomPadding.coerceAtLeast(0.dp)
+    var tabBottom by remember { mutableFloatStateOf(0f) }
+    var panelSearchTop by remember { mutableFloatStateOf(0f) }
 
     SharedTransitionLayout {
         AnimatedContent(
@@ -257,11 +250,16 @@ fun LocationTab(
                 )
                 .onGloballyPositioned { searchBounds = it.boundsInRoot() }
 
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
+            ) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = AppSpacing.lg, bottom = fabBottomPadding),
+                        .padding(end = AppSpacing.lg, bottom = AppSpacing.lg)
+                        .offset { IntOffset(0, (panelSearchTop - tabBottom).roundToInt()) },
                     verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
                     horizontalAlignment = Alignment.End
                 ) {
@@ -325,7 +323,10 @@ fun LocationTab(
                     onOpenManageSavedLocations = {
                         onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
                     },
-                    searchBar = { barModifier ->
+                    searchBar = { slotModifier ->
+                        val barModifier = slotModifier.onGloballyPositioned {
+                            panelSearchTop = it.boundsInRoot().top
+                        }
                         if (!searchActive) {
                             HomeSearchBar(
                                 query = spoofingUiState.searchQuery,

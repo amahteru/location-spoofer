@@ -371,7 +371,7 @@ fun RouteTab(
                 }
 
                 val animatedBottomPadding by animateDpAsState(
-                    targetValue = bottomBarHeight + bottomActionHeightDp + 16.dp,
+                    targetValue = bottomBarHeight + AppSpacing.sm + bottomActionHeightDp + AppSpacing.lg,
                     animationSpec = motion.defaultSpatialSpec(),
                     label = "fab_padding"
                 )
