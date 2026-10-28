@@ -201,6 +201,7 @@ class GMapControllerImpl(
         map.uiSettings.isMyLocationButtonEnabled = false
         map.uiSettings.isCompassEnabled = false
         map.uiSettings.setAllGesturesEnabled(true)
+        map.uiSettings.isRotateGesturesEnabled = false
     }
 
     override fun setMapType(type: AppMapType) {

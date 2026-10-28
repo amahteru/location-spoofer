@@ -235,7 +235,7 @@ class BaiduMapControllerImpl(
         map.uiSettings.isZoomGesturesEnabled = true
         map.uiSettings.isScrollGesturesEnabled = true
         map.uiSettings.isOverlookingGesturesEnabled = true
-        map.uiSettings.isRotateGesturesEnabled = true
+        map.uiSettings.isRotateGesturesEnabled = false
     }
 
     override fun setMapType(type: AppMapType) {
