@@ -3,6 +3,7 @@ package com.vincenthzr.locationspoofer.ui.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,14 +38,14 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                 }
             }
             if (state.isRouteCollection) {
-                Text(stringResource(if (state.isDrawingCollectionRoute) R.string.collection_route_draw_hint else R.string.collection_route_collect_hint), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(if (state.isDrawingCollectionRoute) R.string.collection_route_draw_hint else R.string.collection_route_collect_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (state.isDrawingCollectionRoute) {
                     Text(stringResource(R.string.selected_waypoints_count, state.collectionRoutePoints.size), style = MaterialTheme.typography.bodySmall)
-                    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                         TextButton(enabled = state.collectionRoutePoints.isNotEmpty(), onClick = viewModel::undoCollectionRoutePoint) {
                             Text(stringResource(R.string.collection_route_undo))
                         }
-                        Button(modifier = Modifier.weight(1f), onClick = {
+                        Button(modifier = Modifier.weight(1f).height(48.dp), onClick = {
                             val lat = map?.cameraTargetLat ?: state.latitudeInput.toDoubleOrNull()
                             val lng = map?.cameraTargetLng ?: state.longitudeInput.toDoubleOrNull()
                             if (lat != null && lng != null) viewModel.addCollectionRoutePoint(lat, lng)
@@ -54,7 +55,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                         }
                     }
                 } else if (!busy) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.selected_waypoints_count, state.collectionRoutePoints.size), style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = viewModel::drawCollectionRoute) {
                             Text(stringResource(R.string.collection_route_edit_drawing))

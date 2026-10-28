@@ -67,7 +67,7 @@
     <string name="restart_hooked_apps_done">Apps restarted: %1$d. Please reopen them to verify.</string>
     <string name="restart_hooked_apps_empty">No apps are currently in scope for this module.</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
-    <string name="data_collection_assist_intro">Without root, the main simulation features are unavailable, but you can still help collect real Wi-Fi/cell data at this location. Export it when done and send the file to be imported on another device.</string>
+    <string name="data_collection_assist_intro">Without root, the main simulation features are unavailable, but you can still help collect real Wi-Fi, cell and Bluetooth data at this location. Export it when done and send the file to be imported on another device.</string>
     <string name="data_collection_assist_hint">Stay at the target location, tap “Start collection” and wait at least 10 seconds for a scan to complete. You can move to other spots and repeat to collect more points. Tap “Export” when finished.</string>
     <string name="data_collection_permission_missing">Location, phone and Bluetooth permissions are required to collect data.</string>
     <string name="lsposed_not_active">LSPosed module not active</string>
@@ -98,7 +98,6 @@ select the apps to simulate, then restart them.</string>
     <string name="download">Download</string>
     <string name="current_version">Current version</string>
     <string name="waiting_gps_signal">No cached location. Waiting for GPS signal (may be slow or unavailable indoors)</string>
-    <string name="native_location_success">Got native location</string>
     <string name="location_permission_denied">Precise location permission not granted. Can’t get location</string>
     <string name="disable_continuous_scan_first">Stop collecting before starting location simulation</string>
     <string name="disable_continuous_scan_route_first">Stop collecting before starting route simulation</string>
@@ -110,8 +109,8 @@ select the apps to simulate, then restart them.</string>
     <string name="custom_coordinate_title">Custom coordinates</string>
     <string name="custom_coord_desc">Enter coordinates manually. The map moves to the new location.</string>
     <string name="env_map_scan">Collect local data</string>
-    <string name="scanning_reference_points">Collecting… reference points: %1$d</string>
-    <string name="view_heatmap_start_scan">Collect cell and Wi-Fi signals</string>
+    <string name="scanning_reference_points">Collecting… points: %1$d</string>
+    <string name="view_heatmap_start_scan">Collect cell, Wi-Fi and Bluetooth signals</string>
     <string name="env_data_sharing">Import &amp; export data</string>
     <string name="env_data_sharing_desc">Back up or merge local data as JSON</string>
     <string name="import_data">Import</string>
@@ -202,7 +201,7 @@ select the apps to simulate, then restart them.</string>
     <string name="prerelease_badge">Beta</string>
     <string name="changelog">Changelog</string>
     <string name="version_history">Version history</string>
-    <string name="checking_latest_release">Checking for the latest release…</string>
+    <string name="checking_latest_release">Checking for updates…</string>
     <string name="check_failed_network">Check failed. Please check your network connection</string>
     <string name="new_version_found_format">New version v%s found</string>
     <string name="already_latest_version">Already on the latest version</string>
@@ -214,7 +213,7 @@ select the apps to simulate, then restart them.</string>
     <string name="recheck">Check again</string>
     <string name="merged_count_badge">Updates merged: %d</string>
     <string name="download_64">Download (64-bit)</string>
-    <string name="download_32">Download 32-bit</string>
+    <string name="download_32">Download (32-bit)</string>
     <string name="new_version_found">New version available</string>
     <string name="new_version_prompt_desc">A new version is available. Update to get the latest features and improvements.</string>
     <string name="later">Later</string>
@@ -239,7 +238,7 @@ select the apps to simulate, then restart them.</string>
     <string name="api_key_binding_desc">Used to apply for map platform API keys</string>
     <string name="reading_signature">Reading signature…</string>
     <string name="background_keep_alive_title">Background simulation &amp; keep-alive</string>
-    <string name="background_keep_alive_desc">Keep simulating in the background, on the lock screen and outside floating windows</string>
+    <string name="background_keep_alive_desc">Keep simulating in the background or when locked</string>
     <string name="ignore_battery_optimizations_title">Ignore battery optimization</string>
     <string name="ignore_battery_optimizations_desc">Keeps simulation running when locked or in the background</string>
     <string name="go_to_settings">Go to settings</string>
@@ -273,7 +272,7 @@ select the apps to simulate, then restart them.</string>
     <string name="tag_bluetooth">Bluetooth</string>
     <string name="tag_cell">Cell</string>
 
-    <string name="local_collected_hotspot">Locally collected hotspot</string>
+    <string name="local_collected_hotspot">Locally collected point</string>
     <string name="wigle_import">WiGLE import</string>
     <string name="opencellid_import">OpenCellID import</string>
     <string name="contains_records_format">Records: %d</string>
@@ -281,7 +280,7 @@ select the apps to simulate, then restart them.</string>
     <string name="route_plan_failed_fallback_straight">Route planning failed, falling back to straight-line simulation</string>
     <string name="route_request_exception">Route request error: %s</string>
     <string name="amap_api_exception_format">AMap API error (code: %1$d): %2$s</string>
-    <string name="amap_quota_exhausted_fallback_format">AMap API call failed (quota may be exhausted), falling back to straight-line simulation.
+    <string name="amap_quota_exhausted_fallback_format">AMap API call failed (quota may be exhausted), falling back to straight-line simulation
 Error details: %s</string>
     <string name="open_battery_opt_failed">Couldn’t open battery optimization: %s</string>
     <string name="open_app_info_failed">Couldn’t open app info: %s</string>
@@ -336,7 +335,7 @@ Error details: %s</string>
     <string name="cell_dbm_label">Signal strength (RSSI: %1$d dBm)</string>
     <string name="cell_is_registered_label">Set as serving cell</string>
     <string name="designated_cell_badge">Preferred</string>
-    <string name="registered_cell_badge">Serving Cell</string>
+    <string name="registered_cell_badge">Serving cell</string>
     <string name="no_designated_cell">Auto (collected serving cell)</string>
     <string name="no_cell_data_in_record">No cell data in this record. Tap “Add cell” above to add one.</string>
     <string name="delete_cell_confirm">Delete cell “%1$s”?</string>
@@ -392,7 +391,7 @@ Error details: %s</string>
     <string name="root_test_config_not_published">No configuration yet; start a simulation to publish one</string>
 
     <string name="collection_info_title">Point details</string>
-    <string name="collection_info_description">Data has been saved. Add a location name and note so you can find this point later.</string>
+    <string name="collection_info_description">Saved. Add a name and note for later</string>
     <string name="collection_info_remaining">Points left to describe: %d</string>
     <string name="collection_location_name">Location name</string>
     <string name="collection_info_skip">Skip</string>
@@ -403,8 +402,8 @@ Error details: %s</string>
 
     <string name="collection_point_mode">Point collection</string>
     <string name="collection_route_mode">Route collection</string>
-    <string name="collection_route_draw_hint">Move the map to place the crosshair, then add waypoints in order. The route covers 50 m on each side.</string>
-    <string name="collection_route_collect_hint">Move along the drawn route to collect real nearby data. Only samples within 50 m of the route are saved.</string>
+    <string name="collection_route_draw_hint">Add waypoints along the route (±50 m)</string>
+    <string name="collection_route_collect_hint">Walk the route to collect data within 50 m</string>
     <string name="collection_route_add_point">Add waypoint</string>
     <string name="collection_route_done">Done</string>
     <string name="collection_route_undo">Undo</string>

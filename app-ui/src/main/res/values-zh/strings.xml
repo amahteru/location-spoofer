@@ -7,7 +7,7 @@
     <string name="current_location">当前位置</string>
     <string name="cancel">取消</string>
     <string name="route_name">路线名称</string>
-    <string name="save_success">保存成功！</string>
+    <string name="save_success">保存成功</string>
     <string name="route_library">收藏的路线</string>
     <string name="no_saved_routes">暂无收藏的路线</string>
     <string name="route_nodes_count">%d 个路点</string>
@@ -71,7 +71,7 @@
     <string name="restart_hooked_apps_done">已重启 %1$d 个应用，请重新打开验证。</string>
     <string name="restart_hooked_apps_empty">当前没有为本模块勾选作用域的应用。</string>
     <string name="copy_diagnostic_info">复制诊断信息</string>
-    <string name="data_collection_assist_intro">没有 Root 权限，主要的模拟功能暂时用不了，但你依然可以帮忙采集这个地点真实的 Wi-Fi/基站信号数据。采集完成后导出文件，发给对方在另一台设备上导入即可。</string>
+    <string name="data_collection_assist_intro">没有 Root 权限，主要的模拟功能暂时用不了，但你依然可以帮忙采集这个地点真实的 Wi-Fi、基站与蓝牙信号。采集完成后导出文件，发给对方在另一台设备上导入即可。</string>
     <string name="data_collection_assist_hint">在目标地点停留后点击「开始采集」，等待至少 10 秒以确保完成一次扫描；可以走到其他地点重复开始/停止来采集多个点位；采集完成后点击「导出」。</string>
     <string name="data_collection_permission_missing">采集数据需要定位、电话状态、蓝牙权限。</string>
     <string name="lsposed_not_active">LSPosed 模块未激活</string>
@@ -92,7 +92,7 @@
     <string name="custom_baidu_key_hint">输入您的百度地图密钥…</string>
     <string name="custom_google_key">自定义谷歌 API 密钥</string>
     <string name="custom_google_key_hint">输入您的谷歌地图密钥…</string>
-    <string name="google_key_required_hint">使用谷歌地图需先在设置中配置个人 Google API 密钥</string>
+    <string name="google_key_required_hint">使用谷歌地图需先在设置中配置个人谷歌 API 密钥</string>
     <string name="copy">复制</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="restart_required_hint">修改 API 密钥后需重启应用才能完全生效。</string>
@@ -101,7 +101,6 @@
     <string name="download">下载</string>
     <string name="current_version">当前版本</string>
     <string name="waiting_gps_signal">系统未缓存位置，正在等待 GPS 信号（室内可能极慢或无信号）</string>
-    <string name="native_location_success">原生定位成功！</string>
     <string name="location_permission_denied">未授予精准定位权限，无法获取位置</string>
     <string name="disable_continuous_scan_first">请先停止采集再开启模拟定位</string>
     <string name="disable_continuous_scan_route_first">请先停止采集再开启路线模拟</string>
@@ -113,8 +112,8 @@
     <string name="custom_coordinate_title">自定义坐标</string>
     <string name="custom_coord_desc">手动输入经纬度坐标，修改后地图位置也会同步更新。</string>
     <string name="env_map_scan">采集本地数据</string>
-    <string name="scanning_reference_points">采集中… 已有 %1$d 个参考点</string>
-    <string name="view_heatmap_start_scan">实时扫描并采集基站与 Wi-Fi</string>
+    <string name="scanning_reference_points">采集中，已有 %1$d 个采集点</string>
+    <string name="view_heatmap_start_scan">实时采集基站、Wi-Fi 与蓝牙</string>
     <string name="env_data_sharing">导入与导出数据</string>
     <string name="env_data_sharing_desc">以 JSON 备份或合并本地数据</string>
     <string name="import_data">导入</string>
@@ -176,7 +175,7 @@
     <string name="add_nth_point">添加第 %d 点</string>
     <string name="reselect">重选</string>
     <string name="bookmark">收藏</string>
-    <string name="joystick_controlling_active">手柄操控中</string>
+    <string name="joystick_controlling_active">摇杆操控中</string>
     <string name="cruising_speed_format">巡航中（%s m/s）</string>
     <string name="route_sim_settings">路线模拟设置</string>
     <string name="run_mode">运行模式</string>
@@ -200,7 +199,7 @@
     <string name="prerelease_badge">Beta</string>
     <string name="changelog">更新日志</string>
     <string name="version_history">版本历史</string>
-    <string name="checking_latest_release">正在检索服务器最新发布版本…</string>
+    <string name="checking_latest_release">正在检查更新…</string>
     <string name="check_failed_network">检查失败，请检查网络连接</string>
     <string name="new_version_found_format">发现新版本 v%s</string>
     <string name="already_latest_version">当前已是最新版本</string>
@@ -212,13 +211,13 @@
     <string name="recheck">重新检查</string>
     <string name="merged_count_badge">聚合 %d 个更新</string>
     <string name="download_64">下载（64 位）</string>
-    <string name="download_32">下载 32 位</string>
+    <string name="download_32">下载（32 位）</string>
     <string name="new_version_found">发现新版本</string>
     <string name="new_version_prompt_desc">新版本已发布，推荐立即更新以获取全新特性与性能优化。</string>
     <string name="later">以后再说</string>
     <string name="go_to_update">前往更新</string>
     <string name="total_collected_data_count">共 %d 条采集数据</string>
-    <string name="manage_data_empty_desc">在定位或路线页面采集的数据将收录在此处统一管理</string>
+    <string name="manage_data_empty_desc">在「功能」页采集的数据会显示在这里</string>
     <string name="delete_data_title">删除采集数据</string>
     <string name="delete_data_confirm_format">确定要删除「%s」吗？删除后该位置及其附带的基站/Wi-Fi/蓝牙特征将无法恢复。</string>
     <string name="coord_record_title">坐标记录</string>
@@ -237,7 +236,7 @@
     <string name="api_key_binding_desc">用于申请第三方地图平台的 API 密钥</string>
     <string name="reading_signature">正在读取签名…</string>
     <string name="background_keep_alive_title">后台持续模拟与保活</string>
-    <string name="background_keep_alive_desc">保障切后台、锁屏、非小窗状态下持续模拟</string>
+    <string name="background_keep_alive_desc">切到后台或锁屏后继续模拟</string>
     <string name="ignore_battery_optimizations_title">忽略电池优化</string>
     <string name="ignore_battery_optimizations_desc">防止锁屏或切后台时被冻结</string>
     <string name="go_to_settings">前往设置</string>
@@ -272,7 +271,7 @@
     <string name="tag_cell">基站</string>
     <string name="app_description">位置模拟器模块</string>
 
-    <string name="local_collected_hotspot">本地采集热点</string>
+    <string name="local_collected_hotspot">本地采集点</string>
     <string name="wigle_import">WiGLE 导入</string>
     <string name="opencellid_import">OpenCellID 导入</string>
     <string name="contains_records_format">包含 %d 条记录</string>
@@ -280,11 +279,11 @@
     <string name="route_plan_failed_fallback_straight">路线规划失败或部分失败，使用直线模拟</string>
     <string name="route_request_exception">路线请求异常：%s</string>
     <string name="amap_api_exception_format">高德 API 异常（码：%1$d）：%2$s</string>
-    <string name="amap_quota_exhausted_fallback_format">高德 API 调用失败（可能是额度耗尽），将退回直线模拟！
+    <string name="amap_quota_exhausted_fallback_format">高德 API 调用失败（可能是额度耗尽），将退回直线模拟
 错误详情：%s</string>
     <string name="open_battery_opt_failed">打开电池优化页面失败：%s</string>
     <string name="open_app_info_failed">打开应用信息失败：%s</string>
-    <string name="amap_search_failed_quota">高德搜索 API 调用失败（可能是额度耗尽），请检查控制台或更换 API 密钥！</string>
+    <string name="amap_search_failed_quota">高德搜索 API 调用失败（可能是额度耗尽），请检查控制台或更换 API 密钥</string>
     <string name="amap_search_failed_code_format">高德搜索失败（错误码：%d）</string>
     <string name="amap_search_exception_format">高德搜索异常（可能是额度耗尽）：%s</string>
 
@@ -294,7 +293,7 @@
 
 
     <string name="manage_wifi_list_title">模拟 Wi-Fi 列表与配置</string>
-    <string name="designated_wifi_tip">点击可指定模拟连接的主 Wi-Fi，支持修改或新增 Wi-Fi 详细参数并保存至数据库</string>
+    <string name="designated_wifi_tip">点击可指定模拟时连接的主 Wi-Fi，也可编辑或新增 Wi-Fi</string>
     <string name="add_wifi_btn">添加 Wi-Fi</string>
     <string name="edit_wifi_title">编辑 Wi-Fi 数据</string>
     <string name="new_wifi_title">新增 Wi-Fi 数据</string>
@@ -317,12 +316,12 @@
     <string name="pinned_collected_location_toast">已锁定「%1$s」采集环境数据（50 米范围内有效）</string>
     <string name="unpin_collected_location">解除锁定</string>
 
-    <string name="manage_tab_wifi">Wi-Fi (%1$d)</string>
+    <string name="manage_tab_wifi">Wi-Fi（%1$d）</string>
     <string name="manage_tab_cell">基站（%1$d）</string>
     <string name="manage_tab_bluetooth">蓝牙（%1$d）</string>
 
     <string name="manage_cell_list_title">模拟基站列表与配置</string>
-    <string name="designated_cell_tip">点击可指定模拟连接的主服务基站（Serving Cell），支持修改或新增基站参数并存入数据库</string>
+    <string name="designated_cell_tip">点击可指定模拟时的主服务基站（Serving Cell），也可编辑或新增基站</string>
     <string name="add_cell_btn">添加基站</string>
     <string name="edit_cell_title">编辑基站数据</string>
     <string name="new_cell_title">新增基站数据</string>
@@ -342,7 +341,7 @@
     <string name="save_cell">保存基站</string>
 
     <string name="manage_bt_list_title">模拟蓝牙列表与配置</string>
-    <string name="designated_bt_tip">点击可指定模拟主连接/广播蓝牙设备，支持修改或新增蓝牙设备并存入数据库</string>
+    <string name="designated_bt_tip">点击可指定模拟时的首选蓝牙设备，也可编辑或新增设备</string>
     <string name="add_bt_btn">添加蓝牙</string>
     <string name="edit_bt_title">编辑蓝牙数据</string>
     <string name="new_bt_title">新增蓝牙数据</string>
@@ -354,7 +353,7 @@
     <string name="bt_scan_record_label">广播包十六进制（ScanRecordHex - 可选）</string>
     <string name="bt_scan_record_hint">例如：02010403033CFE…（直接粘贴 31 字节广播数据）</string>
     <string name="designated_bt_badge">模拟首选</string>
-    <string name="no_designated_bt">自动默认（跟随扫描）</string>
+    <string name="no_designated_bt">自动默认（跟随采集）</string>
     <string name="no_bt_data_in_record">该记录暂无蓝牙数据，点击右上角「+ 添加蓝牙」创建</string>
     <string name="delete_bt_confirm">确定要删除蓝牙设备「%1$s」吗？</string>
     <string name="save_bt">保存蓝牙</string>
@@ -391,7 +390,7 @@
     <string name="root_test_config_not_published">尚无已发布配置，开始模拟后会发布</string>
 
     <string name="collection_info_title">采集点基本信息</string>
-    <string name="collection_info_description">采集数据已保存。填写位置名称和备注，方便以后查找这个点位。</string>
+    <string name="collection_info_description">已保存，可填写名称和备注便于查找</string>
     <string name="collection_info_remaining">本次还有 %d 个点位待填写。</string>
     <string name="collection_location_name">位置名称</string>
     <string name="collection_info_skip">跳过</string>
@@ -402,10 +401,10 @@
 
     <string name="collection_point_mode">点位采集</string>
     <string name="collection_route_mode">路线采集</string>
-    <string name="collection_route_draw_hint">移动地图，将中心标记对准路线，依次添加路点。路线左右各覆盖 50 米。</string>
-    <string name="collection_route_collect_hint">沿绘制的路线移动，采集沿途真实环境数据；仅保存距离路线 50 米内的样本。</string>
+    <string name="collection_route_draw_hint">移动地图对准路线并添加路点，两侧各覆盖 50 米</string>
+    <string name="collection_route_collect_hint">沿路线移动采集，仅保存距路线 50 米内的样本</string>
     <string name="collection_route_add_point">添加路点</string>
-    <string name="collection_route_done">完成绘制</string>
+    <string name="collection_route_done">完成</string>
     <string name="collection_route_undo">撤销</string>
     <string name="collection_route_edit_drawing">编辑路线</string>
     <string name="collection_route_start">开始路线采集</string>
