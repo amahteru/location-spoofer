@@ -26,8 +26,6 @@
     <string name="close">Close</string>
     <string name="delete">Delete</string>
     <string name="search">Search</string>
-    <string name="root_required">Root access required</string>
-    <string name="root_message">This app requires root access.\nPlease grant it in your root manager and restart the app.</string>
     <string name="root_solution_title">Root solution</string>
     <string name="root_solution_desc">Recorded for troubleshooting; configuration is delivered by the framework</string>
     <string name="root_solution_auto">Auto</string>
@@ -37,7 +35,6 @@
     <string name="root_solution_sukisu_ultra">SukiSU Ultra</string>
     <string name="root_solution_resukisu_ultra">ReSukiSU Ultra</string>
     <string name="overlay_permission_required">Allow “Display over other apps”, then open the floating joystick again</string>
-    <string name="overlay_permission_on_launch">The floating joystick needs “Display over other apps”. Allow it on the next screen</string>
     <string name="motion_realism_title">Motion realism</string>
     <string name="motion_realism_desc">Make motion data look more human</string>
     <string name="realism_level_title">Randomness</string>
@@ -67,12 +64,6 @@
     <string name="restart_hooked_apps_done">Apps restarted: %1$d. Please reopen them to verify.</string>
     <string name="restart_hooked_apps_empty">No apps are currently in scope for this module.</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
-    <string name="data_collection_assist_intro">Without root, the main simulation features are unavailable, but you can still help collect real Wi-Fi, cell and Bluetooth data at this location. Export it when done and send the file to be imported on another device.</string>
-    <string name="data_collection_assist_hint">Stay at the target location, tap “Start collection” and wait at least 10 seconds for a scan to complete. You can move to other spots and repeat to collect more points. Tap “Export” when finished.</string>
-    <string name="data_collection_permission_missing">Location, phone and Bluetooth permissions are required to collect data.</string>
-    <string name="lsposed_not_active">LSPosed module not active</string>
-    <string name="lsposed_message">Enable this module in LSPosed Manager,
-select the apps to simulate, then restart them.</string>
     <string name="select_language">Language</string>
     <string name="walking">Walking</string>
     <string name="running">Running</string>
@@ -240,7 +231,7 @@ select the apps to simulate, then restart them.</string>
     <string name="background_keep_alive_desc">Keep simulating in the background or when locked</string>
     <string name="ignore_battery_optimizations_title">Ignore battery optimization</string>
     <string name="ignore_battery_optimizations_desc">Keeps simulation running when locked or in the background</string>
-    <string name="go_to_settings">Go to settings</string>
+    <string name="go_to_settings">Settings</string>
     <string name="app_info_settings_title">Autostart &amp; permissions</string>
     <string name="app_info_settings_desc">Enable autostart and remove battery restrictions</string>
     <string name="env_datasource_tokens_title">Data source API keys</string>
@@ -416,4 +407,34 @@ Error details: %s</string>
     <string name="collection_route_delete_title">Delete collected route</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
     <string name="local_collection_records_count">Points: %1$d · Routes: %2$d</string>
+    <string name="permission_setup_title">Permissions</string>
+    <string name="permission_setup_desc">Skipped ones are asked again when needed</string>
+    <string name="permission_group_core">Core</string>
+    <string name="permission_group_optional">Optional</string>
+    <string name="perm_location_title">Location</string>
+    <string name="perm_location_desc">Locate and collect signals</string>
+    <string name="perm_notification_title">Notifications</string>
+    <string name="perm_notification_desc">Show spoofing status</string>
+    <string name="perm_nearby_title">Nearby devices</string>
+    <string name="perm_nearby_desc">Collect Bluetooth devices</string>
+    <string name="perm_phone_title">Phone</string>
+    <string name="perm_phone_desc">Collect cell towers</string>
+    <string name="perm_background_location_title">Background location</string>
+    <string name="perm_background_location_desc">Keep collecting when locked</string>
+    <string name="perm_overlay_title">Display over other apps</string>
+    <string name="perm_overlay_desc">Show the floating joystick</string>
+    <string name="permission_allow">Allow</string>
+    <string name="permission_granted">Allowed</string>
+    <string name="permission_continue">Continue</string>
+    <string name="permission_group_environment">Environment</string>
+    <string name="env_root_title">Root access</string>
+    <string name="env_root_desc">Grant, then tap Check</string>
+    <string name="env_root_denied">Root access not granted</string>
+    <string name="env_lsposed_title">LSPosed module</string>
+    <string name="env_lsposed_desc">Enable, then restart app</string>
+    <string name="env_check">Check</string>
+    <string name="env_restart">Restart</string>
+    <string name="perm_background_location_requires">Allow Location first</string>
+    <string name="perm_battery_desc">Avoid background freezing</string>
+    <string name="perm_location_approximate">Precise location needed</string>
 </resources>

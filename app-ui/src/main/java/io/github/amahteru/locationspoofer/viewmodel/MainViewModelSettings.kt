@@ -206,6 +206,23 @@ internal fun MainViewModel.selectLanguage(languageCode: String) {
     _uiState.update { it.copy(isLanguageSet = true, currentLanguage = languageCode) }
 }
 
+internal fun MainViewModel.recheckRootAccess(onResult: (Boolean) -> Unit) {
+    viewModelScope.launch(Dispatchers.IO) {
+        val root = locationRepository.checkRootAccess()
+        _uiState.update { it.copy(hasRootAccess = root) }
+        withContext(Dispatchers.Main) { onResult(root) }
+    }
+}
+
+internal fun MainViewModel.getBlockedPermissions(): Set<String> = settingsRepository.getBlockedPermissions()
+
+internal fun MainViewModel.setBlockedPermissions(value: Set<String>) = settingsRepository.setBlockedPermissions(value)
+
+internal fun MainViewModel.completePermissionSetup() {
+    settingsRepository.setPermissionSetupDone(true)
+    _uiState.update { it.copy(isPermissionSetupDone = true) }
+}
+
 fun MainViewModel.getSavedLanguage(): String = settingsRepository.getLanguage()
 
 internal fun MainViewModel.setAltitude(altitude: String) {

@@ -82,6 +82,7 @@ class MainViewModel(
             savedRoutes = emptyList(),
             currentLanguage = settingsRepository.getLanguage(),
             isLanguageSet = settingsRepository.isLanguageSet(),
+            isPermissionSetupDone = settingsRepository.isPermissionSetupDone(),
             mockWifi = settingsRepository.mockWifi,
             mockCell = settingsRepository.mockCell,
             mockBluetooth = settingsRepository.mockBluetooth,

@@ -32,6 +32,14 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("is_language_set", false)
         set(value) = prefs.edit { putBoolean("is_language_set", value) }
 
+    var isPermissionSetupDone: Boolean
+        get() = prefs.getBoolean("is_permission_setup_done", false)
+        set(value) = prefs.edit { putBoolean("is_permission_setup_done", value) }
+
+    var blockedPermissions: Set<String>
+        get() = prefs.getStringSet("blocked_permissions", emptySet())?.toSet() ?: emptySet()
+        set(value) = prefs.edit { putStringSet("blocked_permissions", value.toSet()) }
+
     var amapApiKey: String
         get() = prefs.getString("amap_api_key", "") ?: ""
         set(value) = prefs.edit { putString("amap_api_key", value) }

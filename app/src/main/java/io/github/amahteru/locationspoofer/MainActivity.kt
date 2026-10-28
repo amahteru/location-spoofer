@@ -1,18 +1,17 @@
 package io.github.amahteru.locationspoofer
 
-import androidx.core.net.toUri
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -20,11 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
-import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.ui.screen.BlockingScreen
+import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.screen.LanguageSelectionScreen
+import io.github.amahteru.locationspoofer.ui.screen.PermissionSetupScreen
+import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import io.github.amahteru.locationspoofer.ui.theme.AppTheme
 import io.github.amahteru.locationspoofer.utils.LocaleUtils
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
@@ -58,9 +57,6 @@ class MainActivity : ComponentActivity() {
                 androidx.core.os.LocaleListCompat.forLanguageTags(savedLang)
             )
         }
-
-        overlayPromptHandled = savedInstanceState != null
-        checkAndRequestPermissions()
 
         setContent {
             CompositionLocalProvider(
@@ -105,111 +101,44 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    private fun checkAndRequestPermissions() {
-        val permissions = mutableListOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.POST_NOTIFICATIONS
-        )
-
-        val notGranted = permissions.filter {
-            checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
-        }
-
-        if (notGranted.isNotEmpty()) {
-            requestPermissions(notGranted.toTypedArray(), 100)
-        } else {
-            checkBackgroundLocation()
-            requestOverlayPermissionIfNeeded()
-            requestIgnoreBatteryOptimizations()
-        }
-    }
-
-    private var overlayPromptHandled = false
-
-    private fun requestOverlayPermissionIfNeeded() {
-        if (overlayPromptHandled || android.provider.Settings.canDrawOverlays(this)) return
-        overlayPromptHandled = true
-        android.widget.Toast.makeText(
-            this,
-            getString(io.github.amahteru.locationspoofer.ui.R.string.overlay_permission_on_launch),
-            android.widget.Toast.LENGTH_LONG
-        ).show()
-        try {
-            startActivity(
-                android.content.Intent(
-                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    "package:$packageName".toUri()
-                )
-            )
-        } catch (_: Exception) {
-        }
-    }
-
-    private fun checkBackgroundLocation() {
-        if (checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 101)
-        }
-    }
-
-    @android.annotation.SuppressLint("BatteryLife")
-    private fun requestIgnoreBatteryOptimizations() {
-        val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
-        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-            try {
-                val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                    data = "package:$packageName".toUri()
-                }
-                startActivity(intent)
-            } catch (_: Exception) {
-                try {
-                    val intent = android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                    startActivity(intent)
-                } catch (_: Exception) {}
-            }
-        }
-    }
-
-    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100) {
-            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
-            if (granted) checkBackgroundLocation()
-            requestOverlayPermissionIfNeeded()
-            if (granted) requestIgnoreBatteryOptimizations()
-        }
-    }
 }
+
+private enum class AppStage { Initializing, Language, PermissionSetup, Main }
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
     uiState: io.github.amahteru.locationspoofer.data.model.AppState
 ) {
-    when {
-        uiState.isInitializing -> Unit
-        !uiState.isLanguageSet -> LanguageSelectionScreen(viewModel)
-        !uiState.hasRootAccess -> io.github.amahteru.locationspoofer.ui.screen.DataCollectionAssistScreen(
-            viewModel = viewModel,
-            uiState = uiState
-        )
-        !uiState.isLSPosedActive -> BlockingScreen(
-            icon = Icons.Rounded.Extension,
-            title = stringResource(R.string.lsposed_not_active),
-            message = stringResource(R.string.lsposed_message))
-        else -> io.github.amahteru.locationspoofer.ui.screen.MainScaffoldScreen(
-            viewModel = viewModel,
-            uiState = uiState
-        )
+    val stage = when {
+        uiState.isInitializing -> AppStage.Initializing
+        !uiState.isLanguageSet -> AppStage.Language
+        !uiState.isPermissionSetupDone || !uiState.hasRootAccess || !uiState.isLSPosedActive ->
+            AppStage.PermissionSetup
+        else -> AppStage.Main
+    }
+    val slideDistance = with(LocalDensity.current) { 30.dp.roundToPx() }
+
+    AnimatedContent(
+        targetState = stage,
+        transitionSpec = {
+            if (initialState == AppStage.Initializing) {
+                EnterTransition.None togetherWith ExitTransition.None
+            } else {
+                AppMotion.sharedAxisXTransition(slideDistance)
+            }
+        },
+        label = "app_stage_transition"
+    ) { targetStage ->
+        when (targetStage) {
+            AppStage.Initializing -> Unit
+            AppStage.Language -> LanguageSelectionScreen(viewModel)
+            AppStage.PermissionSetup -> PermissionSetupScreen(viewModel, uiState)
+            AppStage.Main -> io.github.amahteru.locationspoofer.ui.screen.MainScaffoldScreen(
+                viewModel = viewModel,
+                uiState = uiState
+            )
+        }
     }
     io.github.amahteru.locationspoofer.ui.screen.CollectionInfoDialogHost(viewModel, uiState)
 }

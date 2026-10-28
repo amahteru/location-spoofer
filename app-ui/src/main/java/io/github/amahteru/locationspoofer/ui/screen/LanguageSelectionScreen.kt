@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.components.MediumButtonDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.selectableGroup
@@ -26,7 +27,7 @@ import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 data class LanguageOption(val name: String, val code: String, val nativeName: String)
 
 val LANGUAGES = listOf(
-    LanguageOption("English", "en", "English"),
+    LanguageOption("英语", "en", "English"),
     LanguageOption("Chinese", "zh", "简体中文")
 )
 
@@ -42,18 +43,20 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
 
     var selectedLang by remember { mutableStateOf(defaultLang) }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .padding(start = AppSpacing.lg, top = AppSpacing.xl, end = AppSpacing.lg, bottom = AppSpacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppSpacing.xxl),
+                .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.xl)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.xl, Alignment.CenterVertically)
         ) {
             Box(
                 modifier = Modifier
@@ -88,29 +91,29 @@ fun LanguageSelectionScreen(viewModel: MainViewModel) {
                 }
               }
             }
+        }
 
-            Spacer(Modifier.height(AppSpacing.lg))
-
-            Button(
-                onClick = {
-                    viewModel.selectLanguage(selectedLang)
-                    AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(
-                            selectedLang
-                        )
+        Button(
+            onClick = {
+                viewModel.selectLanguage(selectedLang)
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(
+                        selectedLang
                     )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text(
-                    text = when (selectedLang) {
-                        "zh" -> "确定"
-                        else -> "Confirm"
-                    }
                 )
-            }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(MediumButtonDefaults.Height),
+            contentPadding = MediumButtonDefaults.ContentPadding
+        ) {
+            Text(
+                style = MediumButtonDefaults.TextStyle,
+                text = when (selectedLang) {
+                    "zh" -> "继续"
+                    else -> "Continue"
+                }
+            )
         }
     }
 }

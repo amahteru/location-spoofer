@@ -39,6 +39,7 @@ data class AppState(
     val mapEngine: MapEngine = MapEngine.AUTO,
     val isInitializing: Boolean = true,
     val isLanguageSet: Boolean = true,
+    val isPermissionSetupDone: Boolean = true,
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
     val rootSolution: RootSolution = RootSolution.AUTO,

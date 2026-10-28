@@ -26,6 +26,18 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         settingsManager.isLanguageSet = value
     }
 
+    fun isPermissionSetupDone(): Boolean = settingsManager.isPermissionSetupDone
+
+    fun setPermissionSetupDone(value: Boolean) {
+        settingsManager.isPermissionSetupDone = value
+    }
+
+    fun getBlockedPermissions(): Set<String> = settingsManager.blockedPermissions
+
+    fun setBlockedPermissions(value: Set<String>) {
+        settingsManager.blockedPermissions = value
+    }
+
     fun getLanguage(): String = settingsManager.language
 
     fun setLanguage(value: String) {

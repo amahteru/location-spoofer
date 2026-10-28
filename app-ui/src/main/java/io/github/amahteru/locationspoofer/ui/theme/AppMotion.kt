@@ -3,6 +3,8 @@ package io.github.amahteru.locationspoofer.ui.theme
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -19,6 +21,10 @@ object AppMotion {
     fun pageSlideTransition(direction: Int): ContentTransform =
         slideInHorizontally(pageSlideSpec()) { width -> width * direction } togetherWith
             slideOutHorizontally(pageSlideSpec()) { width -> -width * direction }
+
+    fun sharedAxisXTransition(slideDistance: Int): ContentTransform =
+        (slideInHorizontally(defaultSpatialSpec()) { slideDistance } + fadeIn(defaultEffectsSpec())) togetherWith
+            (slideOutHorizontally(defaultSpatialSpec()) { -slideDistance } + fadeOut(fastEffectsSpec()))
 }
 
 fun Modifier.animateListItem(scope: LazyItemScope): Modifier = with(scope) {
