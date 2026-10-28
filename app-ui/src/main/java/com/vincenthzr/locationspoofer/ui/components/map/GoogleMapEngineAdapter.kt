@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -247,7 +246,6 @@ class GMapControllerImpl(
     }
 }
 
-@android.annotation.SuppressLint("ClickableViewAccessibility")
 @Composable
 fun GoogleMapViewContainer(
     context: Context,
@@ -283,18 +281,12 @@ fun GoogleMapViewContainer(
         }
     }
 
-    AndroidView(
-        factory = {
-            gmapView.apply {
-                setOnTouchListener { v, _ -> v.parent?.requestDisallowInterceptTouchEvent(true); false }
-                getMapAsync { map ->
-                    val controller = GMapControllerImpl(map, context)
-                    onControllerCreated(controller)
-                    controller.setDarkMode(isDark, context)
-                    onMapReady(controller)
-                }
-            }
-        },
-        modifier = modifier
-    )
+    MapAndroidView(gmapView, modifier) {
+        getMapAsync { map ->
+            val controller = GMapControllerImpl(map, context)
+            onControllerCreated(controller)
+            controller.setDarkMode(isDark, context)
+            onMapReady(controller)
+        }
+    }
 }

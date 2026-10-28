@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -218,7 +217,6 @@ class AMapControllerImpl(
     }
 }
 
-@android.annotation.SuppressLint("ClickableViewAccessibility")
 @Composable
 fun AMapViewContainer(
     context: Context,
@@ -254,18 +252,12 @@ fun AMapViewContainer(
         }
     }
 
-    AndroidView(
-        factory = {
-            amapView.apply {
-                setOnTouchListener { v, _ -> v.parent?.requestDisallowInterceptTouchEvent(true); false }
-                map.setOnMapLoadedListener {
-                    val controller = AMapControllerImpl(map, context)
-                    onControllerCreated(controller)
-                    controller.setDarkMode(isDark, context)
-                    onMapReady(controller)
-                }
-            }
-        },
-        modifier = modifier
-    )
+    MapAndroidView(amapView, modifier) {
+        map.setOnMapLoadedListener {
+            val controller = AMapControllerImpl(map, context)
+            onControllerCreated(controller)
+            controller.setDarkMode(isDark, context)
+            onMapReady(controller)
+        }
+    }
 }

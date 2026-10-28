@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer.ui.components.map
 import android.content.Context
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -246,7 +245,6 @@ class BaiduMapControllerImpl(
     }
 }
 
-@android.annotation.SuppressLint("ClickableViewAccessibility")
 @Composable
 fun BaiduMapViewContainer(
     context: Context,
@@ -280,18 +278,12 @@ fun BaiduMapViewContainer(
         }
     }
 
-    AndroidView(
-        factory = {
-            baiduMapView.apply {
-                setOnTouchListener { v, _ -> v.parent?.requestDisallowInterceptTouchEvent(true); false }
-                map.setOnMapLoadedCallback {
-                    val controller = BaiduMapControllerImpl(map, this, context)
-                    onControllerCreated(controller)
-                    controller.setDarkMode(isDark, context)
-                    onMapReady(controller)
-                }
-            }
-        },
-        modifier = modifier
-    )
+    MapAndroidView(baiduMapView, modifier) {
+        map.setOnMapLoadedCallback {
+            val controller = BaiduMapControllerImpl(map, this, context)
+            onControllerCreated(controller)
+            controller.setDarkMode(isDark, context)
+            onMapReady(controller)
+        }
+    }
 }
