@@ -1,6 +1,6 @@
 # Windows 本地开发
 
-仓库声明的版本为 Gradle 9.6.1、Android Gradle Plugin 9.3.1、Kotlin 2.1.10，Android SDK 平台为 API 37，最低支持 API 26。以下命令用于准备和验证开发环境。
+仓库声明的版本为 Gradle 9.6.1、Android Gradle Plugin 9.3.1、Kotlin 2.1.10，Android SDK 平台为 API 37，最低支持 API 33。以下命令用于准备和验证开发环境。
 
 ## 环境布局
 

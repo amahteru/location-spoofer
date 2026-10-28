@@ -51,8 +51,6 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
 }
 
 @android.annotation.SuppressLint("MissingPermission")
-
-@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 private fun MainViewModel.fallbackToNativeLocation(
     ctx: Context,
     forceCallback: ((Double, Double) -> Unit)?,
@@ -79,34 +77,17 @@ private fun MainViewModel.fallbackToNativeLocation(
             ).show()
         }
 
-        val listener = object : android.location.LocationListener {
-            override fun onLocationChanged(location: android.location.Location) {
-                if (forceCallback != null) {
-                    android.widget.Toast.makeText(
-                        ctx,
-                        ctx.getString(com.vincenthzr.locationspoofer.ui.R.string.native_location_success),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
-                applyNativeLocation(ctx, location, forceCallback, convertToGcj)
-                locationManager.removeUpdates(this)
+        locationManager.getCurrentLocation(provider, null, ctx.mainExecutor) { location ->
+            if (location == null) return@getCurrentLocation
+            if (forceCallback != null) {
+                android.widget.Toast.makeText(
+                    ctx,
+                    ctx.getString(com.vincenthzr.locationspoofer.ui.R.string.native_location_success),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
-
-            override fun onStatusChanged(
-                provider: String?,
-                status: Int,
-                extras: android.os.Bundle?
-            ) {
-            }
-
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
+            applyNativeLocation(ctx, location, forceCallback, convertToGcj)
         }
-        locationManager.requestSingleUpdate(
-            provider,
-            listener,
-            android.os.Looper.getMainLooper()
-        )
     } catch (e: SecurityException) {
         if (forceCallback != null) {
             android.widget.Toast.makeText(
@@ -184,15 +165,14 @@ internal suspend fun MainViewModel.fetchRealLocationSilent(ctx: Context): Pair<D
 }
 
 @android.annotation.SuppressLint("MissingPermission")
-@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 private suspend fun MainViewModel.fallbackToNativeLocationSilent(
     ctx: Context,
     convertToGcj: Boolean
 ): Pair<Double, Double>? = withTimeoutOrNull(5_000) {
     suspendCancellableCoroutine { cont ->
         val locationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-        var listener: android.location.LocationListener? = null
-        cont.invokeOnCancellation { listener?.let { runCatching { locationManager.removeUpdates(it) } } }
+        val cancellation = android.os.CancellationSignal()
+        cont.invokeOnCancellation { cancellation.cancel() }
         try {
             val provider = when {
                 locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) -> android.location.LocationManager.NETWORK_PROVIDER
@@ -207,20 +187,11 @@ private suspend fun MainViewModel.fallbackToNativeLocationSilent(
                 cont.resume(getNativeConverted(ctx, lastLocation, convertToGcj))
                 return@suspendCancellableCoroutine
             }
-            val callback = object : android.location.LocationListener {
-                override fun onLocationChanged(location: android.location.Location) {
-                    locationManager.removeUpdates(this)
-                    if (cont.isActive) cont.resume(getNativeConverted(ctx, location, convertToGcj))
-                }
-                override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {}
-                override fun onProviderEnabled(provider: String) {}
-                override fun onProviderDisabled(provider: String) {}
+            locationManager.getCurrentLocation(provider, cancellation, ctx.mainExecutor) { location ->
+                if (cont.isActive) cont.resume(location?.let { getNativeConverted(ctx, it, convertToGcj) })
             }
-            listener = callback
-            locationManager.requestSingleUpdate(provider, callback, android.os.Looper.getMainLooper())
-            if (!cont.isActive) locationManager.removeUpdates(callback)
         } catch (error: Exception) {
-            listener?.let { runCatching { locationManager.removeUpdates(it) } }
+            cancellation.cancel()
             if (cont.isActive) cont.resume(null)
         }
     }

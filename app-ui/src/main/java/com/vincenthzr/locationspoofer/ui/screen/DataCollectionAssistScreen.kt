@@ -9,7 +9,6 @@ import com.vincenthzr.locationspoofer.ui.components.LabelTone
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,9 +45,7 @@ private val REQUIRED_PERMISSIONS: List<String>
     get() = buildList {
         add(Manifest.permission.ACCESS_FINE_LOCATION)
         add(Manifest.permission.READ_PHONE_STATE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            add(Manifest.permission.BLUETOOTH_SCAN)
-        }
+        add(Manifest.permission.BLUETOOTH_SCAN)
     }
 
 @Composable

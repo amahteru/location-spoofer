@@ -1,7 +1,6 @@
 package com.vincenthzr.locationspoofer.ui.theme
 
 import android.content.Context
-import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -100,9 +99,5 @@ val AppColorSchemeDark = darkColorScheme(
     surfaceContainerLowest = Color(0xFF0C0E13)
 )
 
-fun appColorScheme(context: Context, isDark: Boolean): ColorScheme = when {
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-        if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    isDark -> AppColorSchemeDark
-    else -> AppColorSchemeLight
-}
+fun appColorScheme(context: Context, isDark: Boolean): ColorScheme =
+    if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

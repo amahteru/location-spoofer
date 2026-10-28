@@ -5,7 +5,7 @@
 <p>Android system-level location spoofing and wireless environment simulation framework based on KernelSU + LSPosed</p>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
-[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
+[![Android](https://img.shields.io/badge/Android-13%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-purple.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 [![KernelSU](https://img.shields.io/badge/Root-KernelSU-orange.svg)](https://kernelsu.org)
@@ -182,7 +182,7 @@ The app delivers JSON to the hooks in target app processes through libxposed rem
 
 ## Requirements
 
-* **OS Version**: Android 8.0 (API 26) or higher.
+* **OS Version**: Android 13 (API 33) or higher.
 * **Root Manager**: Root access is required (recommended: [**KernelSU**](https://kernelsu.org) / **APatch** / **Magisk**).
 * **Xposed Framework**: Installed and enabled **LSPosed (API 101+)** or compatible libxposed API 101+ environment.
 

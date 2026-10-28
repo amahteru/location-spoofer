@@ -17,8 +17,6 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -28,13 +26,11 @@
 
     <application
         android:name=".LocationApp"
-        android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_mylocation"
         android:label="LocationSpoofer"
         android:roundIcon="@android:drawable/ic_menu_mylocation"
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="false"
-        tools:targetApi="33"
         android:description="@string/app_description"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         

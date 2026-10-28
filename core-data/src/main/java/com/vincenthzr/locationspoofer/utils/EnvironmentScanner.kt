@@ -2,6 +2,11 @@ package com.vincenthzr.locationspoofer.utils
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.telephony.CellInfo
 import android.telephony.CellInfoCdma
@@ -20,45 +25,61 @@ import android.bluetooth.le.ScanResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
-@android.annotation.SuppressLint("MissingPermission", "NewApi")
+@android.annotation.SuppressLint("MissingPermission")
 class EnvironmentScanner(private val context: Context) {
 
     @SuppressLint("MissingPermission")
-    @Suppress("DEPRECATION")
+    private suspend fun connectedWifiInfo(connectivityManager: ConnectivityManager): WifiInfo? {
+        var callback: ConnectivityManager.NetworkCallback? = null
+        return try {
+            withTimeoutOrNull(WIFI_INFO_TIMEOUT_MS) {
+                suspendCancellableCoroutine { continuation ->
+                    val networkCallback =
+                        object : ConnectivityManager.NetworkCallback(ConnectivityManager.NetworkCallback.FLAG_INCLUDE_LOCATION_INFO) {
+                            override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                                val info = caps.transportInfo as? WifiInfo ?: return
+                                if (continuation.isActive) continuation.resume(info)
+                            }
+                        }
+                    callback = networkCallback
+                    val request = NetworkRequest.Builder()
+                        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                        .build()
+                    connectivityManager.registerNetworkCallback(request, networkCallback)
+                }
+            }
+        } catch (e: Exception) {
+            null
+        } finally {
+            callback?.let { runCatching { connectivityManager.unregisterNetworkCallback(it) } }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     suspend fun scanWifi(): String = withContext(Dispatchers.IO) {
         val wifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val connectivityManager =
-            context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val resultObj = JSONObject()
         try {
-            var isWifiConnected = false
-            val networks = connectivityManager.allNetworks
-            for (network in networks) {
-                val caps = connectivityManager.getNetworkCapabilities(network)
-                if (caps != null && caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)) {
-                    if (caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
-                        caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                    ) {
-                        isWifiConnected = true
-                        break
-                    }
-                }
-            }
+            val connectionInfo = connectedWifiInfo(connectivityManager)
+            val isWifiConnected = connectionInfo != null
 
             resultObj.put("isConnected", isWifiConnected)
 
-            val connectionInfo = wifiManager.connectionInfo
-            val connectedBssid = if (isWifiConnected) connectionInfo?.bssid else null
+            val connectedBssid = connectionInfo?.bssid
             try {
+                @Suppress("DEPRECATION")
                 wifiManager.startScan()
             } catch (e: Throwable) {
             }
             val results = wifiManager.scanResults ?: emptyList()
 
-            if (isWifiConnected && connectedBssid != null && connectedBssid != "02:00:00:00:00:00") {
+            if (connectionInfo != null && connectedBssid != null && connectedBssid != "02:00:00:00:00:00") {
                 val connObj = JSONObject()
                 connObj.put("bssid", connectedBssid)
                 val rawSsid = connectionInfo.ssid
@@ -71,8 +92,9 @@ class EnvironmentScanner(private val context: Context) {
 
                 val match = results.find { it.BSSID == connectedBssid }
                 if (cleanSsid == "<unknown ssid>" || cleanSsid.isEmpty()) {
-                    if (match != null && !match.SSID.isNullOrEmpty()) {
-                        cleanSsid = match.SSID
+                    val matchSsid = match?.ssidText()
+                    if (!matchSsid.isNullOrEmpty()) {
+                        cleanSsid = matchSsid
                     }
                 }
 
@@ -91,11 +113,9 @@ class EnvironmentScanner(private val context: Context) {
                     connObj.put("networkId", connectionInfo.networkId)
                 } catch (e: Throwable) {
                 }
-                if (android.os.Build.VERSION.SDK_INT >= 30) {
-                    try {
-                        connObj.put("wifiStandard", connectionInfo.wifiStandard)
-                    } catch (e: Throwable) {
-                    }
+                try {
+                    connObj.put("wifiStandard", connectionInfo.wifiStandard)
+                } catch (e: Throwable) {
                 }
                 resultObj.put("connectedWifi", connObj)
             } else {
@@ -113,7 +133,7 @@ class EnvironmentScanner(private val context: Context) {
                     seenBssids.add(bssid)
                     val obj = JSONObject()
                     obj.put("bssid", bssid)
-                    obj.put("ssid", scanResult.SSID ?: "")
+                    obj.put("ssid", scanResult.ssidText())
                     obj.put("vendor", MacVendorHelper.getVendor(bssid))
                     obj.put("level", scanResult.level)
                     obj.put("capabilities", scanResult.capabilities ?: "")
@@ -140,30 +160,26 @@ class EnvironmentScanner(private val context: Context) {
         val jsonArray = JSONArray()
         try {
             val allCellInfo =
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                    try {
-                        kotlinx.coroutines.withTimeoutOrNull(3000L) {
-                            suspendCancellableCoroutine { continuation ->
-                                telephonyManager.requestCellInfoUpdate(
-                                    context.mainExecutor,
-                                    object : android.telephony.TelephonyManager.CellInfoCallback() {
-                                        override fun onCellInfo(cellInfo: MutableList<CellInfo>) {
-                                            if (continuation.isActive) continuation.resume(cellInfo)
-                                        }
-
-                                        override fun onError(errorCode: Int, detail: Throwable?) {
-                                            if (continuation.isActive) continuation.resume(
-                                                telephonyManager.allCellInfo ?: emptyList()
-                                            )
-                                        }
+                try {
+                    withTimeoutOrNull(3000L) {
+                        suspendCancellableCoroutine { continuation ->
+                            telephonyManager.requestCellInfoUpdate(
+                                context.mainExecutor,
+                                object : TelephonyManager.CellInfoCallback() {
+                                    override fun onCellInfo(cellInfo: MutableList<CellInfo>) {
+                                        if (continuation.isActive) continuation.resume(cellInfo)
                                     }
-                                )
-                            }
-                        } ?: (telephonyManager.allCellInfo ?: emptyList())
-                    } catch (e: Exception) {
-                        telephonyManager.allCellInfo ?: emptyList()
-                    }
-                } else {
+
+                                    override fun onError(errorCode: Int, detail: Throwable?) {
+                                        if (continuation.isActive) continuation.resume(
+                                            telephonyManager.allCellInfo ?: emptyList()
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    } ?: (telephonyManager.allCellInfo ?: emptyList())
+                } catch (e: Exception) {
                     telephonyManager.allCellInfo ?: emptyList()
                 }
 
@@ -339,5 +355,12 @@ class EnvironmentScanner(private val context: Context) {
         }
 
         jsonArray.toString()
+    }
+
+    private fun android.net.wifi.ScanResult.ssidText(): String =
+        wifiSsid?.toString()?.removeSurrounding("\"").orEmpty()
+
+    companion object {
+        private const val WIFI_INFO_TIMEOUT_MS = 1_500L
     }
 }

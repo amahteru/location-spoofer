@@ -11,7 +11,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        minSdk = 26
+        minSdk = 33
 
         buildConfigField(
             "String",

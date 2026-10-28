@@ -148,6 +148,27 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
         json.put("enable_step_simulation", settingsManager.stepSimulationEnabled)
     }
 
+    private fun geocodeBlocking(
+        geocoder: android.location.Geocoder,
+        lat: Double,
+        lng: Double
+    ): List<android.location.Address>? {
+        val latch = java.util.concurrent.CountDownLatch(1)
+        var result: List<android.location.Address>? = null
+        geocoder.getFromLocation(lat, lng, 1, object : android.location.Geocoder.GeocodeListener {
+            override fun onGeocode(addresses: MutableList<android.location.Address>) {
+                result = addresses
+                latch.countDown()
+            }
+
+            override fun onError(errorMessage: String?) {
+                latch.countDown()
+            }
+        })
+        latch.await(5, java.util.concurrent.TimeUnit.SECONDS)
+        return result
+    }
+
     private fun refreshGeocodeIfMoved(lat: Double, lng: Double) {
         val dist = FloatArray(1)
         if (lastGeocodedLat != -999.0) {
@@ -160,8 +181,7 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
             val geocoder = android.location.Geocoder(context, java.util.Locale.CHINA)
             val wgs = CoordinateUtils.gcj02ToWgs84(lat, lng)
 
-            @Suppress("DEPRECATION")
-            val addresses = geocoder.getFromLocation(wgs.lat, wgs.lng, 1)
+            val addresses = geocodeBlocking(geocoder, wgs.lat, wgs.lng)
             if (!addresses.isNullOrEmpty()) {
                 val addr = addresses[0]
                 cachedProvince = addr.adminArea ?: ""

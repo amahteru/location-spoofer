@@ -6,7 +6,7 @@
 <p>Android system-level location spoofing and wireless environment simulation framework based on KernelSU + LSPosed</p>
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
-[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
+[![Android](https://img.shields.io/badge/Android-13%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-purple.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack-Compose-4285F4.svg)](https://developer.android.com/jetpack/compose)
 [![KernelSU](https://img.shields.io/badge/Root-KernelSU-orange.svg)](https://kernelsu.org)
@@ -187,7 +187,7 @@ App 通过 libxposed 的远程配置通道把 JSON 配置传给目标 App 进程
 
 ## 环境要求
 
-* **系统版本**：Android 8.0 (API 26) 及以上
+* **系统版本**：Android 13 (API 33) 及以上
 * **Root 方案**：已获取 Root 权限（推荐 [**KernelSU**](https://kernelsu.org) / **APatch** / **Magisk**）。
 * **Xposed 框架**：已安装并激活 **LSPosed (API 101+)** 或兼容 libxposed API 101+ 的框架环境。
 

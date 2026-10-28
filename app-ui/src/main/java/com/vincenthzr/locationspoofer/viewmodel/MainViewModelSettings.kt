@@ -402,15 +402,15 @@ internal fun MainViewModel.setOpencellidApiToken(token: String) {
     _uiState.update { it.copy(opencellidToken = token) }
 }
 
-@Suppress("DEPRECATION")
-
 private fun MainViewModel.getAppSignatureSHA1(): String {
     try {
         val info = context.packageManager.getPackageInfo(
             context.packageName,
-            android.content.pm.PackageManager.GET_SIGNATURES
+            android.content.pm.PackageManager.PackageInfoFlags.of(
+                android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES.toLong()
+            )
         )
-        val signatures = info.signatures ?: return "Unknown"
+        val signatures = info.signingInfo?.apkContentsSigners ?: return "Unknown"
         if (signatures.isEmpty()) return "Unknown"
         val cert = signatures[0].toByteArray()
         val md = java.security.MessageDigest.getInstance("SHA1")
