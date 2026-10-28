@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="spoofing_service_title">位置模拟器</string>
-    <string name="spoofing_service_content">正在模拟位置: %1$s, %2$s</string>
+    <string name="spoofing_notification_point">定点模拟中</string>
+    <string name="spoofing_notification_route">路线模拟中</string>
+    <string name="spoofing_notification_joystick">摇杆模拟中</string>
     <string name="spoofing_service_channel_name">位置模拟服务</string>
     <string name="spoofing_bg_notification_title">模拟定位后台保活通知</string>
     <string name="floating_joystick_title">摇杆</string>
