@@ -30,7 +30,7 @@ An LSPosed module for location spoofing on Android that also simulates nearby Wi
 - Clears the mock flags on `Location` and intercepts mock-location queries through AppOps and `Settings.Secure`.
 
 **App**
-- Map engines: AMap, Baidu Maps and Google Maps; AMap is used by default. Google Maps needs your own API key.
+- Map engines: AMap, Baidu Maps and Google Maps; AMap is used by default. Self-built versions need your own map API keys.
 - Data management: view, edit and delete collected data; import and export as JSON.
 - Material Design 3 interface with dynamic color; Simplified Chinese and English.
 
@@ -50,7 +50,7 @@ cd location-spoofer
 ./gradlew installDebug
 ```
 
-Building requires JDK 17 and the Android SDK (API 37). To use Google Maps, provide a key through the `GOOGLE_MAPS_API_KEY` environment variable or a `local.yml` file in the project root. For Windows, see [docs/development-windows.md](docs/development-windows.md) (Chinese).
+Building requires JDK 17 and the Android SDK (API 37). Map keys are not included in the repository: copy `local.yml.example` to `local.yml` in the project root and fill in your own AMap, Baidu (and optionally Google) keys, or provide them through environment variables of the same names. For Windows, see [docs/development-windows.md](docs/development-windows.md) (Chinese).
 
 ## Usage
 

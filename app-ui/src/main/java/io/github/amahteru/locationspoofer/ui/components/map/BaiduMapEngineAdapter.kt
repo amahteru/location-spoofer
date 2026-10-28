@@ -24,8 +24,9 @@ class BaiduMapControllerImpl(
 
     override fun setDarkMode(isDark: Boolean, context: Context) {
         val customStyleOptions = com.baidu.mapapi.map.MapCustomStyleOptions()
-        if (isDark) {
-            customStyleOptions.customStyleId("ed7541b0077ffda0205ff36f2a5633b1")
+        val darkStyleId = darkStyleId(context)
+        if (isDark && darkStyleId.isNotEmpty()) {
+            customStyleOptions.customStyleId(darkStyleId)
             mapView.setMapCustomStyle(
                 customStyleOptions,
                 object : com.baidu.mapapi.map.CustomMapStyleCallBack {
@@ -44,6 +45,16 @@ class BaiduMapControllerImpl(
             mapView.setMapCustomStyleEnable(false)
         }
         setMapType(currentMapType)
+    }
+
+    // 样式 ID 由构建时注入清单（BAIDU_DARK_STYLE_ID），未配置时保持默认亮色
+    private fun darkStyleId(context: Context): String = try {
+        context.packageManager
+            .getApplicationInfo(context.packageName, android.content.pm.PackageManager.GET_META_DATA)
+            .metaData?.get("io.github.amahteru.locationspoofer.BAIDU_DARK_STYLE_ID")
+            ?.toString().orEmpty().trim()
+    } catch (e: Exception) {
+        ""
     }
 
     override fun clear() {

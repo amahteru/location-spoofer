@@ -36,7 +36,7 @@
         
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="bdd6ae6c613b2a45b5583197f565423b" />
+            android:value="${amapApiKey}" />
         
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -44,7 +44,12 @@
 
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="Io41bNEhfVx3CCsud5jjrft3UOpeh2WF" />
+            android:value="${baiduApiKey}" />
+
+        <!-- 百度个性化地图深色样式 ID，读取方式见 BaiduMapEngineAdapter -->
+        <meta-data
+            android:name="io.github.amahteru.locationspoofer.BAIDU_DARK_STYLE_ID"
+            android:value="${baiduDarkStyleId}" />
         
         <activity
             android:name=".MainActivity"

@@ -159,6 +159,10 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          BAIDU_API_KEY: ${{ secrets.BAIDU_API_KEY }}
+          BAIDU_DARK_STYLE_ID: ${{ secrets.BAIDU_DARK_STYLE_ID }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon :app:assembleRelease

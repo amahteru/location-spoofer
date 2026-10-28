@@ -8,7 +8,7 @@
 
 后续版本必须继续使用同一发布密钥，以保持覆盖升级能力。本地签名配置和云端签名 Secrets 应对应同一份密钥，不要每次发布重新生成。
 
-在仓库中启用 GitHub Actions，并设置以下四个 Repository Secrets：
+在仓库中启用 GitHub Actions，并设置以下 Repository Secrets：
 
 | Secret 名称 | 内容 |
 | --- | --- |
@@ -16,6 +16,16 @@
 | `KEYSTORE_PASSWORD` | 密钥库密码 |
 | `KEY_ALIAS` | 签名密钥别名 |
 | `KEY_PASSWORD` | 签名密钥密码 |
+| `AMAP_API_KEY` | 高德 Android Key |
+| `BAIDU_API_KEY` | 百度 Android SDK 的 AK |
+| `BAIDU_DARK_STYLE_ID` | 百度深色地图样式 ID（可选） |
+| `GOOGLE_MAPS_API_KEY` | Google Maps Android Key（可选） |
+
+## 地图 Key
+
+地图 Key 不写在仓库里，构建时依次从同名环境变量（CI 中即上面的 Secrets）和项目根目录的 `local.yml` 读取，本地开发复制 `local.yml.example` 为 `local.yml` 后填写即可。未配置的 Key 会在构建日志里给出警告，对应地图无法使用。
+
+高德、百度的 Key 在各自开放平台申请 Android 平台的 Key，包名填 `io.github.amahteru.locationspoofer`，发布版 SHA1 填发布密钥的指纹，调试版 SHA1 填本机 debug keystore 的指纹。换发布密钥或包名后要同步更新 Key 的绑定。
 
 ## 后续发版
 

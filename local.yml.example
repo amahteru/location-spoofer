@@ -1,0 +1,12 @@
+# 复制为项目根目录的 local.yml 后填写（local.yml 已被 Git 忽略）。
+# CI 中改用同名的环境变量 / GitHub Secrets 提供。
+# 高德、百度的 Key 需在各自开放平台按包名 io.github.amahteru.locationspoofer 和签名 SHA1 申请。
+
+# 高德 Android Key（默认地图引擎、定位、搜索、逆地理）
+AMAP_API_KEY: ""
+# 百度 Android SDK 的 AK
+BAIDU_API_KEY: ""
+# 百度个性化地图深色样式 ID（可选，留空则深色模式下也显示亮色地图）
+BAIDU_DARK_STYLE_ID: ""
+# Google Maps Android Key（可选）
+GOOGLE_MAPS_API_KEY: ""

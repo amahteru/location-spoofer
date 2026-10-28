@@ -30,7 +30,7 @@
 - 清除 `Location` 的模拟位置标记，拦截 AppOps 和 `Settings.Secure` 中的模拟位置查询。
 
 **应用**
-- 地图引擎：高德、百度、Google 地图，默认自动选择高德。Google 地图需要自行提供 API Key。
+- 地图引擎：高德、百度、Google 地图，默认自动选择高德。自行构建时需要提供各地图的 API Key。
 - 数据管理：查看、编辑和删除采集数据，支持 JSON 导入导出。
 - Material Design 3 界面，跟随系统动态取色，支持简体中文和英文。
 
@@ -50,7 +50,7 @@ cd location-spoofer
 ./gradlew installDebug
 ```
 
-构建需要 JDK 17 和 Android SDK（API 37）。如需 Google 地图，可通过环境变量 `GOOGLE_MAPS_API_KEY` 或项目根目录的 `local.yml` 提供 Key。Windows 环境见 [docs/development-windows.md](docs/development-windows.md)。
+构建需要 JDK 17 和 Android SDK（API 37）。地图 Key 不随仓库提供：复制 `local.yml.example` 为项目根目录的 `local.yml`，填入自己申请的高德、百度（以及可选的 Google）Key，也可以用同名环境变量提供。Windows 环境见 [docs/development-windows.md](docs/development-windows.md)。
 
 ## 使用
 
