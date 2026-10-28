@@ -9,7 +9,7 @@ internal fun LocationHooker.hookAntiDetection(classLoader: ClassLoader) {
         val appOpsClass = XposedHelpers.findClassIfExists("android.app.AppOpsManager", classLoader)
         if (appOpsClass != null) {
             val locationOpSet = setOf(
-                0, 1, 2, 12, 41, 42, 59, 77,
+                0, 1, 2, 12, 41, 42, 77,
                 "android:coarse_location", "android:fine_location", "android:gps",
                 "android:monitor_location", "android:monitor_location_high_power",
                 "android:bluetooth_scan", "android:bluetooth_connect", "android:bluetooth_advertise"

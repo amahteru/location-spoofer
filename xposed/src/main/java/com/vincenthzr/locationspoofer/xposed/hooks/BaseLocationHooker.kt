@@ -41,9 +41,8 @@ internal fun defaultCoordinateSystemOfProvider(provider: String?): String =
 internal fun putSatelliteExtras(extras: android.os.Bundle, satCount: Int) {
     extras.putInt("satellites", satCount)
     extras.putInt("satellites_in_view", satCount)
-    extras.putInt("satellites_used_in_fix", satCount.coerceAtLeast(12))
+    extras.putInt("satellites_used_in_fix", satCount)
     extras.putInt("satellites_visible", satCount)
-    extras.putBoolean("mockLocation", false)
 }
 
 internal fun clearMockFlag(loc: Any) {

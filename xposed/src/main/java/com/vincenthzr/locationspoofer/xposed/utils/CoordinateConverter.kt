@@ -101,3 +101,13 @@ internal fun LocationHooker.getJitteredAccuracy(): Float {
     hookAccuracyDrift += 0.1 * rng.nextGaussian() - 0.05 * hookAccuracyDrift
     return (2.2 + hookAccuracyDrift).coerceIn(1.5, 3.5).toFloat()
 }
+
+// 跟随水平精度的漂移一起波动，均值与原来的固定值一致
+internal fun LocationHooker.getJitteredVerticalAccuracy(): Float =
+    (1.2 + 0.6 * hookAccuracyDrift + 0.05 * rng.nextGaussian()).coerceIn(0.8, 2.5).toFloat()
+
+internal fun LocationHooker.getJitteredSpeedAccuracy(): Float =
+    (0.1 + 0.05 * hookAccuracyDrift + 0.01 * rng.nextGaussian()).coerceIn(0.05, 0.3).toFloat()
+
+internal fun LocationHooker.getJitteredBearingAccuracy(): Float =
+    (1.5 + 0.8 * hookAccuracyDrift + 0.1 * rng.nextGaussian()).coerceIn(0.8, 3.0).toFloat()

@@ -238,10 +238,21 @@ object XposedHelpers {
 object XposedBridge {
     private val openCellLogLastTimes = ConcurrentHashMap<String, Long>()
 
-    fun log(msg: String) {
+    // 目标 App 能读到自己进程的 logcat，部分框架（如 Vector）的 module.log 也写进 logcat，
+    // 所以 release 包在 Hook 进程里不输出任何日志
+    private val loggingEnabled = com.vincenthzr.locationspoofer.xposed.BuildConfig.DEBUG
+
+    private fun logcat(priority: Int, msg: String, t: Throwable? = null) {
+        if (!loggingEnabled) return
         try {
-            android.util.Log.i("LocationSpoofer", msg)
+            if (t != null) android.util.Log.println(priority, "LocationSpoofer", msg + "\n" + android.util.Log.getStackTraceString(t))
+            else android.util.Log.println(priority, "LocationSpoofer", msg)
         } catch (_: Throwable) {}
+    }
+
+    fun log(msg: String) {
+        if (!loggingEnabled) return
+        logcat(android.util.Log.INFO, msg)
         try {
             if (XposedHelpers.isModuleInitialized()) {
                 XposedHelpers.module.log(android.util.Log.INFO, "LocationSpoofer", msg)
@@ -252,24 +263,19 @@ object XposedBridge {
         log(msg)
     }
     fun logOpenCellId(msg: String, t: Throwable) {
-        try {
-            android.util.Log.e("LocationSpoofer", msg, t)
-        } catch (_: Throwable) {}
+        logcat(android.util.Log.ERROR, msg, t)
     }
     fun logOpenCellIdEvery(key: String, msg: String, intervalMs: Long = 5_000L) {
         val now = System.currentTimeMillis()
         val last = openCellLogLastTimes[key] ?: 0L
         if (now - last > intervalMs) {
             openCellLogLastTimes[key] = now
-            try {
-                android.util.Log.i("LocationSpoofer", "[$key] $msg")
-            } catch (_: Throwable) {}
+            logcat(android.util.Log.INFO, "[$key] $msg")
         }
     }
     fun log(t: Throwable) {
-        try {
-            android.util.Log.e("LocationSpoofer", "Exception", t)
-        } catch (_: Throwable) {}
+        if (!loggingEnabled) return
+        logcat(android.util.Log.ERROR, "Exception", t)
         try {
             if (XposedHelpers.isModuleInitialized()) {
                 XposedHelpers.module.log(android.util.Log.ERROR, "LocationSpoofer", t.message ?: "Exception", t)

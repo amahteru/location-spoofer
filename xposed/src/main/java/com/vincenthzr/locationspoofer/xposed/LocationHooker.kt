@@ -138,7 +138,7 @@ class LocationHooker : XposedModule() {
                         startOldLeScanTimer(callback, host.classLoader)
                     } else startBleTimer(callback, host.classLoader)
                 }
-                android.util.Log.i("LocationSpoofer", "[HotReload] Reinstalled hooks in ${param.processName}")
+                XposedBridge.log("[HotReload] Reinstalled hooks in ${param.processName}")
             }
         )
     }
@@ -202,11 +202,7 @@ class LocationHooker : XposedModule() {
         }
         environmentHooksInstalled = true
 
-        XposedBridge.log("[LocationSpoofer] Hooking package: $pkg")
-        android.util.Log.e(
-            "LocationSpoofer",
-            "[INJECTED] Hooking package: $pkg process=$processName"
-        )
+        XposedBridge.log("[LocationSpoofer] Hooking package: $pkg process=$processName")
         XposedBridge.logOpenCellId("handleLoadPackage pkg=$pkg classLoader=$classLoader")
 
         hookAntiDetection(classLoader)
@@ -328,7 +324,6 @@ class LocationHooker : XposedModule() {
         if (logKey != lastOpenCellConfigLogKey) {
             lastOpenCellConfigLogKey = logKey
             val msg = "[LocationSpoofer] 配置已加载[$source]: active=$active, pkg=$currentPackageName, lat=$lat, lng=$lng, 蓝牙数=$btCount, 基站数=$cellCount"
-            android.util.Log.i("LocationSpoofer", msg)
             XposedBridge.log(msg)
         }
     }

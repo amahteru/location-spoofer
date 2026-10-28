@@ -165,7 +165,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
         try {
             XposedHelpers.hookMethod("android.location.Location", classLoader, "getSpeedAccuracyMetersPerSecond") { chain, _ ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) 0.1f else chain.proceed(chain.args.toTypedArray())
+                if (config != null && config.optBoolean("active", false)) getJitteredSpeedAccuracy() else chain.proceed(chain.args.toTypedArray())
             }
             XposedHelpers.hookMethod("android.location.Location", classLoader, "hasSpeedAccuracy") { chain, _ ->
                 val config = readConfig()
@@ -173,7 +173,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             }
             XposedHelpers.hookMethod("android.location.Location", classLoader, "getBearingAccuracyDegrees") { chain, _ ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) 1.5f else chain.proceed(chain.args.toTypedArray())
+                if (config != null && config.optBoolean("active", false)) getJitteredBearingAccuracy() else chain.proceed(chain.args.toTypedArray())
             }
             XposedHelpers.hookMethod("android.location.Location", classLoader, "hasBearingAccuracy") { chain, _ ->
                 val config = readConfig()
@@ -181,7 +181,7 @@ internal fun LocationHooker.hookLocationGetters(classLoader: ClassLoader, curren
             }
             XposedHelpers.hookMethod("android.location.Location", classLoader, "getVerticalAccuracyMeters") { chain, _ ->
                 val config = readConfig()
-                if (config != null && config.optBoolean("active", false)) 1.2f else chain.proceed(chain.args.toTypedArray())
+                if (config != null && config.optBoolean("active", false)) getJitteredVerticalAccuracy() else chain.proceed(chain.args.toTypedArray())
             }
             XposedHelpers.hookMethod("android.location.Location", classLoader, "hasVerticalAccuracy") { chain, _ ->
                 val config = readConfig()
