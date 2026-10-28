@@ -250,8 +250,6 @@ internal fun MainViewModel.evaluateMockCapabilities() {
                 collectedWifiJson = "[]",
                 collectedCellJson = "[]",
                 collectedBluetoothJson = "[]",
-                wifiApCount = 0,
-                wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE
             )
         }
         return
@@ -366,8 +364,6 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
                     collectedWifiJson = "[]",
                     collectedCellJson = "[]",
                     collectedBluetoothJson = "[]",
-                    wifiApCount = 0,
-                    wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE
                 )
             }
         } else {
@@ -393,8 +389,6 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
                 false
             }
 
-            val wifiCount = parseWifiCount(wifiJson)
-
             _uiState.update {
                 it.copy(
                     canMockWifi = hasW,
@@ -403,8 +397,6 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
                     collectedWifiJson = wifiJson,
                     collectedCellJson = cellJson,
                     collectedBluetoothJson = btJson,
-                    wifiApCount = wifiCount,
-                    wifiLoadStatus = if (hasW) com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.DONE else com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE
                 )
             }
         }
@@ -423,8 +415,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
         withContext(Dispatchers.Main) {
             _uiState.update {
                 it.copy(
-                    wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE,
-                    wifiApCount = 0,
                     canMockWifi = false
                 )
             }
@@ -432,9 +422,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
         return
     }
 
-    withContext(Dispatchers.Main) {
-        _uiState.update { it.copy(wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.LOADING) }
-    }
     val wgs84 = com.vincenthzr.locationspoofer.utils.CoordinateUtils.gcj02ToWgs84(lat, lng)
     val wgsLat = wgs84.lat
     val wgsLng = wgs84.lng
@@ -532,8 +519,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
-                        wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE,
-                        wifiApCount = 0,
                         canMockWifi = false
                     )
                 }
@@ -544,8 +529,6 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
         withContext(Dispatchers.Main) {
             _uiState.update {
                 it.copy(
-                    wifiLoadStatus = com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE,
-                    wifiApCount = 0,
                     canMockWifi = false
                 )
             }

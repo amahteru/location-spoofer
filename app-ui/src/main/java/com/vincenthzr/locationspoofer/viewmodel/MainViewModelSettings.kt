@@ -1,6 +1,5 @@
 package com.vincenthzr.locationspoofer.viewmodel
 
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.ui.R
@@ -98,8 +97,7 @@ internal fun MainViewModel.initialize() {
         XposedModuleStatus.isModuleActive.collect { active ->
             _uiState.update {
                 it.copy(
-                    isLSPosedActive = active,
-                    hookedApps = if (active) lsposedManager.getHookedApps(context) else emptyList()
+                    isLSPosedActive = active
                 )
             }
         }
@@ -484,12 +482,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
         }
 
 
-        is SpoofingIntent.SetSheetExpanded -> _spoofingUiState.update {
-            it.copy(
-                isSheetExpanded = intent.expanded
-            )
-        }
-
         is SpoofingIntent.SetSearchActive -> _spoofingUiState.update {
             it.copy(
                 isSearchActive = intent.active
@@ -503,16 +495,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
         is SpoofingIntent.UpdateSearchQuery -> _spoofingUiState.update {
             it.copy(
                 searchQuery = intent.query
-            )
-        }
-
-        is SpoofingIntent.PerformSearch -> {
-        }
-
-        is SpoofingIntent.ClearSearchResults -> _spoofingUiState.update {
-            it.copy(
-                searchResults = emptyList(),
-                showSearchResults = false
             )
         }
 
@@ -545,7 +527,5 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
                 }
             }
         }
-
-        is SpoofingIntent.RequestCurrentLocation -> {}
     }
 }

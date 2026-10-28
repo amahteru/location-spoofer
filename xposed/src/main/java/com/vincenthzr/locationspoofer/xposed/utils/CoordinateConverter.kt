@@ -2,13 +2,7 @@ package com.vincenthzr.locationspoofer.xposed.utils
 
 import com.vincenthzr.locationspoofer.utils.CoordinateUtils
 import com.vincenthzr.locationspoofer.xposed.LocationHooker
-import org.json.JSONObject
 import kotlin.math.*
-
-internal fun LocationHooker.wgs84ToGcj02(wgsLat: Double, wgsLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.wgs84ToGcj02(wgsLat, wgsLng)
-    return Pair(r.lat, r.lng)
-}
 
 internal fun LocationHooker.gcj02ToWgs84(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
     val r = CoordinateUtils.gcj02ToWgs84(gcjLat, gcjLng)
@@ -17,11 +11,6 @@ internal fun LocationHooker.gcj02ToWgs84(gcjLat: Double, gcjLng: Double): Pair<D
 
 internal fun LocationHooker.gcj02ToBd09(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
     val r = CoordinateUtils.gcj02ToBd09(gcjLat, gcjLng)
-    return Pair(r.lat, r.lng)
-}
-
-internal fun LocationHooker.bd09ToGcj02(bdLat: Double, bdLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.bd09ToGcj02(bdLat, bdLng)
     return Pair(r.lat, r.lng)
 }
 
@@ -36,39 +25,11 @@ fun bd09llToBd09mc(bdLat: Double, bdLng: Double): Pair<Double, Double> {
 internal fun LocationHooker.getAppTargetCoordinate(
     rawGcjLat: Double,
     rawGcjLng: Double,
-    config: JSONObject?,
     defaultSystem: String = "GCJ-02"
-): Pair<Double, Double> {
-    if (config == null) return when (defaultSystem) {
-        "WGS-84" -> gcj02ToWgs84(rawGcjLat, rawGcjLng)
-        "BD-09" -> gcj02ToBd09(rawGcjLat, rawGcjLng)
-        else -> Pair(rawGcjLat, rawGcjLng)
-    }
-    val appSystems = config.optJSONObject("app_coordinate_systems")
-    val basePkg = currentPackageName.substringBefore(":")
-
-    val userConfigured = if (appSystems?.has(basePkg) == true) {
-        appSystems.optString(basePkg, "AUTO")
-    } else {
-        "AUTO"
-    }
-
-    val targetSys = if (userConfigured == "AUTO" || userConfigured.isBlank()) {
-        defaultSystem
-    } else {
-        userConfigured
-    }
-
-    return when (targetSys) {
-        "WGS-84" -> gcj02ToWgs84(rawGcjLat, rawGcjLng)
-        "BD-09" -> gcj02ToBd09(rawGcjLat, rawGcjLng)
-        "GCJ-02" -> Pair(rawGcjLat, rawGcjLng)
-        else -> when (defaultSystem) {
-            "WGS-84" -> gcj02ToWgs84(rawGcjLat, rawGcjLng)
-            "BD-09" -> gcj02ToBd09(rawGcjLat, rawGcjLng)
-            else -> Pair(rawGcjLat, rawGcjLng)
-        }
-    }
+): Pair<Double, Double> = when (defaultSystem) {
+    "WGS-84" -> gcj02ToWgs84(rawGcjLat, rawGcjLng)
+    "BD-09" -> gcj02ToBd09(rawGcjLat, rawGcjLng)
+    else -> Pair(rawGcjLat, rawGcjLng)
 }
 
 internal fun LocationHooker.getJitteredLocation(

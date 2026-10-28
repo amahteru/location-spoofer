@@ -1,19 +1,15 @@
 package com.vincenthzr.locationspoofer.data.model
 
-import androidx.annotation.StringRes
-import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.utils.AltitudeModel
 import com.vincenthzr.locationspoofer.utils.MotionRealism
 
-enum class WifiLoadStatus { IDLE, LOADING, DONE }
-
-enum class SimMode(@StringRes val labelResId: Int, val speedMs: Double) {
-    STILL(R.string.still, 0.0),
-    WALKING(R.string.walking, 1.4),
-    RUNNING(R.string.running, 3.0),
-    CYCLING(R.string.cycling, 5.5),
-    DRIVING(R.string.driving, 15.0),
-    CUSTOM(R.string.custom, 0.0)
+enum class SimMode(val speedMs: Double) {
+    STILL(0.0),
+    WALKING(1.4),
+    RUNNING(3.0),
+    CYCLING(5.5),
+    DRIVING(15.0),
+    CUSTOM(0.0)
 }
 
 enum class SearchMode {
@@ -65,8 +61,6 @@ data class AppState(
     val showCoordinateError: Boolean = false,
     val isSavingConfig: Boolean = false,
     val isSpoofingActive: Boolean = false,
-    val wifiLoadStatus: WifiLoadStatus = WifiLoadStatus.IDLE,
-    val wifiApCount: Int = 0,
     val savedLocations: List<SavedLocation> = emptyList(),
     val searchMode: SearchMode = SearchMode.NETWORK,
     val searchResults: List<SavedLocation> = emptyList(),
@@ -80,7 +74,6 @@ data class AppState(
     val useRealRoute: Boolean = false,
     val stopAtDestination: Boolean = false,
     val isFetchingRoute: Boolean = false,
-    val mapConfirmedPoint: Pair<Double, Double>? = null,
     val amapApiKey: String = "",
     val baiduApiKey: String = "",
     val googleApiKey: String = "",
@@ -100,7 +93,6 @@ data class AppState(
     val scannedWifiCount: Int = 0,
     val scannedCellCount: Int = 0,
     val scannedBluetoothCount: Int = 0,
-    val hookedApps: List<AppInfoItem> = emptyList(),
     val collectedWifiJson: String = "[]",
     val collectedCellJson: String = "[]",
     val collectedBluetoothJson: String = "[]",

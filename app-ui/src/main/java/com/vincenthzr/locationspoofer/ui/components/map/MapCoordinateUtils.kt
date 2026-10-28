@@ -22,16 +22,6 @@ fun gcj02ToWgs84(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
     return Pair(r.lat, r.lng)
 }
 
-fun bd09ToGcj02(bdLat: Double, bdLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.bd09ToGcj02(bdLat, bdLng)
-    return Pair(r.lat, r.lng)
-}
-
-fun gcj02ToBd09(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.gcj02ToBd09(gcjLat, gcjLng)
-    return Pair(r.lat, r.lng)
-}
-
 object GaodeMarkerHelper {
     private val bitmapCache = mutableMapOf<String, Bitmap>()
 

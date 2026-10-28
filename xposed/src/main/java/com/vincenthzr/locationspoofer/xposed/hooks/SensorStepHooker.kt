@@ -248,12 +248,7 @@ object SensorStepHooker {
         if (speed <= 0.05) return lastStepsFloat
 
         val elapsedSec = ((now - startTime).coerceAtLeast(0L)) / 1000.0
-        val isAutoCadence = config.optBoolean("is_auto_cadence", true)
-        val baseCadence = if (isAutoCadence) {
-            calculateAutoCadence(speed)
-        } else {
-            config.optInt("step_cadence_spm", 165).coerceIn(60, 240)
-        }
+        val baseCadence = calculateAutoCadence(speed)
 
         val steps = stepBase + RouteEngine.realismSession(config, startTime).steps(baseCadence.toDouble(), elapsedSec)
         lastStepsFloat = steps

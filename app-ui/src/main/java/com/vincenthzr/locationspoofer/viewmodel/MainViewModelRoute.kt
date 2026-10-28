@@ -86,7 +86,6 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
             longitudeInput = String.format(java.util.Locale.US, "%.6f", lng),
-            mapConfirmedPoint = Pair(lat, lng),
             showCoordinateError = false
         )
     }
@@ -187,25 +186,9 @@ private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state
                 if (result != null && result.paths.isNotEmpty()) {
                     val path = result.paths[0]
                     val segmentPoints = mutableListOf<RoutePoint>()
-                    val stepEndIndices = mutableListOf<Int>()
                     for (step in path.steps) {
                         for (polyline in step.polyline) {
-                            segmentPoints.add(
-                                RoutePoint(
-                                    polyline.latitude,
-                                    polyline.longitude,
-                                    0.0
-                                )
-                            )
-                        }
-                        if (segmentPoints.isNotEmpty()) {
-                            stepEndIndices.add(segmentPoints.size - 1)
-                        }
-                    }
-                    val trafficLights = path.totalTrafficlights
-                    if (trafficLights > 0 && stepEndIndices.isNotEmpty()) {
-                        stepEndIndices.shuffled().take(trafficLights).forEach { idx ->
-                            segmentPoints[idx] = segmentPoints[idx].copy(waitSec = 15.0)
+                            segmentPoints.add(RoutePoint(polyline.latitude, polyline.longitude))
                         }
                     }
                     allRealPoints.addAll(segmentPoints)
@@ -417,15 +400,12 @@ internal fun MainViewModel.parseWifiCount(wifiJson: String?): Int {
 }
 
 internal fun MainViewModel.loadSavedLocation(loc: SavedLocation) {
-    val wifiCount = parseWifiCount(loc.wifiJson)
     _uiState.update {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", loc.lat),
             longitudeInput = String.format(java.util.Locale.US, "%.6f", loc.lng),
             collectedWifiJson = loc.wifiJson,
             collectedCellJson = loc.cellJson,
-            wifiApCount = wifiCount,
-            wifiLoadStatus = if (wifiCount > 0) com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.DONE else com.vincenthzr.locationspoofer.data.model.WifiLoadStatus.IDLE
         )
     }
 }

@@ -6,7 +6,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vincenthzr.locationspoofer.data.model.GithubRelease
-import com.vincenthzr.locationspoofer.ui.BuildConfig
 import com.vincenthzr.locationspoofer.utils.UpdateManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -25,7 +24,6 @@ data class UpdateUiState(
     val error: String? = null,
     val releases: List<GithubRelease> = emptyList(),
     val activeDownloadId: Long? = null,
-    val activeDownloadUrl: String? = null,
     val downloadProgress: Int = 0,
     val downloadStatus: Int = DownloadManager.STATUS_PENDING
 )
@@ -118,7 +116,6 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         _uiState.update {
             it.copy(
                 activeDownloadId = downloadId,
-                activeDownloadUrl = url,
                 downloadProgress = 0,
                 downloadStatus = DownloadManager.STATUS_PENDING
             )
@@ -161,7 +158,6 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
             _uiState.update {
                 it.copy(
                     activeDownloadId = null,
-                    activeDownloadUrl = null,
                     downloadProgress = 0,
                     downloadStatus = DownloadManager.STATUS_PENDING
                 )

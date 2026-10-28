@@ -11,33 +11,6 @@ import java.util.Locale
 class OpenCellIdClient {
     private val client = OkHttpClient()
 
-    suspend fun validateToken(token: String): Boolean = withContext(Dispatchers.IO) {
-        if (token.isBlank()) {
-            return@withContext false
-        }
-        return@withContext try {
-            val url =
-                "https://opencellid.org/cell/getInArea?key=$token&BBOX=0.0,0.0,0.0,0.0&format=json"
-            val request = Request.Builder()
-                .url(url)
-                .build()
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val body = response.body.string()
-                val json = JSONObject(body)
-                if (json.has("error")) {
-                    json.optInt("code") == 1
-                } else {
-                    true
-                }
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     suspend fun fetchCellData(lat: Double, lng: Double, token: String): String =
         withContext(Dispatchers.IO) {
             if (token.isBlank()) {

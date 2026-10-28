@@ -12,7 +12,7 @@ internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ
     if (!config.optBoolean("active", false)) return null
 
     val rawMotion = RouteEngine.calculateCurrentPosition(config)
-    val finalCoords = getAppTargetCoordinate(rawMotion.lat, rawMotion.lng, config, defaultSystem)
+    val finalCoords = getAppTargetCoordinate(rawMotion.lat, rawMotion.lng, defaultSystem)
     val jittered = getJitteredLocation(finalCoords.first, finalCoords.second)
     return SpoofedMotion(jittered.first, jittered.second, rawMotion.bearing, rawMotion.speed)
 }

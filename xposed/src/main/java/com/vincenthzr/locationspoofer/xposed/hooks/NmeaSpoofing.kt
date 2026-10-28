@@ -83,7 +83,7 @@ internal fun LocationHooker.spoofNmeaMessage(sentence: String): String? {
         if (!config.optBoolean("active", false)) return sentence
 
         val motion = RouteEngine.calculateCurrentPosition(config)
-        val targetCoords = getAppTargetCoordinate(motion.lat, motion.lng, config, "WGS-84")
+        val targetCoords = getAppTargetCoordinate(motion.lat, motion.lng, "WGS-84")
         val targetLat = targetCoords.first
         val targetLng = targetCoords.second
 

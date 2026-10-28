@@ -61,7 +61,6 @@ class MotionController(
         val returning: Boolean = false,
         val preset: SpeedPreset = PRESETS.first(),
         val recording: Boolean = false,
-        val recordedPointCount: Int = 0,
         val recordedDistanceM: Double = 0.0,
         val hasPendingRecording: Boolean = false
     ) {
@@ -227,7 +226,7 @@ class MotionController(
         if (!s.active || s.recording) return
         recorded.clear()
         recorded += LatLng(s.lat, s.lng)
-        _state.update { it.copy(recording = true, recordedPointCount = 1, recordedDistanceM = 0.0, hasPendingRecording = false) }
+        _state.update { it.copy(recording = true, recordedDistanceM = 0.0, hasPendingRecording = false) }
     }
 
     fun stopRecording() {
@@ -244,7 +243,7 @@ class MotionController(
 
     fun discardRecording() {
         recorded.clear()
-        _state.update { it.copy(recording = false, hasPendingRecording = false, recordedPointCount = 0, recordedDistanceM = 0.0) }
+        _state.update { it.copy(recording = false, hasPendingRecording = false, recordedDistanceM = 0.0) }
     }
 
     private fun clearRoute() {
@@ -380,7 +379,6 @@ class MotionController(
             recorded += p
             _state.update { it.copy(recordedDistanceM = it.recordedDistanceM + d) }
         }
-        _state.update { it.copy(recordedPointCount = recorded.size) }
     }
 
     private fun angleDiff(a: Float, b: Float): Float {

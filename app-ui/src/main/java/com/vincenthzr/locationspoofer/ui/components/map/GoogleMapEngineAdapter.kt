@@ -28,11 +28,9 @@ class GMapControllerImpl(
     private val map: GoogleMap,
     private val context: Context
 ) : AppMapController {
-    private var isDarkMode: Boolean = false
     private var currentMapType: AppMapType = AppMapType.NORMAL
 
     override fun setDarkMode(isDark: Boolean, context: Context) {
-        isDarkMode = isDark
         try {
             if (isDark) {
                 map.setMapStyle(

@@ -9,24 +9,6 @@ import org.json.JSONObject
 class WigleClient {
     private val client = OkHttpClient()
 
-    suspend fun validateToken(token: String): Boolean = withContext(Dispatchers.IO) {
-        if (token.isBlank()) return@withContext false
-        return@withContext try {
-            val request = Request.Builder()
-                .url("https://api.wigle.net/api/v2/profile/user")
-                .addHeader("Authorization", "Basic $token")
-                .addHeader("Accept", "application/json")
-                .build()
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val body = response.body.string()
-                org.json.JSONObject(body).optString("success") == "true"
-            } else false
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     suspend fun fetchWifiData(lat: Double, lng: Double, token: String): String =
         withContext(Dispatchers.IO) {
             if (token.isBlank()) {

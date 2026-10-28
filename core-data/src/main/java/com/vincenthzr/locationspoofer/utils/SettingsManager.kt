@@ -3,7 +3,6 @@ package com.vincenthzr.locationspoofer.utils
 import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
-import com.vincenthzr.locationspoofer.data.BuildConfig
 import com.vincenthzr.locationspoofer.data.model.RoutePoint
 import com.vincenthzr.locationspoofer.data.model.SavedLocation
 import com.vincenthzr.locationspoofer.data.model.SavedRoute
@@ -24,10 +23,6 @@ class SettingsManager(context: Context) {
             }
         }
     }
-
-    var isDarkMode: Boolean
-        get() = prefs.getBoolean("is_dark_mode", true)
-        set(value) = prefs.edit { putBoolean("is_dark_mode", value) }
 
     var language: String
         get() = LocaleUtils.normalizeLanguage(prefs.getString("language", "") ?: "")

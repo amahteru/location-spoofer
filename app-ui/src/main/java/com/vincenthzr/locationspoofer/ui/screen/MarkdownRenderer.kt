@@ -22,11 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.ui.theme.AppSpacing
 
 sealed class MarkdownBlock {
-    data class Header(val level: Int, val text: String, val category: String) : MarkdownBlock()
-    data class ListItem(val text: String, val bulletType: String = "bullet") : MarkdownBlock()
+    data class Header(val level: Int, val text: String) : MarkdownBlock()
+    data class ListItem(val text: String) : MarkdownBlock()
     data class Paragraph(val text: String) : MarkdownBlock()
     data class Blockquote(val text: String) : MarkdownBlock()
-    data class CodeBlock(val code: String, val language: String = "") : MarkdownBlock()
+    data class CodeBlock(val code: String) : MarkdownBlock()
     data class Table(val header: List<String>, val rows: List<List<String>>) : MarkdownBlock()
 }
 
@@ -82,20 +82,8 @@ fun parseMarkdownBlocks(rawText: String): List<MarkdownBlock> {
         if (headerMatch != null) {
             val level = headerMatch.groupValues[1].length
             val headerText = headerMatch.groupValues[2].trim()
-            val lower = headerText.lowercase()
-            val category = when {
-                lower.contains("功能") || lower.contains("feature") || lower.contains("新增") || lower.contains(
-                    "优化"
-                ) || lower.contains("ميزة") || lower.contains("تحسين") -> "feature"
-
-                lower.contains("修复") || lower.contains("fix") || lower.contains("bug") || lower.contains(
-                    "解决"
-                ) || lower.contains("إصلاح") || lower.contains("حل") -> "fix"
-
-                else -> "other"
-            }
             if (headerText.isNotEmpty()) {
-                blocks.add(MarkdownBlock.Header(level, headerText, category))
+                blocks.add(MarkdownBlock.Header(level, headerText))
             }
             continue
         }
@@ -117,7 +105,7 @@ fun parseMarkdownBlocks(rawText: String): List<MarkdownBlock> {
         if (isBullet) {
             val itemText = line.substring(2).trim()
             if (itemText.isNotEmpty()) {
-                blocks.add(MarkdownBlock.ListItem(itemText, "bullet"))
+                blocks.add(MarkdownBlock.ListItem(itemText))
             }
             continue
         }
@@ -125,7 +113,7 @@ fun parseMarkdownBlocks(rawText: String): List<MarkdownBlock> {
         if (isNumbered) {
             val itemText = line.replace(Regex("""^\d+[\.\)]\s*"""), "").trim()
             if (itemText.isNotEmpty()) {
-                blocks.add(MarkdownBlock.ListItem(itemText, "number"))
+                blocks.add(MarkdownBlock.ListItem(itemText))
             }
             continue
         }

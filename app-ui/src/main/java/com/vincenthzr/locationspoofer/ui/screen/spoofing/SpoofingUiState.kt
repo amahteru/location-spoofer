@@ -9,7 +9,6 @@ data class SpoofingUiState(
     val showCustomCoordDialog: Boolean = false,
     val showStartSpoofingDialog: Boolean = false,
 
-    val isSheetExpanded: Boolean = true,
     val isSearchActive: Boolean = false,
     val searchQuery: String = "",
     val searchResults: List<AppPoiItem> = emptyList(),

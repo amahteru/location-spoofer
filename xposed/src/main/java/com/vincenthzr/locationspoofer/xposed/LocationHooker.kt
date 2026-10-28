@@ -386,7 +386,7 @@ class LocationHooker : XposedModule() {
                                     val fCount = capturedFusedLocationCallbacks.size
 
                                     val isStationary = motion.speed <= 0.05
-                                    val (targetLat, targetLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "WGS-84")
+                                    val (targetLat, targetLng) = getAppTargetCoordinate(motion.lat, motion.lng, "WGS-84")
                                     fun jittered(lat: Double, lng: Double) = if (isStationary) lat to lng else getJitteredLocation(lat, lng)
                                     val (pushLat, pushLng) = jittered(targetLat, targetLng)
                                     val pushSpeed = motion.speed
@@ -468,7 +468,7 @@ class LocationHooker : XposedModule() {
                                         }
 
                                         if (aCount > 0 && cl != null) {
-                                            val (aMapLat, aMapLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "GCJ-02")
+                                            val (aMapLat, aMapLng) = getAppTargetCoordinate(motion.lat, motion.lng, "GCJ-02")
                                             val (aMapPushLat, aMapPushLng) = jittered(aMapLat, aMapLng)
                                             val listenersToNotify = capturedAMapListeners.toList()
                                             for (listener in listenersToNotify) {
@@ -553,7 +553,7 @@ class LocationHooker : XposedModule() {
                                         }
 
                                         if (bCount > 0 && cl != null) {
-                                            val (baiduLat, baiduLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "BD-09")
+                                            val (baiduLat, baiduLng) = getAppTargetCoordinate(motion.lat, motion.lng, "BD-09")
                                             val (baiduPushLat, baiduPushLng) = jittered(baiduLat, baiduLng)
                                             val listenersToNotify = capturedBaiduListeners.toList()
                                             for (listener in listenersToNotify) {
@@ -600,7 +600,7 @@ class LocationHooker : XposedModule() {
 
                                         if (tCount > 0 && cl != null) {
                                             try {
-                                                val (tencentLat, tencentLng) = getAppTargetCoordinate(motion.lat, motion.lng, newConfig, "GCJ-02")
+                                                val (tencentLat, tencentLng) = getAppTargetCoordinate(motion.lat, motion.lng, "GCJ-02")
                                                 val (tencentPushLat, tencentPushLng) = jittered(tencentLat, tencentLng)
                                                 val tencentLocInterface = Class.forName(
                                                     "com.tencent.map.geolocation.TencentLocation",

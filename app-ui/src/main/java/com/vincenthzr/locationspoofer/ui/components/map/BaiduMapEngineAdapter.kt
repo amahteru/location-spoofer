@@ -21,11 +21,9 @@ class BaiduMapControllerImpl(
     private val mapView: TextureMapView,
     private val context: Context
 ) : AppMapController {
-    private var isDarkMode: Boolean = false
     private var currentMapType: AppMapType = AppMapType.NORMAL
 
     override fun setDarkMode(isDark: Boolean, context: Context) {
-        isDarkMode = isDark
         val customStyleOptions = com.baidu.mapapi.map.MapCustomStyleOptions()
         if (isDark) {
             customStyleOptions.customStyleId("ed7541b0077ffda0205ff36f2a5633b1")

@@ -97,7 +97,6 @@ select the apps to simulate, then restart them.</string>
     <string name="check_updates_desc">Get updates from GitHub</string>
     <string name="download">Download</string>
     <string name="current_version">Current version</string>
-    <string name="still">Still</string>
     <string name="waiting_gps_signal">No cached location. Waiting for GPS signal (may be slow or unavailable indoors)</string>
     <string name="native_location_success">Got native location</string>
     <string name="location_permission_denied">Precise location permission not granted. Can’t get location</string>

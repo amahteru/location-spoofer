@@ -100,7 +100,6 @@
     <string name="check_updates_desc">从 GitHub 获取最新版本</string>
     <string name="download">下载</string>
     <string name="current_version">当前版本</string>
-    <string name="still">静止</string>
     <string name="waiting_gps_signal">系统未缓存位置，正在等待 GPS 信号（室内可能极慢或无信号）</string>
     <string name="native_location_success">原生定位成功！</string>
     <string name="location_permission_denied">未授予精准定位权限，无法获取位置</string>
