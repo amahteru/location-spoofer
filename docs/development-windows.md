@@ -1,6 +1,6 @@
 # Windows 本地开发
 
-仓库声明的版本为 Gradle 9.6.1、Android Gradle Plugin 9.3.1、Kotlin 2.1.10，Android SDK 平台为 API 37，最低支持 API 33。以下命令用于准备和验证开发环境。
+仓库声明的版本为 Gradle 9.6.1、Android Gradle Plugin 9.4.1、Kotlin 2.4.21，Android SDK 平台为 API 37，最低支持 API 33。以下命令用于准备和验证开发环境。
 
 ## 环境布局
 
@@ -23,9 +23,7 @@ sdk.dir=D:/dev/LocationSpoofer/.android-sdk
 
 该文件使用 Java Properties 格式；如果实际路径含中文，应将非 ASCII 字符写成 `\uXXXX` 转义，避免不同读取方式导致乱码。
 
-当前项目路径含中文，本机已在忽略的 `.gradle-home/gradle.properties` 中设置 `android.overridePathCheck=true`，允许 AGP 继续构建。其他机器如果遇到相同的非 ASCII 项目路径检查错误，可在各自 `GRADLE_USER_HOME/gradle.properties` 中添加此项；不需要修改仓库根目录的 `gradle.properties`，入口也不会自动覆盖该选项。
-
-本机 Windows 的 Java 启动器按 GBK 读取参数文件。Gradle 以 UTF-8 写入含中文路径的参数文件时，测试进程会找不到 `GradleWorkerMain`；Kotlin 独立编译进程也会错误解析路径。本机 Gradle 用户配置因此使用以下设置，让参数文件编码一致，并在 Gradle 进程内编译 Kotlin：
+建议把项目放在纯英文路径下。如果路径含中文等非 ASCII 字符，会遇到两个问题：一是 AGP 的路径检查会报错；二是在系统编码为 GBK 的 Windows 上，Java 启动器按 GBK 读取参数文件，而 Gradle 以 UTF-8 写入，导致测试进程找不到 `GradleWorkerMain`，Kotlin 独立编译进程也会解析错路径。这时可在 `GRADLE_USER_HOME/gradle.properties`（入口默认使用项目内的 `.gradle-home/gradle.properties`）中加入以下设置，不需要修改仓库根目录的 `gradle.properties`：
 
 ```properties
 android.overridePathCheck=true
@@ -33,7 +31,7 @@ org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=GBK
 kotlin.compiler.execution.strategy=in-process
 ```
 
-这些设置只用于当前 Windows 环境，不改变源文件的 UTF-8 编码，也不覆盖仓库默认配置。其他操作系统或采用不同系统编码的机器不应直接照搬 `GBK` 设置。
+这些设置不改变源文件的 UTF-8 编码。其他操作系统或系统编码不是 GBK 的机器不要照搬 `GBK` 设置。
 
 SDK 37 的正式安装包名为 `platforms;android-37.0`；本地准备 `build-tools;37.0.0` 和设备调试需要的 `platform-tools`。Build Tools 最终由 AGP 选择。首次下载 Gradle、JDK 和 Maven 依赖需要网络。依赖下载或 SDK 安装报错时应先解决对应错误，再继续构建。
 
@@ -66,7 +64,7 @@ SDK 37 的正式安装包名为 `platforms;android-37.0`；本地准备 `build-t
 
 ```powershell
 .\tools\gradle.ps1 :core-geo:test
-.\tools\gradle.ps1 :core-data:testDebugUnitTest :xposed:testDebugUnitTest :app-ui:testDebugUnitTest
+.\tools\gradle.ps1 :core-data:testDebugUnitTest :xposed:testDebugUnitTest
 ```
 
 打包 Debug APK：
