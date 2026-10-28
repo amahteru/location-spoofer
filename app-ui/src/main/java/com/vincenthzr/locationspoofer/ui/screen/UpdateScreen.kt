@@ -211,7 +211,7 @@ private fun CurrentVersionHeroCard(
                 )
                 Spacer(Modifier.height(AppSpacing.xs))
                 Text(
-                    text = "Location Spoofer",
+                    text = stringResource(R.string.app_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
