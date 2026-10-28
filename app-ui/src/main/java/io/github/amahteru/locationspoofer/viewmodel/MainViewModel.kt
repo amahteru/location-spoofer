@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.data.db.CompleteLocation
 import io.github.amahteru.locationspoofer.data.db.EnvironmentDao
-import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.data.model.MapEngine
@@ -108,14 +107,6 @@ class MainViewModel(
     init {
         initialize()
     }
-
-    data class ClusterData(
-        val center: LocationRecord,
-        var count: Int,
-        var hasWifi: Boolean,
-        var hasBluetooth: Boolean,
-        var hasCell: Boolean
-    )
 
     internal var pinnedLocationRecordId: Long? = null
 

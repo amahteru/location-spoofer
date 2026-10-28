@@ -9,8 +9,6 @@ import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import io.github.amahteru.locationspoofer.data.model.RootSolution
-import io.github.amahteru.locationspoofer.data.model.SearchMode
-import io.github.amahteru.locationspoofer.ui.screen.AppPoiItem
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import io.github.amahteru.locationspoofer.utils.XposedModuleStatus
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +20,6 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import io.github.amahteru.locationspoofer.viewmodel.MainViewModel.ClusterData
 
 @OptIn(kotlinx.coroutines.FlowPreview::class)
 internal fun MainViewModel.initialize() {
@@ -200,81 +197,6 @@ internal fun MainViewModel.confirmRestartHookedApps(onDone: (Int) -> Unit = {}) 
         locationRepository.forceStopApps(apps.map { it.packageName })
         _uiState.update { it.copy(isRestartingHookedApps = false) }
         withContext(Dispatchers.Main) { onDone(apps.size) }
-    }
-}
-
-internal fun MainViewModel.setSearchMode(mode: SearchMode) {
-    _uiState.update { it.copy(searchMode = mode) }
-}
-
-internal suspend fun MainViewModel.performLocalSearch(): List<AppPoiItem> {
-    val allRecords = environmentDao.getAllCompleteLocations()
-    if (allRecords.isEmpty()) {
-        return emptyList()
-    }
-
-    val clusters = mutableListOf<ClusterData>()
-
-    for (record in allRecords) {
-        val loc = record.location
-        val hasW = record.wifis.isNotEmpty()
-        val hasB = record.bluetooths.isNotEmpty()
-        val hasC = record.cells.isNotEmpty()
-
-        var foundCluster = false
-        for (i in clusters.indices) {
-            val cluster = clusters[i]
-            val dLat = Math.toRadians(cluster.center.lat - loc.lat)
-            val dLng = Math.toRadians(cluster.center.lng - loc.lng)
-            val a = kotlin.math.sin(dLat / 2).let { it * it } +
-                    kotlin.math.cos(Math.toRadians(loc.lat)) *
-                    kotlin.math.cos(Math.toRadians(cluster.center.lat)) *
-                    kotlin.math.sin(dLng / 2).let { it * it }
-            val distance =
-                2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
-
-            if (distance <= 150.0) {
-                cluster.count += 1
-                cluster.hasWifi = cluster.hasWifi || hasW
-                cluster.hasBluetooth = cluster.hasBluetooth || hasB
-                cluster.hasCell = cluster.hasCell || hasC
-                foundCluster = true
-                break
-            }
-        }
-        if (!foundCluster) {
-            clusters.add(ClusterData(loc, 1, hasW, hasB, hasC))
-        }
-    }
-
-    clusters.sortByDescending { it.count }
-
-    return clusters.map { cluster ->
-        val tags = mutableListOf<String>()
-        if (cluster.hasWifi) tags.add("Wi-Fi")
-        if (cluster.hasBluetooth) tags.add(context.getString(R.string.tag_bluetooth))
-        if (cluster.hasCell) tags.add(context.getString(R.string.tag_cell))
-
-        val tagStr = if (tags.isNotEmpty()) " [${tags.joinToString(", ")}]" else ""
-
-        val baseTitle = when {
-            cluster.center.remark.isNotEmpty() -> cluster.center.remark
-            cluster.center.placeName.isNotEmpty() -> cluster.center.placeName
-            else -> context.getString(R.string.local_collected_hotspot)
-        }
-
-        val recordsSnippet = context.getString(R.string.contains_records_format, cluster.count)
-        io.github.amahteru.locationspoofer.ui.screen.AppPoiItem(
-            title = "$baseTitle$tagStr",
-            snippet = "$recordsSnippet (${
-                String.format(
-                    java.util.Locale.US, "%.4f",
-                    cluster.center.lat
-                )
-            }, ${String.format(java.util.Locale.US, "%.4f", cluster.center.lng)})",
-            lat = cluster.center.lat,
-            lng = cluster.center.lng
-        )
     }
 }
 
@@ -481,32 +403,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
             _spoofingUiState.update { it.copy(showStartSpoofingDialog = intent.visible) }
         }
 
-
-        is SpoofingIntent.SetSearchActive -> _spoofingUiState.update {
-            it.copy(
-                isSearchActive = intent.active
-            )
-        }
-
-        SpoofingIntent.HideSearchResults -> _spoofingUiState.update {
-            it.copy(showSearchResults = false)
-        }
-
-        is SpoofingIntent.UpdateSearchQuery -> _spoofingUiState.update {
-            it.copy(
-                searchQuery = intent.query
-            )
-        }
-
-        is SpoofingIntent.SetSearchResults -> _spoofingUiState.update {
-            val query = intent.query.ifBlank { it.searchQuery }
-            it.copy(
-                searchResults = intent.results,
-                showSearchResults = intent.show,
-                cachedSearchQuery = if (intent.results.isNotEmpty()) query else it.cachedSearchQuery,
-                cachedSearchAt = if (intent.results.isNotEmpty()) System.currentTimeMillis() else it.cachedSearchAt
-            )
-        }
 
         is SpoofingIntent.ConfirmMapPoint -> confirmMapPoint(
             intent.lat,

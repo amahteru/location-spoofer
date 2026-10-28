@@ -1,13 +1,15 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,9 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
@@ -30,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.amap.api.maps.model.LatLng
 import com.amap.api.services.core.PoiItem
 import com.amap.api.services.poisearch.PoiSearch
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.ui.R
 import androidx.compose.runtime.Composable
@@ -48,74 +48,91 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import io.github.amahteru.locationspoofer.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeSearchBar(
-    query: String,
-    searchMode: io.github.amahteru.locationspoofer.data.model.SearchMode,
-    onSearchModeChange: (io.github.amahteru.locationspoofer.data.model.SearchMode) -> Unit,
-    onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
-    modifier: Modifier = Modifier,
-    onFocus: () -> Unit = {},
-    onBack: (() -> Unit)? = null,
-    focusRequester: FocusRequester? = null
+fun PlaceSearchBar(
+    mapEngine: MapEngine,
+    onResultClick: (AppPoiItem) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.height(SearchBarDefaults.InputFieldHeight),
-        shape = SearchBarDefaults.inputFieldShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shadowElevation = 3.dp
-    ) {
+    val context = LocalContext.current
+    val searchBarState = rememberSearchBarState()
+    val textFieldState = rememberTextFieldState()
+    val scope = rememberCoroutineScope()
+    var results by remember { mutableStateOf(emptyList<AppPoiItem>()) }
+    val collapse: () -> Unit = { scope.launch { searchBarState.animateToCollapsed() } }
+
+    val inputField = @Composable {
         SearchBarDefaults.InputField(
-            query = query,
-            onQueryChange = onQueryChange,
-            onSearch = { onSearch() },
-            expanded = false,
-            onExpandedChange = {},
+            textFieldState = textFieldState,
+            searchBarState = searchBarState,
+            onSearch = { query ->
+                if (query.isNotBlank()) {
+                    performPoiSearch(context, mapEngine, query) {
+                        results = it
+                        if (it.isEmpty()) {
+                            Toast.makeText(context, context.getString(R.string.no_search_results), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            },
             placeholder = { Text(stringResource(R.string.search_place_building_coord_hint), maxLines = 1) },
-            leadingIcon = if (onBack != null) {
-                {
-                    IconButton(onClick = onBack) {
+            leadingIcon = {
+                if (searchBarState.targetValue == SearchBarValue.Expanded) {
+                    IconButton(onClick = collapse) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
+                } else {
+                    Icon(Icons.Rounded.Search, contentDescription = null)
                 }
-            } else {
-                { Icon(Icons.Rounded.Search, contentDescription = null) }
             },
-            trailingIcon = if (query.isNotEmpty()) {
+            trailingIcon = if (textFieldState.text.isNotEmpty()) {
                 {
-                    Row {
-                        IconButton(onClick = { onQueryChange("") }) {
-                            Icon(Icons.Rounded.Close, contentDescription = null)
-                        }
-                        IconButton(onClick = onSearch) {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.ArrowForward,
-                                contentDescription = stringResource(R.string.search),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                    IconButton(onClick = { textFieldState.clearText() }) {
+                        Icon(Icons.Rounded.Close, contentDescription = null)
                     }
                 }
-            } else null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
-                .onFocusChanged { if (it.isFocused) onFocus() }
+            } else null
         )
+    }
+
+    SearchBar(
+        state = searchBarState,
+        inputField = inputField,
+        modifier = modifier,
+        shadowElevation = 3.dp
+    )
+    ExpandedFullScreenSearchBar(state = searchBarState, inputField = inputField) {
+        if (textFieldState.text.isNotEmpty()) {
+            LazyColumn {
+                items(results) { poi ->
+                    ListItem(
+                        headlineContent = { Text(poi.title) },
+                        supportingContent = if (poi.snippet.isNotBlank()) {
+                            { Text(poi.snippet) }
+                        } else null,
+                        leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            onResultClick(poi)
+                            collapse()
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
 private var cachedPlacesClient: com.google.android.libraries.places.api.net.PlacesClient? = null
 
 @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-fun performPoiSearch(
+private fun performPoiSearch(
     context: Context,
     mapEngine: MapEngine,
     keyword: String,
-    isDomestic: Boolean = true,
     onResult: (List<AppPoiItem>) -> Unit
 ) {
     if (mapEngine == MapEngine.BAIDU) {
@@ -183,7 +200,6 @@ fun performPoiSearch(
                 .addOnSuccessListener { autocompleteResponse ->
                     val predictions = autocompleteResponse.autocompletePredictions
                     if (predictions.isEmpty()) {
-                        Toast.makeText(context, context.getString(R.string.no_search_results), Toast.LENGTH_SHORT).show()
                         onResult(emptyList())
                         return@addOnSuccessListener
                     }

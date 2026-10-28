@@ -161,7 +161,6 @@
     <string name="located_to_saved_point">已定位至收藏的地点「%s」</string>
     <string name="starting_ellipsis">启动中…</string>
     <string name="new_version_available_badge">发现新版本 v%s 可用</string>
-    <string name="no_matching_local_data">未找到匹配的本地数据</string>
     <string name="no_search_results">未找到搜索结果</string>
     <string name="route_start_badge">起</string>
     <string name="route_end_badge">终</string>
@@ -271,10 +270,8 @@
     <string name="tag_cell">基站</string>
     <string name="app_description">位置模拟器模块</string>
 
-    <string name="local_collected_hotspot">本地采集点</string>
     <string name="wigle_import">WiGLE 导入</string>
     <string name="opencellid_import">OpenCellID 导入</string>
-    <string name="contains_records_format">包含 %d 条记录</string>
     <string name="lat_lng_format_prefix">经纬度：</string>
     <string name="route_plan_failed_fallback_straight">路线规划失败或部分失败，使用直线模拟</string>
     <string name="route_request_exception">路线请求异常：%s</string>

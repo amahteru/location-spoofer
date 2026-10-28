@@ -163,7 +163,6 @@ select the apps to simulate, then restart them.</string>
     <string name="located_to_saved_point">Moved to favorite “%s”</string>
     <string name="starting_ellipsis">Starting…</string>
     <string name="new_version_available_badge">New version v%s available</string>
-    <string name="no_matching_local_data">No matching local data</string>
     <string name="no_search_results">No results</string>
     <string name="route_start_badge">Start</string>
     <string name="route_end_badge">End</string>
@@ -272,10 +271,8 @@ select the apps to simulate, then restart them.</string>
     <string name="tag_bluetooth">Bluetooth</string>
     <string name="tag_cell">Cell</string>
 
-    <string name="local_collected_hotspot">Locally collected point</string>
     <string name="wigle_import">WiGLE import</string>
     <string name="opencellid_import">OpenCellID import</string>
-    <string name="contains_records_format">Records: %d</string>
     <string name="lat_lng_format_prefix">Coordinates:</string>
     <string name="route_plan_failed_fallback_straight">Route planning failed, falling back to straight-line simulation</string>
     <string name="route_request_exception">Route request error: %s</string>

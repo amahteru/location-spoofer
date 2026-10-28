@@ -3,19 +3,10 @@ package io.github.amahteru.locationspoofer.ui.screen.tabs
 import androidx.core.graphics.toColorInt
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.*
@@ -23,17 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -43,9 +26,7 @@ import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
 import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
-import io.github.amahteru.locationspoofer.ui.screen.AppPoiItem
-import io.github.amahteru.locationspoofer.ui.screen.HomeSearchBar
-import io.github.amahteru.locationspoofer.ui.screen.performPoiSearch
+import io.github.amahteru.locationspoofer.ui.screen.PlaceSearchBar
 import io.github.amahteru.locationspoofer.ui.screen.tabs.route.*
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
 import io.github.amahteru.locationspoofer.viewmodel.prepareRouteSimulationOptions
@@ -56,8 +37,6 @@ import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
 import io.github.amahteru.locationspoofer.viewmodel.addRoutePoint
 import io.github.amahteru.locationspoofer.viewmodel.fetchCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.finishSelectingPoints
-import io.github.amahteru.locationspoofer.viewmodel.isDomesticEnvironment
-import io.github.amahteru.locationspoofer.viewmodel.performLocalSearch
 import io.github.amahteru.locationspoofer.viewmodel.restartSelectingPoints
 import io.github.amahteru.locationspoofer.viewmodel.setCustomSpeedMs
 import io.github.amahteru.locationspoofer.viewmodel.setMapEngine
@@ -65,7 +44,6 @@ import io.github.amahteru.locationspoofer.viewmodel.setMapType
 import io.github.amahteru.locationspoofer.viewmodel.setRouteRunMode
 import io.github.amahteru.locationspoofer.viewmodel.setRouteSimMode
 import io.github.amahteru.locationspoofer.viewmodel.setSatelliteCount
-import io.github.amahteru.locationspoofer.viewmodel.setSearchMode
 import io.github.amahteru.locationspoofer.viewmodel.setStopAtDestination
 import io.github.amahteru.locationspoofer.viewmodel.setUseRealRoute
 import io.github.amahteru.locationspoofer.viewmodel.startRoutePlanning
@@ -75,13 +53,10 @@ import io.github.amahteru.locationspoofer.viewmodel.toggleMockBluetooth
 import io.github.amahteru.locationspoofer.viewmodel.toggleMockCell
 import io.github.amahteru.locationspoofer.viewmodel.toggleMockWifi
 import io.github.amahteru.locationspoofer.viewmodel.undoLastRoutePoint
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.theme.warning
-import androidx.compose.foundation.clickable
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun RouteTab(
@@ -99,66 +74,12 @@ fun RouteTab(
     var showConfigDialog by remember { mutableStateOf(false) }
     var showSaveRouteDialog by remember { mutableStateOf(false) }
     var showSavedRoutesDialog by remember { mutableStateOf(false) }
-    val isDomestic = viewModel.isDomesticEnvironment()
-    var searchQuery by remember { mutableStateOf("") }
-    var searchResults by remember { mutableStateOf<List<AppPoiItem>>(emptyList()) }
-    var showSearchResults by remember { mutableStateOf(false) }
-    var isSearchActive by remember { mutableStateOf(false) }
-    var searchBounds by remember { mutableStateOf(Rect.Zero) }
-    var searchResultBounds by remember { mutableStateOf(Rect.Zero) }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val coroutineScope = rememberCoroutineScope()
-    val searchFocusRequester = remember { FocusRequester() }
     var bottomActionHeightPx by remember { mutableIntStateOf(0) }
 
     val stage = uiState.routePlanStage
     val isRunning = stage == RoutePlanStage.RUNNING
     val isManual = uiState.routeRunMode == RouteRunMode.MANUAL
     val routePoints = uiState.routePoints
-
-    val submitSearch: () -> Unit = {
-        focusManager.clearFocus()
-        keyboardController?.hide()
-        if (uiState.searchMode == SearchMode.LOCAL) {
-            coroutineScope.launch {
-                val results = viewModel.performLocalSearch()
-                searchResults = results
-                showSearchResults = results.isNotEmpty()
-                if (results.isEmpty()) {
-                    Toast.makeText(context, context.getString(R.string.no_matching_local_data), Toast.LENGTH_SHORT).show()
-                }
-            }
-        } else if (searchQuery.isNotBlank()) {
-            performPoiSearch(
-                context = context,
-                mapEngine = uiState.mapEngine,
-                keyword = searchQuery,
-                isDomestic = isDomestic
-            ) { r ->
-                searchResults = r
-                showSearchResults = r.isNotEmpty()
-                if (r.isEmpty()) {
-                    Toast.makeText(context, context.getString(R.string.no_search_results), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(isSearchActive) {
-        if (isSearchActive) {
-            searchFocusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
-
-    val exitSearch: () -> Unit = {
-        isSearchActive = false
-        showSearchResults = false
-        focusManager.clearFocus()
-        keyboardController?.hide()
-    }
-    BackHandler(enabled = isSearchActive || showSearchResults, onBack = exitSearch)
 
     val density = LocalDensity.current
     val bottomActionHeightDp = with(density) { bottomActionHeightPx.toDp() }
@@ -265,257 +186,144 @@ fun RouteTab(
         }
     }
 
-    SharedTransitionLayout {
-        AnimatedContent(
-            targetState = isSearchActive,
-            transitionSpec = {
-                androidx.compose.animation.EnterTransition.None togetherWith
-                        androidx.compose.animation.ExitTransition.None
-            },
-            label = "route_search_transition"
-        ) content@{ searchActive ->
-            val searchModifier = Modifier
-                .sharedElement(
-                    sharedContentState = rememberSharedContentState(key = "route_search_bar"),
-                    animatedVisibilityScope = this@content,
-                    boundsTransform = { initialBounds, targetBounds ->
-                        val isTopSearchTransition = (initialBounds.top < 350f && targetBounds.top > 350f) ||
-                                (initialBounds.top > 350f && targetBounds.top < 350f)
-                        if (isTopSearchTransition) {
-                            motion.defaultSpatialSpec()
-                        } else {
-                            snap()
-                        }
-                    }
-                )
-                .onGloballyPositioned { searchBounds = it.boundsInRoot() }
+    Box(modifier = Modifier.fillMaxSize()) {
+        if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE)) {
+            Icon(
+                Icons.Rounded.AddLocationAlt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(36.dp)
+                    .padding(bottom = AppSpacing.lg)
+            )
+        }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (searchActive && showSearchResults) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(searchBounds, searchResultBounds) {
-                                awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
-                                    val up = waitForUpOrCancellation()
-                                    if (up != null &&
-                                        (up.position - down.position).getDistance() < viewConfiguration.touchSlop &&
-                                        !searchBounds.contains(up.position) &&
-                                        !searchResultBounds.contains(up.position)
-                                    ) {
-                                        showSearchResults = false
-                                    }
-                                }
-                            }
-                    )
-                }
+        if (isRunning && isManual) {
+            Icon(
+                Icons.Rounded.PersonPin,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.warning,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(36.dp)
+                    .padding(bottom = AppSpacing.lg)
+            )
+        }
 
-                if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE) && !searchActive) {
-                    Icon(
-                        Icons.Rounded.AddLocationAlt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(36.dp)
-                            .padding(bottom = AppSpacing.lg)
-                    )
-                }
-
-                if (isRunning && isManual) {
-                    Icon(
-                        Icons.Rounded.PersonPin,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.warning,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(36.dp)
-                            .padding(bottom = AppSpacing.lg)
-                    )
-                }
-
-                if (routePoints.isNotEmpty() && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) && !searchActive) {
-                    Surface(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .statusBarsPadding()
-                            .padding(top = AppSpacing.md)
-                            .animateContentSize(motion.defaultSpatialSpec()),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = 3.dp
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(start = AppSpacing.lg, end = AppSpacing.xs, top = AppSpacing.xs, bottom = AppSpacing.xs),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-                        ) {
-                            Text(
-                                stringResource(R.string.selected_waypoints_count, routePoints.size),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            VerticalDivider(modifier = Modifier.height(24.dp))
-
-                            IconButton(onClick = { viewModel.undoLastRoutePoint() }) {
-                                Icon(Icons.AutoMirrored.Rounded.Undo, contentDescription = stringResource(R.string.undo))
-                            }
-
-                            IconButton(onClick = { viewModel.restartSelectingPoints() }) {
-                                Icon(Icons.Rounded.DeleteSweep, contentDescription = stringResource(R.string.reselect))
-                            }
-                        }
-                    }
-                }
-
-                val animatedBottomPadding by animateDpAsState(
-                    targetValue = bottomBarHeight + AppSpacing.sm + bottomActionHeightDp + AppSpacing.lg,
-                    animationSpec = motion.defaultSpatialSpec(),
-                    label = "fab_padding"
-                )
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = AppSpacing.lg, bottom = animatedBottomPadding)
+        if (routePoints.isNotEmpty() && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING)) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = AppSpacing.md)
+                    .animateContentSize(motion.defaultSpatialSpec()),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shadowElevation = 3.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(start = AppSpacing.lg, end = AppSpacing.xs, top = AppSpacing.xs, bottom = AppSpacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        RouteControlButton(
-                            icon = Icons.Rounded.Layers,
-                            onClick = { showMapTypeDialog = true }
-                        )
-                        RouteControlButton(
-                            icon = Icons.Rounded.Bookmarks,
-                            onClick = { showSavedRoutesDialog = true }
-                        )
-                        RouteControlButton(
-                            icon = Icons.Rounded.MyLocation,
-                            onClick = {
-                                viewModel.fetchCurrentLocation(context) { lat, lng ->
-                                    mapController?.animateCamera(lat, lng, 16f)
-                                }
-                            }
-                        )
+                    Text(
+                        stringResource(R.string.selected_waypoints_count, routePoints.size),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    VerticalDivider(modifier = Modifier.height(24.dp))
+
+                    IconButton(onClick = { viewModel.undoLastRoutePoint() }) {
+                        Icon(Icons.AutoMirrored.Rounded.Undo, contentDescription = stringResource(R.string.undo))
                     }
-                }
 
-                RouteBottomPanel(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = bottomBarHeight + AppSpacing.sm, start = AppSpacing.lg, end = AppSpacing.lg)
-                        .onGloballyPositioned { coordinates ->
-                            bottomActionHeightPx = coordinates.size.height
-                        },
-                    stage = stage,
-                    routePoints = routePoints,
-                    uiState = uiState,
-                    onConfirmPoint = {
-                        val tLat = mapController?.cameraTargetLat
-                        val tLng = mapController?.cameraTargetLng
-                        if (tLat != null && tLng != null) {
-                            viewModel.addRoutePoint(tLat, tLng)
-                        } else {
-                            val fallbackLat = uiState.latitudeInput.toDoubleOrNull()
-                            val fallbackLng = uiState.longitudeInput.toDoubleOrNull()
-                            if (fallbackLat != null && fallbackLng != null) {
-                                viewModel.addRoutePoint(fallbackLat, fallbackLng)
-                            }
-                        }
-                    },
-                    onFinishSelecting = {
-                        viewModel.finishSelectingPoints()
-                    },
-                    onRestartSelecting = {
-                        viewModel.restartSelectingPoints()
-                    },
-                    onSaveRoute = { showSaveRouteDialog = true },
-                    onStartPlanning = { viewModel.prepareRouteSimulationOptions { showConfigDialog = true } },
-                    onStopRoute = {
-                        viewModel.stopRoutePlanning()
-                    },
-                    searchBar = if (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) {
-                        { barModifier ->
-                            if (!searchActive) {
-                                HomeSearchBar(
-                                    query = searchQuery,
-                                    searchMode = uiState.searchMode,
-                                    onSearchModeChange = viewModel::setSearchMode,
-                                    onQueryChange = { searchQuery = it },
-                                    onSearch = submitSearch,
-                                    onFocus = { isSearchActive = true },
-                                    modifier = searchModifier.then(barModifier),
-                                    focusRequester = searchFocusRequester
-                                )
-                            } else {
-                                Spacer(modifier = barModifier.height(56.dp))
-                            }
-                        }
-                    } else null
-                )
-
-                if (searchActive) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                            .padding(top = AppSpacing.sm)
-                    ) {
-                        HomeSearchBar(
-                            query = searchQuery,
-                            searchMode = uiState.searchMode,
-                            onSearchModeChange = viewModel::setSearchMode,
-                            onQueryChange = { searchQuery = it },
-                            onSearch = submitSearch,
-                            onFocus = { isSearchActive = true },
-                            onBack = exitSearch,
-                            modifier = searchModifier
-                                .fillMaxWidth()
-                                .padding(horizontal = AppSpacing.lg),
-                            focusRequester = searchFocusRequester
-                        )
-
-                        AnimatedVisibility(
-                            visible = showSearchResults && searchResults.isNotEmpty(),
-                            enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
-                            exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
-                        ) {
-                            ElevatedCard(
-                                shape = MaterialTheme.shapes.large,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
-                                    .onGloballyPositioned { searchResultBounds = it.boundsInRoot() }
-                            ) {
-                                LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {
-                                    items(searchResults) { poi ->
-                                        ListItem(
-                                            modifier = Modifier.clickable {
-                                                mapController?.animateCamera(poi.lat, poi.lng, 17f)
-                                                isSearchActive = false
-                                                showSearchResults = false
-                                                focusManager.clearFocus()
-                                                keyboardController?.hide()
-                                            },
-                                            leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
-                                            headlineContent = { Text(poi.title) },
-                                            supportingContent = if (poi.snippet.isNotBlank()) {
-                                                { Text(poi.snippet) }
-                                            } else null,
-                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    IconButton(onClick = { viewModel.restartSelectingPoints() }) {
+                        Icon(Icons.Rounded.DeleteSweep, contentDescription = stringResource(R.string.reselect))
                     }
                 }
             }
         }
+
+        val animatedBottomPadding by animateDpAsState(
+            targetValue = bottomBarHeight + AppSpacing.sm + bottomActionHeightDp + AppSpacing.lg,
+            animationSpec = motion.defaultSpatialSpec(),
+            label = "fab_padding"
+        )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = AppSpacing.lg, bottom = animatedBottomPadding)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                RouteControlButton(
+                    icon = Icons.Rounded.Layers,
+                    onClick = { showMapTypeDialog = true }
+                )
+                RouteControlButton(
+                    icon = Icons.Rounded.Bookmarks,
+                    onClick = { showSavedRoutesDialog = true }
+                )
+                RouteControlButton(
+                    icon = Icons.Rounded.MyLocation,
+                    onClick = {
+                        viewModel.fetchCurrentLocation(context) { lat, lng ->
+                            mapController?.animateCamera(lat, lng, 16f)
+                        }
+                    }
+                )
+            }
+        }
+
+        RouteBottomPanel(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = bottomBarHeight + AppSpacing.sm, start = AppSpacing.lg, end = AppSpacing.lg)
+                .onGloballyPositioned { coordinates ->
+                    bottomActionHeightPx = coordinates.size.height
+                },
+            stage = stage,
+            routePoints = routePoints,
+            uiState = uiState,
+            onConfirmPoint = {
+                val tLat = mapController?.cameraTargetLat
+                val tLng = mapController?.cameraTargetLng
+                if (tLat != null && tLng != null) {
+                    viewModel.addRoutePoint(tLat, tLng)
+                } else {
+                    val fallbackLat = uiState.latitudeInput.toDoubleOrNull()
+                    val fallbackLng = uiState.longitudeInput.toDoubleOrNull()
+                    if (fallbackLat != null && fallbackLng != null) {
+                        viewModel.addRoutePoint(fallbackLat, fallbackLng)
+                    }
+                }
+            },
+            onFinishSelecting = {
+                viewModel.finishSelectingPoints()
+            },
+            onRestartSelecting = {
+                viewModel.restartSelectingPoints()
+            },
+            onSaveRoute = { showSaveRouteDialog = true },
+            onStartPlanning = { viewModel.prepareRouteSimulationOptions { showConfigDialog = true } },
+            onStopRoute = {
+                viewModel.stopRoutePlanning()
+            },
+            searchBar = if (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) {
+                { barModifier ->
+                    PlaceSearchBar(
+                        mapEngine = uiState.mapEngine,
+                        onResultClick = { poi -> mapController?.animateCamera(poi.lat, poi.lng, 17f) },
+                        modifier = barModifier
+                    )
+                }
+            } else null
+        )
     }
 
     if (showConfigDialog) {

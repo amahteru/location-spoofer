@@ -1,63 +1,28 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
-import io.github.amahteru.locationspoofer.ui.theme.AppMotion
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.ui.graphics.Color
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.MyLocation
-import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
-import io.github.amahteru.locationspoofer.data.model.SearchMode
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.LocalEnvironmentDataDialog
 import io.github.amahteru.locationspoofer.ui.screen.*
@@ -68,9 +33,7 @@ import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
 import io.github.amahteru.locationspoofer.viewmodel.fetchCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.handleSpoofingIntent
 import io.github.amahteru.locationspoofer.viewmodel.importEnvironmentData
-import io.github.amahteru.locationspoofer.viewmodel.isDomesticEnvironment
 import io.github.amahteru.locationspoofer.viewmodel.loadSavedLocation
-import io.github.amahteru.locationspoofer.viewmodel.performLocalSearch
 import io.github.amahteru.locationspoofer.viewmodel.removeSavedLocation
 import io.github.amahteru.locationspoofer.viewmodel.saveCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedRoute
@@ -80,7 +43,6 @@ import io.github.amahteru.locationspoofer.viewmodel.setAltitudeVariation
 import io.github.amahteru.locationspoofer.viewmodel.setMapEngine
 import io.github.amahteru.locationspoofer.viewmodel.setMapType
 import io.github.amahteru.locationspoofer.viewmodel.setSatelliteCount
-import io.github.amahteru.locationspoofer.viewmodel.setSearchMode
 import io.github.amahteru.locationspoofer.viewmodel.startSpoofing
 import io.github.amahteru.locationspoofer.viewmodel.stopSpoofing
 import io.github.amahteru.locationspoofer.viewmodel.toggleCollectedLocationFavorite
@@ -91,15 +53,12 @@ import io.github.amahteru.locationspoofer.viewmodel.toggleMockWifi
 import io.github.amahteru.locationspoofer.viewmodel.toggleRestartAppsOnSpoof
 import io.github.amahteru.locationspoofer.viewmodel.updateLatitude
 import io.github.amahteru.locationspoofer.viewmodel.updateLongitude
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.screen.tabs.location.*
 import java.util.Locale
-import androidx.compose.foundation.clickable
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LocationTab(
     viewModel: MainViewModel,
@@ -109,19 +68,10 @@ fun LocationTab(
     manageDataViewModel: ManageDataViewModel = koinViewModel(),
     onCollectionRouteSelected: () -> Unit = {}
 ) {
-    val motion = AppMotion
     val context = LocalContext.current
     val resources = LocalResources.current
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val searchFocusRequester = remember { FocusRequester() }
-    val isSearching = spoofingUiState.isSearchActive
     val onIntent = { intent: SpoofingIntent -> viewModel.handleSpoofingIntent(intent) }
-    val searchCacheDurationMs = 30_000L
-    var searchBounds by remember { mutableStateOf(Rect.Zero) }
-    var searchResultBounds by remember { mutableStateOf(Rect.Zero) }
     var showLocalDataDialog by remember { mutableStateOf(false) }
 
     var persistentSavedCardHeightPx by remember { mutableIntStateOf(0) }
@@ -162,268 +112,96 @@ fun LocationTab(
         }
     }
 
-    val submitSearch: () -> Unit = {
-        focusManager.clearFocus()
-        keyboardController?.hide()
-        val now = System.currentTimeMillis()
-        val hasRecentSearchCache =
-            spoofingUiState.searchResults.isNotEmpty() &&
-                    spoofingUiState.cachedSearchQuery == spoofingUiState.searchQuery &&
-                    now - spoofingUiState.cachedSearchAt <= searchCacheDurationMs
-
-        if (hasRecentSearchCache) {
-            onIntent(
-                SpoofingIntent.SetSearchResults(
-                    results = spoofingUiState.searchResults,
-                    show = true,
-                    query = spoofingUiState.searchQuery
-                )
-            )
-        } else if (uiState.searchMode == SearchMode.LOCAL) {
-            coroutineScope.launch {
-                val results = viewModel.performLocalSearch()
-                onIntent(
-                    SpoofingIntent.SetSearchResults(
-                        results = results,
-                        show = true,
-                        query = spoofingUiState.searchQuery
-                    )
-                )
-            }
-        } else if (spoofingUiState.searchQuery.isNotBlank()) {
-            performPoiSearch(
-                context = context,
-                mapEngine = uiState.mapEngine,
-                keyword = spoofingUiState.searchQuery,
-                isDomestic = viewModel.isDomesticEnvironment()
-            ) { results ->
-                onIntent(
-                    SpoofingIntent.SetSearchResults(
-                        results = results,
-                        show = true,
-                        query = spoofingUiState.searchQuery
-                    )
-                )
-            }
-        }
-    }
-
-    LaunchedEffect(isSearching) {
-        if (isSearching) {
-            searchFocusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
-
-    val exitSearch: () -> Unit = {
-        focusManager.clearFocus()
-        keyboardController?.hide()
-        onIntent(SpoofingIntent.SetSearchActive(false))
-    }
-    BackHandler(enabled = isSearching, onBack = exitSearch)
-
     var tabBottom by remember { mutableFloatStateOf(0f) }
     var panelSearchTop by remember { mutableFloatStateOf(0f) }
 
-    SharedTransitionLayout {
-        AnimatedContent(
-            targetState = isSearching,
-            transitionSpec = {
-                androidx.compose.animation.EnterTransition.None togetherWith
-                        androidx.compose.animation.ExitTransition.None
-            },
-            label = "location_search_transition"
-        ) content@{ searchActive ->
-            val searchModifier = Modifier
-                .sharedElement(
-                    sharedContentState = rememberSharedContentState(key = "location_search_bar"),
-                    animatedVisibilityScope = this@content,
-                    boundsTransform = { initialBounds, targetBounds ->
-                        val isTopSearchTransition = (initialBounds.top < 350f && targetBounds.top > 350f) ||
-                                (initialBounds.top > 350f && targetBounds.top < 350f)
-                        if (isTopSearchTransition) {
-                            motion.defaultSpatialSpec()
-                        } else {
-                            snap()
-                        }
-                    }
-                )
-                .onGloballyPositioned { searchBounds = it.boundsInRoot() }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
-            ) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = AppSpacing.lg, bottom = AppSpacing.lg)
-                        .offset { IntOffset(0, (panelSearchTop - tabBottom).roundToInt()) },
-                    verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    MapControlButton(
-                        icon = Icons.Rounded.MyLocation,
-                        onClick = {
-                            viewModel.fetchCurrentLocation(context) { lat, lng ->
-                                mapController?.animateCamera(lat, lng, 16f)
-                            }
-                        }
-                    )
-                    MapControlButton(
-                        icon = Icons.Rounded.Layers,
-                        onClick = {
-                            onIntent(SpoofingIntent.SetMapTypeDialogVisible(true))
-                        }
-                    )
-                    MapControlButton(
-                        icon = Icons.Rounded.Star,
-                        onClick = {
-                            onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
-                        }
-                    )
-                    MapControlButton(
-                        icon = Icons.Rounded.Storage,
-                        onClick = {
-                            showLocalDataDialog = true
-                        }
-                    )
-                }
-
-                LocationControlPanel(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    uiState = uiState,
-                    panelState = panelState,
-                    onPanelStateChange = { panelState = it },
-                    viewModel = viewModel,
-                    tabBarHeight = tabBarHeight,
-                    savedCardHeightDp = savedCardHeightDp,
-                    coordCardHeightDp = coordCardHeightDp,
-                    onSavedCardHeightMeasured = { persistentSavedCardHeightPx = it },
-                    onCoordCardHeightMeasured = { persistentCoordCardHeightPx = it },
-                    onSaveClick = { onIntent(SpoofingIntent.SetSaveDialogVisible(true)) },
-                    onCustomClick = { onIntent(SpoofingIntent.SetCustomCoordDialogVisible(true)) },
-                    onStartFixedSpoofing = {
-                        onIntent(SpoofingIntent.SetStartSpoofingDialogVisible(true))
-                    },
-                    onStopSpoofing = { viewModel.stopSpoofing() },
-                    onSelectSavedLocation = { location ->
-                        viewModel.loadSavedLocation(location)
-                        mapController?.animateCamera(location.lat, location.lng, 17.5f)
-                        Toast.makeText(
-                            context,
-                            resources.getString(R.string.located_to_saved_point, location.name),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    onDeleteSavedLocation = { location ->
-                        viewModel.removeSavedLocation(location)
-                    },
-                    onOpenManageSavedLocations = {
-                        onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
-                    },
-                    searchBar = { slotModifier ->
-                        val barModifier = slotModifier.onGloballyPositioned {
-                            panelSearchTop = it.boundsInRoot().top
-                        }
-                        if (!searchActive) {
-                            HomeSearchBar(
-                                query = spoofingUiState.searchQuery,
-                                searchMode = uiState.searchMode,
-                                onSearchModeChange = viewModel::setSearchMode,
-                                onQueryChange = { onIntent(SpoofingIntent.UpdateSearchQuery(it)) },
-                                onSearch = submitSearch,
-                                onFocus = { onIntent(SpoofingIntent.SetSearchActive(true)) },
-                                modifier = searchModifier.then(barModifier),
-                                focusRequester = searchFocusRequester
-                            )
-                        } else {
-                            Spacer(modifier = barModifier.height(56.dp))
-                        }
-                    }
-                )
-
-                if (searchActive && spoofingUiState.showSearchResults) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(searchBounds, searchResultBounds) {
-                                awaitEachGesture {
-                                    val down = awaitFirstDown(requireUnconsumed = false)
-                                    val up = waitForUpOrCancellation()
-                                    if (up != null &&
-                                        (up.position - down.position).getDistance() < viewConfiguration.touchSlop &&
-                                        !searchBounds.contains(up.position) &&
-                                        !searchResultBounds.contains(up.position)
-                                    ) {
-                                        onIntent(SpoofingIntent.HideSearchResults)
-                                    }
-                                }
-                            }
-                    )
-                }
-
-                if (searchActive) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .statusBarsPadding()
-                            .padding(top = AppSpacing.sm)
-                    ) {
-                        HomeSearchBar(
-                            query = spoofingUiState.searchQuery,
-                            searchMode = uiState.searchMode,
-                            onSearchModeChange = viewModel::setSearchMode,
-                            onQueryChange = { onIntent(SpoofingIntent.UpdateSearchQuery(it)) },
-                            onSearch = submitSearch,
-                            onFocus = { onIntent(SpoofingIntent.SetSearchActive(true)) },
-                            onBack = exitSearch,
-                            modifier = searchModifier
-                                .fillMaxWidth()
-                                .padding(horizontal = AppSpacing.lg),
-                            focusRequester = searchFocusRequester
-                        )
-
-                        AnimatedVisibility(
-                            visible = spoofingUiState.showSearchResults && spoofingUiState.searchResults.isNotEmpty(),
-                            enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
-                            exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
-                        ) {
-                            ElevatedCard(
-                                shape = MaterialTheme.shapes.large,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
-                                    .onGloballyPositioned { searchResultBounds = it.boundsInRoot() }
-                            ) {
-                                LazyColumn(modifier = Modifier.heightIn(max = 280.dp)) {
-                                    items(spoofingUiState.searchResults) { poi ->
-                                        ListItem(
-                                            modifier = Modifier.clickable {
-                                                viewModel.updateLatitude(poi.lat.toString())
-                                                viewModel.updateLongitude(poi.lng.toString())
-                                                mapController?.animateCamera(
-                                                    poi.lat,
-                                                    poi.lng,
-                                                    17.5f
-                                                )
-                                                onIntent(SpoofingIntent.HideSearchResults)
-                                                onIntent(SpoofingIntent.SetSearchActive(false))
-                                            },
-                                            leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
-                                            headlineContent = { Text(poi.title) },
-                                            supportingContent = { Text(poi.snippet) },
-                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = AppSpacing.lg, bottom = AppSpacing.lg)
+                .offset { IntOffset(0, (panelSearchTop - tabBottom).roundToInt()) },
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            horizontalAlignment = Alignment.End
+        ) {
+            MapControlButton(
+                icon = Icons.Rounded.MyLocation,
+                onClick = {
+                    viewModel.fetchCurrentLocation(context) { lat, lng ->
+                        mapController?.animateCamera(lat, lng, 16f)
                     }
                 }
-            }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Layers,
+                onClick = {
+                    onIntent(SpoofingIntent.SetMapTypeDialogVisible(true))
+                }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Star,
+                onClick = {
+                    onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
+                }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Storage,
+                onClick = {
+                    showLocalDataDialog = true
+                }
+            )
         }
+
+        LocationControlPanel(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            uiState = uiState,
+            panelState = panelState,
+            onPanelStateChange = { panelState = it },
+            viewModel = viewModel,
+            tabBarHeight = tabBarHeight,
+            savedCardHeightDp = savedCardHeightDp,
+            coordCardHeightDp = coordCardHeightDp,
+            onSavedCardHeightMeasured = { persistentSavedCardHeightPx = it },
+            onCoordCardHeightMeasured = { persistentCoordCardHeightPx = it },
+            onSaveClick = { onIntent(SpoofingIntent.SetSaveDialogVisible(true)) },
+            onCustomClick = { onIntent(SpoofingIntent.SetCustomCoordDialogVisible(true)) },
+            onStartFixedSpoofing = {
+                onIntent(SpoofingIntent.SetStartSpoofingDialogVisible(true))
+            },
+            onStopSpoofing = { viewModel.stopSpoofing() },
+            onSelectSavedLocation = { location ->
+                viewModel.loadSavedLocation(location)
+                mapController?.animateCamera(location.lat, location.lng, 17.5f)
+                Toast.makeText(
+                    context,
+                    resources.getString(R.string.located_to_saved_point, location.name),
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            onDeleteSavedLocation = { location ->
+                viewModel.removeSavedLocation(location)
+            },
+            onOpenManageSavedLocations = {
+                onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
+            },
+            searchBar = { slotModifier ->
+                PlaceSearchBar(
+                    mapEngine = uiState.mapEngine,
+                    onResultClick = { poi ->
+                        viewModel.updateLatitude(poi.lat.toString())
+                        viewModel.updateLongitude(poi.lng.toString())
+                        mapController?.animateCamera(poi.lat, poi.lng, 17.5f)
+                    },
+                    modifier = slotModifier.onGloballyPositioned {
+                        panelSearchTop = it.boundsInRoot().top
+                    }
+                )
+            }
+        )
     }
 
     if (showLocalDataDialog) {

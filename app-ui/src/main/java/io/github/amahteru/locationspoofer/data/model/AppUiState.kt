@@ -12,11 +12,6 @@ enum class SimMode(val speedMs: Double) {
     CUSTOM(0.0)
 }
 
-enum class SearchMode {
-    NETWORK,
-    LOCAL
-}
-
 enum class RoutePlanStage {
     IDLE,
 
@@ -62,8 +57,6 @@ data class AppState(
     val isSavingConfig: Boolean = false,
     val isSpoofingActive: Boolean = false,
     val savedLocations: List<SavedLocation> = emptyList(),
-    val searchMode: SearchMode = SearchMode.NETWORK,
-    val searchResults: List<SavedLocation> = emptyList(),
     val simBearing: Float = 0f,
     val savedRoutes: List<SavedRoute> = emptyList(),
     val routePoints: List<RoutePoint> = emptyList(),
