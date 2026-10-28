@@ -243,7 +243,6 @@ object XposedBridge {
     private val loggingEnabled = com.vincenthzr.locationspoofer.xposed.BuildConfig.DEBUG
 
     private fun logcat(priority: Int, msg: String, t: Throwable? = null) {
-        if (!loggingEnabled) return
         try {
             if (t != null) android.util.Log.println(priority, "LocationSpoofer", msg + "\n" + android.util.Log.getStackTraceString(t))
             else android.util.Log.println(priority, "LocationSpoofer", msg)
@@ -263,9 +262,11 @@ object XposedBridge {
         log(msg)
     }
     fun logOpenCellId(msg: String, t: Throwable) {
+        if (!loggingEnabled) return
         logcat(android.util.Log.ERROR, msg, t)
     }
     fun logOpenCellIdEvery(key: String, msg: String, intervalMs: Long = 5_000L) {
+        if (!loggingEnabled) return
         val now = System.currentTimeMillis()
         val last = openCellLogLastTimes[key] ?: 0L
         if (now - last > intervalMs) {
