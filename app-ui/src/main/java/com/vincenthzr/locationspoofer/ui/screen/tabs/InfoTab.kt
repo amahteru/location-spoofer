@@ -182,7 +182,7 @@ fun InfoTab(
                         )
                         SettingsEntryRow(
                             icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
-                            tone = LabelTone.Warning,
+                            tone = LabelTone.Tertiary,
                             title = stringResource(R.string.motion_realism_title),
                             previewChip = currentRealismLevelName,
                             onClick = onNavigateToMotionRealism
