@@ -48,6 +48,8 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import io.github.amahteru.locationspoofer.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,23 +63,27 @@ fun PlaceSearchBar(
     val searchBarState = rememberSearchBarState()
     val textFieldState = rememberTextFieldState()
     val scope = rememberCoroutineScope()
-    var results by remember { mutableStateOf(emptyList<AppPoiItem>()) }
+    var results by remember { mutableStateOf<List<AppPoiItem>?>(null) }
     val collapse: () -> Unit = { scope.launch { searchBarState.animateToCollapsed() } }
+
+    LaunchedEffect(textFieldState, mapEngine) {
+        snapshotFlow { textFieldState.text.toString() }.collectLatest { query ->
+            if (query.isBlank()) {
+                results = null
+            } else {
+                delay(300)
+                performPoiSearch(context, mapEngine, query.trim()) {
+                    if (textFieldState.text.toString() == query) results = it
+                }
+            }
+        }
+    }
 
     val inputField = @Composable {
         SearchBarDefaults.InputField(
             textFieldState = textFieldState,
             searchBarState = searchBarState,
-            onSearch = { query ->
-                if (query.isNotBlank()) {
-                    performPoiSearch(context, mapEngine, query) {
-                        results = it
-                        if (it.isEmpty()) {
-                            Toast.makeText(context, context.getString(R.string.no_search_results), Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            },
+            onSearch = {},
             placeholder = { Text(stringResource(R.string.search_place_building_coord_hint), maxLines = 1) },
             leadingIcon = {
                 if (searchBarState.targetValue == SearchBarValue.Expanded) {
@@ -105,22 +111,28 @@ fun PlaceSearchBar(
         shadowElevation = 3.dp
     )
     ExpandedFullScreenSearchBar(state = searchBarState, inputField = inputField) {
-        if (textFieldState.text.isNotEmpty()) {
-            LazyColumn {
-                items(results) { poi ->
+        LazyColumn {
+            if (results?.isEmpty() == true) {
+                item {
                     ListItem(
-                        headlineContent = { Text(poi.title) },
-                        supportingContent = if (poi.snippet.isNotBlank()) {
-                            { Text(poi.snippet) }
-                        } else null,
-                        leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.clickable {
-                            onResultClick(poi)
-                            collapse()
-                        }
+                        headlineContent = { Text(stringResource(R.string.no_search_results)) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                 }
+            }
+            items(results.orEmpty()) { poi ->
+                ListItem(
+                    headlineContent = { Text(poi.title) },
+                    supportingContent = if (poi.snippet.isNotBlank()) {
+                        { Text(poi.snippet) }
+                    } else null,
+                    leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable {
+                        onResultClick(poi)
+                        collapse()
+                    }
+                )
             }
         }
     }
