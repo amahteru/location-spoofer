@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
@@ -53,9 +52,10 @@ import io.github.amahteru.locationspoofer.viewmodel.toggleMockWifi
 import io.github.amahteru.locationspoofer.viewmodel.toggleRestartAppsOnSpoof
 import io.github.amahteru.locationspoofer.viewmodel.updateLatitude
 import io.github.amahteru.locationspoofer.viewmodel.updateLongitude
-import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.screen.tabs.location.*
+import io.github.amahteru.locationspoofer.ui.components.MapControlButton
+import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
 import java.util.Locale
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
@@ -120,38 +120,29 @@ fun LocationTab(
             .fillMaxSize()
             .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
     ) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = AppSpacing.lg, bottom = AppSpacing.lg)
-                .offset { IntOffset(0, (panelSearchTop - tabBottom).roundToInt()) },
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-            horizontalAlignment = Alignment.End
-        ) {
+        MapControlColumn(anchorTop = panelSearchTop, containerBottom = tabBottom) {
+            MapControlButton(
+                icon = Icons.Rounded.Layers,
+                contentDescription = stringResource(R.string.map_layers),
+                onClick = { onIntent(SpoofingIntent.SetMapTypeDialogVisible(true)) }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Star,
+                contentDescription = stringResource(R.string.saved_locations),
+                onClick = { onIntent(SpoofingIntent.SetSavedLocationsVisible(true)) }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Storage,
+                contentDescription = stringResource(R.string.local_collected_datasource),
+                onClick = { showLocalDataDialog = true }
+            )
             MapControlButton(
                 icon = Icons.Rounded.MyLocation,
+                contentDescription = stringResource(R.string.current_location),
                 onClick = {
                     viewModel.fetchCurrentLocation(context) { lat, lng ->
                         mapController?.animateCamera(lat, lng, 16f)
                     }
-                }
-            )
-            MapControlButton(
-                icon = Icons.Rounded.Layers,
-                onClick = {
-                    onIntent(SpoofingIntent.SetMapTypeDialogVisible(true))
-                }
-            )
-            MapControlButton(
-                icon = Icons.Rounded.Star,
-                onClick = {
-                    onIntent(SpoofingIntent.SetSavedLocationsVisible(true))
-                }
-            )
-            MapControlButton(
-                icon = Icons.Rounded.Storage,
-                onClick = {
-                    showLocalDataDialog = true
                 }
             )
         }

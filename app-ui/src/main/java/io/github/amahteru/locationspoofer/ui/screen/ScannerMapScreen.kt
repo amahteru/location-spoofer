@@ -1,7 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
-import io.github.amahteru.locationspoofer.ui.screen.tabs.location.MapControlButton
+import io.github.amahteru.locationspoofer.ui.components.MapControlButton
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.activity.compose.BackHandler

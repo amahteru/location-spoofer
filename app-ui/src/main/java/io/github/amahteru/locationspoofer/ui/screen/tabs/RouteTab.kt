@@ -4,7 +4,6 @@ import androidx.core.graphics.toColorInt
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -14,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -24,6 +24,8 @@ import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.*
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.MapControlButton
+import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
 import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 import io.github.amahteru.locationspoofer.ui.screen.PlaceSearchBar
@@ -75,6 +77,8 @@ fun RouteTab(
     var showSaveRouteDialog by remember { mutableStateOf(false) }
     var showSavedRoutesDialog by remember { mutableStateOf(false) }
     var bottomActionHeightPx by remember { mutableIntStateOf(0) }
+    var panelTop by remember { mutableFloatStateOf(0f) }
+    var tabBottom by remember { mutableFloatStateOf(0f) }
 
     val stage = uiState.routePlanStage
     val isRunning = stage == RoutePlanStage.RUNNING
@@ -186,7 +190,11 @@ fun RouteTab(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
+    ) {
         if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE)) {
             Icon(
                 Icons.Rounded.AddLocationAlt,
@@ -246,38 +254,26 @@ fun RouteTab(
             }
         }
 
-        val animatedBottomPadding by animateDpAsState(
-            targetValue = bottomBarHeight + AppSpacing.sm + bottomActionHeightDp + AppSpacing.lg,
-            animationSpec = motion.defaultSpatialSpec(),
-            label = "fab_padding"
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = AppSpacing.lg, bottom = animatedBottomPadding)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                RouteControlButton(
-                    icon = Icons.Rounded.Layers,
-                    onClick = { showMapTypeDialog = true }
-                )
-                RouteControlButton(
-                    icon = Icons.Rounded.Bookmarks,
-                    onClick = { showSavedRoutesDialog = true }
-                )
-                RouteControlButton(
-                    icon = Icons.Rounded.MyLocation,
-                    onClick = {
-                        viewModel.fetchCurrentLocation(context) { lat, lng ->
-                            mapController?.animateCamera(lat, lng, 16f)
-                        }
+        MapControlColumn(anchorTop = panelTop, containerBottom = tabBottom) {
+            MapControlButton(
+                icon = Icons.Rounded.Layers,
+                contentDescription = stringResource(R.string.map_layers),
+                onClick = { showMapTypeDialog = true }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.Star,
+                contentDescription = stringResource(R.string.route_library),
+                onClick = { showSavedRoutesDialog = true }
+            )
+            MapControlButton(
+                icon = Icons.Rounded.MyLocation,
+                contentDescription = stringResource(R.string.current_location),
+                onClick = {
+                    viewModel.fetchCurrentLocation(context) { lat, lng ->
+                        mapController?.animateCamera(lat, lng, 16f)
                     }
-                )
-            }
+                }
+            )
         }
 
         RouteBottomPanel(
@@ -286,6 +282,7 @@ fun RouteTab(
                 .padding(bottom = bottomBarHeight + AppSpacing.sm, start = AppSpacing.lg, end = AppSpacing.lg)
                 .onGloballyPositioned { coordinates ->
                     bottomActionHeightPx = coordinates.size.height
+                    panelTop = coordinates.boundsInRoot().top
                 },
             stage = stage,
             routePoints = routePoints,

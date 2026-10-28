@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -51,7 +51,7 @@ fun SaveRouteDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Rounded.BookmarkAdd, contentDescription = null) },
+        icon = { Icon(Icons.Rounded.Star, contentDescription = null) },
         title = { Text(stringResource(R.string.bookmark_current_route)) },
         text = {
             OutlinedTextField(

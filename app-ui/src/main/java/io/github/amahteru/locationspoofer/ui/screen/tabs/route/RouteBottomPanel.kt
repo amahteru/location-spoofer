@@ -133,7 +133,7 @@ fun RouteBottomPanel(
                                     contentPadding = PaddingValues(horizontal = AppSpacing.xs)
                                 ) {
                                     Icon(
-                                        Icons.Rounded.BookmarkAdd,
+                                        Icons.Rounded.StarBorder,
                                         null,
                                         modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
