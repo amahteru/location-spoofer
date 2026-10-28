@@ -1,21 +1,13 @@
-<div align="center">
+# LocationSpoofer
 
-<h1>LocationSpoofer</h1>
+[简体中文](README.md) | **English**
 
-<p>An LSPosed module for location spoofing and wireless environment simulation on Android</p>
+An LSPosed module for location spoofing on Android that also simulates nearby Wi-Fi, cell towers, Bluetooth, satellites and step counts, so the location and its surroundings stay consistent.
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-13%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-purple.svg)](https://kotlinlang.org)
 [![libxposed](https://img.shields.io/badge/libxposed-API%20100%2B-purple.svg)](https://github.com/libxposed/api)
-
-[简体中文](README.md) | [English](README_EN.md)
-
-</div>
-
-## Overview
-
-Many apps check more than the `isFromMockProvider` / `isMock` flags: they also compare nearby Wi-Fi, cell towers, Bluetooth, satellites and step counts. LocationSpoofer is injected into the apps in its LSPosed scope and rewrites what these APIs return, so the location and its surroundings stay consistent.
 
 ## Features
 

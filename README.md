@@ -1,21 +1,13 @@
-<div align="center">
+# LocationSpoofer
 
-<h1>LocationSpoofer</h1>
+**简体中文** | [English](README_EN.md)
 
-<p>基于 LSPosed 的 Android 虚拟定位与无线环境模拟模块</p>
+基于 LSPosed 的 Android 虚拟定位模块，同时模拟周边的 Wi-Fi、基站、蓝牙、卫星与计步数据，让位置和环境保持一致。
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-13%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.4-purple.svg)](https://kotlinlang.org)
 [![libxposed](https://img.shields.io/badge/libxposed-API%20100%2B-purple.svg)](https://github.com/libxposed/api)
-
-[简体中文](README.md) | [English](README_EN.md)
-
-</div>
-
-## 简介
-
-不少应用除了检查 `isFromMockProvider` / `isMock` 标记，还会比对周边的 Wi-Fi、基站、蓝牙、卫星和计步数据。LocationSpoofer 通过 LSPosed 注入作用域内的目标应用，统一改写这些接口的返回结果，让位置和周边环境保持一致。
 
 ## 功能
 
