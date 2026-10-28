@@ -1,0 +1,91 @@
+package io.github.amahteru.locationspoofer.ui.screen.settings
+
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Card
+import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
+import android.content.ClipData
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.ui.text.style.TextOverflow
+import io.github.amahteru.locationspoofer.ui.R
+import io.github.amahteru.locationspoofer.data.model.AppState
+import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
+import io.github.amahteru.locationspoofer.ui.components.AppCard
+import io.github.amahteru.locationspoofer.ui.components.AppTopBar
+import io.github.amahteru.locationspoofer.ui.theme.warning
+import androidx.compose.foundation.clickable
+import io.github.amahteru.locationspoofer.ui.theme.warningContainer
+import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+
+@Composable
+fun SignatureAuthScreen(
+    viewModel: MainViewModel,
+    uiState: AppState,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+
+    BackHandler(onBack = onClose)
+
+    SubPageScaffold(
+        title = stringResource(R.string.env_and_signature),
+        subtitle = stringResource(R.string.api_key_binding_desc),
+        onBack = onClose
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
+                CopyableListItem(
+                    label = stringResource(R.string.app_package_name),
+                    value = context.packageName,
+                    onCopy = {
+                        scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, context.packageName).toClipEntry()) }
+                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                    }
+                )
+                CopyableListItem(
+                    label = stringResource(R.string.app_sha1),
+                    value = uiState.appSha1.ifBlank { stringResource(R.string.reading_signature) },
+                    onCopy = {
+                        scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, uiState.appSha1).toClipEntry()) }
+                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CopyableListItem(label: String, value: String, onCopy: () -> Unit) {
+    ListItem(
+        modifier = Modifier.clickable(onClick = onCopy),
+        overlineContent = { Text(label) },
+        headlineContent = { Text(value, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        trailingContent = { Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(R.string.copy)) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+}

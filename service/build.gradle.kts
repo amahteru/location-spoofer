@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.vincenthzr.locationspoofer.service"
+    namespace = "io.github.amahteru.locationspoofer.service"
     compileSdk = 37
 
     defaultConfig {

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.vincenthzr.locationspoofer.xposed"
+    namespace = "io.github.amahteru.locationspoofer.xposed"
     compileSdk = 37
 
     defaultConfig {

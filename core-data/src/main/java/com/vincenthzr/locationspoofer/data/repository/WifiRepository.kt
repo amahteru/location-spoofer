@@ -1,9 +1,0 @@
-package com.vincenthzr.locationspoofer.data.repository
-
-import com.vincenthzr.locationspoofer.utils.WigleClient
-
-class WifiRepository(private val wigleClient: WigleClient) {
-
-    suspend fun fetchWifiData(lat: Double, lng: Double, token: String): String =
-        wigleClient.fetchWifiData(lat, lng, token)
-}

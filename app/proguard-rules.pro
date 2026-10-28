@@ -2,7 +2,7 @@
 -keep interface de.robv.android.xposed.** { *; }
 -keep class io.github.libxposed.** { *; }
 -keep interface io.github.libxposed.** { *; }
--keep class com.vincenthzr.locationspoofer.xposed.** { *; }
+-keep class io.github.amahteru.locationspoofer.xposed.** { *; }
 -dontwarn io.github.libxposed.api.**
 
 -keep class com.amap.api.** { *; }
@@ -27,11 +27,11 @@
     *;
 }
 
--keep class com.vincenthzr.locationspoofer.utils.ConfigManager { *; }
--keep class com.vincenthzr.locationspoofer.utils.LSPosedManager { *; }
--keep class com.vincenthzr.locationspoofer.provider.** { *; }
--keep class com.vincenthzr.locationspoofer.data.** { *; }
--keepclassmembers class com.vincenthzr.locationspoofer.data.** { *; }
+-keep class io.github.amahteru.locationspoofer.utils.ConfigManager { *; }
+-keep class io.github.amahteru.locationspoofer.utils.LSPosedManager { *; }
+-keep class io.github.amahteru.locationspoofer.provider.** { *; }
+-keep class io.github.amahteru.locationspoofer.data.** { *; }
+-keepclassmembers class io.github.amahteru.locationspoofer.data.** { *; }
 
 -keep class * extends android.app.Application { *; }
 -keep class * extends android.app.Activity { *; }

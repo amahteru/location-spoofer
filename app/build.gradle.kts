@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.vincenthzr.locationspoofer"
+    namespace = "io.github.amahteru.locationspoofer"
     compileSdk = 37
 
     bundle {
@@ -39,8 +39,8 @@ android {
         System.getenv("GOOGLE_MAPS_API_KEY") ?: getLocalConfig("GOOGLE_MAPS_API_KEY") ?: ""
 
     defaultConfig {
-        applicationId = "com.vincenthzr.locationspoofer"
-        testInstrumentationRunner = "com.vincenthzr.locationspoofer.SystemFilesInstrumentation"
+        applicationId = "io.github.amahteru.locationspoofer"
+        testInstrumentationRunner = "io.github.amahteru.locationspoofer.SystemFilesInstrumentation"
         minSdk = 33
         targetSdk = 37
         versionCode = providers.gradleProperty("APP_VERSION_CODE").get().toInt()

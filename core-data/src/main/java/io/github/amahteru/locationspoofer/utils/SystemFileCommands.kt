@@ -1,0 +1,24 @@
+package io.github.amahteru.locationspoofer.utils
+
+internal object SystemFileCommands {
+    private const val ROOT = "/proc/1/root"
+
+    @android.annotation.SuppressLint("SdCardPath")
+    fun removeLegacyConfigs(): String = """
+        set -e
+        rm -f $ROOT/data/local/tmp/locationspoofer_config.json \
+            $ROOT/data/local/tmp/locationspoofer_config_tmp.json \
+            $ROOT/data/local/tmp/locationspoofer_config.json.input.* \
+            $ROOT/data/local/tmp/.lsp_selinux_probe \
+            $ROOT/data/local/tmp/.lsp_sepolicy_apply.sh \
+            $ROOT/data/system/locationspoofer_config.json \
+            $ROOT/data/system/locationspoofer_config_tmp.json \
+            $ROOT/data/system/locationspoofer_config.json.tmp.* \
+            $ROOT/data/data/io.github.amahteru.locationspoofer/files/locationspoofer_config.json
+        for domain in com.android.phone com.android.bluetooth; do
+            rm -f "$ROOT/data/user_de/0/${'$'}domain/files/locationspoofer_config.json" \
+                "$ROOT/data/user_de/0/${'$'}domain/files/locationspoofer_config.json.tmp" \
+                $ROOT/data/user_de/0/${'$'}domain/files/locationspoofer_config.json.tmp.*
+        done
+    """.trimIndent()
+}

@@ -18,8 +18,8 @@
             android:exported="true"
             tools:ignore="ExportedReceiver">
             <intent-filter>
-                <action android:name="com.vincenthzr.locationspoofer.START" />
-                <action android:name="com.vincenthzr.locationspoofer.STOP" />
+                <action android:name="io.github.amahteru.locationspoofer.START" />
+                <action android:name="io.github.amahteru.locationspoofer.STOP" />
             </intent-filter>
         </receiver>
         <receiver

@@ -1,0 +1,31 @@
+package io.github.amahteru.locationspoofer.xposed.utils
+
+import io.github.amahteru.locationspoofer.utils.FrameworkConfigChannel
+import org.json.JSONObject
+
+internal data class FrameworkConfigSnapshot(
+    val config: JSONObject,
+    val source: String,
+    val publishedAt: Long,
+    val id: String
+) {
+    companion object {
+        fun decode(text: String, readFile: (String) -> String): FrameworkConfigSnapshot {
+            val envelope = JSONObject(text)
+            require(envelope.getInt("version") == FrameworkConfigChannel.VERSION) { "Unsupported config version" }
+            val id = envelope.getString("id")
+            require(id.isNotBlank()) { "Missing snapshot identity" }
+            val file = envelope.optString("file")
+            val payload = if (file.isEmpty()) envelope.getString("payload") else {
+                require(FrameworkConfigChannel.isConfigFile(file)) { "Invalid remote config filename" }
+                readFile(file)
+            }
+            return FrameworkConfigSnapshot(
+                JSONObject(payload),
+                if (file.isEmpty()) "libxposed:remote-preferences" else "libxposed:remote-file",
+                envelope.getLong("published_at"),
+                id
+            )
+        }
+    }
+}
