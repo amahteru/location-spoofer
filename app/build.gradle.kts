@@ -35,7 +35,6 @@ android {
         return null
     }
 
-    // 地图 Key 不进仓库：依次读环境变量（CI Secrets）、项目根目录 local.yml，都没有就留空
     fun mapConfig(key: String): String {
         val value = System.getenv(key)?.takeIf { it.isNotBlank() } ?: getLocalConfig(key) ?: ""
         if (value.isBlank()) logger.warn("未配置 $key，对应地图功能将不可用（见 local.yml.example）")
