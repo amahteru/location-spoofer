@@ -17,7 +17,7 @@
 - 速度档位：步行、跑步、骑行、驾车或自定义速度。
 - 运动真实度：速度波动、海拔起伏、步频变化，可选轻微位置抖动。
 
-**周边环境**
+**环境**
 - Wi-Fi：扫描结果、当前连接信息、已保存网络、DHCP 信息。
 - 基站：`CellInfo`、`CellLocation`、运营商、`ServiceState`、信号强度，以及 `PhoneStateListener` / `TelephonyCallback` 回调。
 - 蓝牙：BLE 扫描结果。
@@ -25,7 +25,7 @@
 - 计步：步数计数器和步数检测传感器。
 - 数据来源：实地采集（点位或路线，无需 Root）、WiGLE 和 OpenCellID 导入；附近有多个采集点时按距离加权混合。
 
-**兼容与反检测**
+**伪装**
 - 直接改写高德、百度、腾讯定位 SDK 的回调结果。
 - 清除 `Location` 的模拟位置标记，拦截 AppOps 和 `Settings.Secure` 中的模拟位置查询。
 
@@ -34,7 +34,7 @@
 - 数据管理：查看、编辑和删除采集数据，支持 JSON 导入导出。
 - Material Design 3 界面，跟随系统动态取色，支持简体中文和英文。
 
-## 环境要求
+## 要求
 
 - Android 13（API 33）及以上，arm64-v8a 设备
 - 已 Root（KernelSU、APatch 或 Magisk）
@@ -63,7 +63,7 @@ cd location-spoofer
 
 开始模拟时默认会重启目标应用，让新配置立即生效；可在“模拟选项”中关闭。
 
-## 项目结构
+## 结构
 
 | 模块 | 说明 |
 |---|---|
@@ -76,12 +76,10 @@ cd location-spoofer
 
 应用通过 libxposed 的远程偏好把配置快照发布给目标应用进程，超过 128 KiB 时改用框架管理的远程文件。Hook 只读取内存中的配置缓存，不需要修改 SELinux 策略，也不写公共临时目录。
 
-## 免责声明
+## 免责
 
 本项目仅供学习研究和合法的开发测试使用。请勿用于违法违规或违反平台服务协议的用途（包括但不限于虚假打卡、考试作弊、商业欺诈）。因使用本项目造成的账号封禁、数据丢失、法律纠纷等后果由使用者自行承担。
 
-## 开源协议
+## 协议
 
-[GNU General Public License v3.0](LICENSE)
-
-Copyright (C) 2026 SuseOAA
+本项目基于 [GNU General Public License v3.0](LICENSE) 协议开源。

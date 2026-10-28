@@ -25,7 +25,7 @@ An LSPosed module for location spoofing on Android that also simulates nearby Wi
 - Steps: step counter and step detector sensors.
 - Data sources: on-site collection (points or routes, no root required) and imports from WiGLE and OpenCellID. When several collected points are nearby, their data is blended by distance.
 
-**Compatibility and anti-detection**
+**Stealth**
 - Rewrites the callbacks of the AMap, Baidu and Tencent location SDKs directly.
 - Clears the mock flags on `Location` and intercepts mock-location queries through AppOps and `Settings.Secure`.
 
@@ -63,7 +63,7 @@ Building requires JDK 17 and the Android SDK (API 37). To use Google Maps, provi
 
 Starting a simulation restarts the target apps by default so the new configuration takes effect immediately; you can turn this off under "Simulation options".
 
-## Project structure
+## Structure
 
 | Module | Description |
 |---|---|
@@ -82,6 +82,4 @@ This project is for learning, research and lawful development testing only. Do n
 
 ## License
 
-[GNU General Public License v3.0](LICENSE)
-
-Copyright (C) 2026 SuseOAA
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
