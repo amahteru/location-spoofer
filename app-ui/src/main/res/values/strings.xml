@@ -41,7 +41,7 @@
     <string name="motion_realism_title">Motion realism</string>
     <string name="motion_realism_desc">Make motion data look more human</string>
     <string name="realism_level_title">Randomness</string>
-    <string name="realism_level_desc">Varies speed, altitude and more</string>
+    <string name="realism_level_desc">Varies cadence, altitude and sensor data</string>
     <string name="realism_level_off">Off</string>
     <string name="realism_level_low">Low</string>
     <string name="realism_level_medium">Mid</string>
@@ -51,7 +51,7 @@
     <string name="speed_fluctuation_desc">Speed varies within this range</string>
     <string name="realism_next_session_hint">Takes effect on the next start</string>
     <string name="step_simulation_title">Step and accelerometer simulation</string>
-    <string name="step_simulation_desc">Feeds step counter and accelerometer data to target apps while moving; applies immediately</string>
+    <string name="step_simulation_desc">Feeds step counter and accelerometer data to target apps while moving</string>
     <string name="keep_last_map_position_title">Keep last position</string>
     <string name="keep_last_map_position_desc">Open the map at the last selected position</string>
     <string name="config_write_failed">Configuration could not be published. Check the module and framework connection; the latest settings will retry automatically</string>

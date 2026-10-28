@@ -45,7 +45,7 @@
     <string name="motion_realism_title">运动真实度</string>
     <string name="motion_realism_desc">让速度和海拔变化更接近真人</string>
     <string name="realism_level_title">随机强度</string>
-    <string name="realism_level_desc">控制速度、海拔等数据的自然起伏</string>
+    <string name="realism_level_desc">控制步频、海拔与传感器的起伏</string>
     <string name="realism_level_off">关</string>
     <string name="realism_level_low">低</string>
     <string name="realism_level_medium">中</string>
@@ -55,7 +55,7 @@
     <string name="speed_fluctuation_desc">路线模拟时速度在此范围内缓慢起伏</string>
     <string name="realism_next_session_hint">修改将在下次开始模拟时生效</string>
     <string name="step_simulation_title">计步与加速度模拟</string>
-    <string name="step_simulation_desc">路线移动时为目标应用生成计步器与加速度计数据，立即生效</string>
+    <string name="step_simulation_desc">路线移动时为目标应用生成计步器与加速度计数据</string>
     <string name="keep_last_map_position_title">停留在上次位置</string>
     <string name="keep_last_map_position_desc">打开时地图停在上次选定的位置</string>
     <string name="config_write_failed">配置暂未发布成功，请检查模块启用状态和框架连接；最新设置会自动重试</string>
