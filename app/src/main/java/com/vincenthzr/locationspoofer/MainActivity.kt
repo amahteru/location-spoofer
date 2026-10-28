@@ -76,7 +76,9 @@ class MainActivity : ComponentActivity() {
                 val context = LocalContext.current
                 val wrappedContext = remember(uiState.currentLanguage) {
                     if (uiState.currentLanguage.isNotEmpty()) {
-                        LocaleUtils.wrap(context, uiState.currentLanguage)
+                        android.view.ContextThemeWrapper(context, context.theme).apply {
+                            applyOverrideConfiguration(LocaleUtils.wrap(context, uiState.currentLanguage).resources.configuration)
+                        }
                     } else {
                         context
                     }

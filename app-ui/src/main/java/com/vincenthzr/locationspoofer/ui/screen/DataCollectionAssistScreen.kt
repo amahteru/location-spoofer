@@ -11,6 +11,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -52,6 +53,7 @@ fun DataCollectionAssistScreen(
     viewModel: MainViewModel,
     uiState: AppState) {
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val resources = LocalResources.current
 
     var missingPermissions by remember {
@@ -145,7 +147,6 @@ fun DataCollectionAssistScreen(
                     Spacer(Modifier.height(AppSpacing.md))
                     Button(
                         onClick = {
-                            val activity = context as? androidx.activity.ComponentActivity
                             val stillHidden = missingPermissions.any {
                                 activity != null && !activity.shouldShowRequestPermissionRationale(it)
                             }
