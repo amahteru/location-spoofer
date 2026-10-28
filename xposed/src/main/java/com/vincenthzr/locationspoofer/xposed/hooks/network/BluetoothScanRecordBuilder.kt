@@ -258,7 +258,7 @@ internal fun createScanResult(
                         when {
                             devClass.isAssignableFrom(pType) -> args[idx] = device
                             recordClass != null && recordClass.isAssignableFrom(pType) -> args[idx] = scanRecord
-                            pType == Int::class.javaPrimitiveType || pType == java.lang.Integer::class.java -> {
+                            pType == Int::class.javaPrimitiveType || pType == Int::class.javaObjectType -> {
                                 when (idx) {
                                     1 -> args[idx] = 0x001B
                                     2 -> args[idx] = if (c.parameterCount == 4) rssi else 1
@@ -269,8 +269,8 @@ internal fun createScanResult(
                                     else -> args[idx] = if (idx == c.parameterCount - 2) rssi else 0
                                 }
                             }
-                            pType == Long::class.javaPrimitiveType || pType == java.lang.Long::class.java -> args[idx] = timestampNanos
-                            pType == Boolean::class.javaPrimitiveType || pType == java.lang.Boolean::class.java -> args[idx] = false
+                            pType == Long::class.javaPrimitiveType || pType == Long::class.javaObjectType -> args[idx] = timestampNanos
+                            pType == Boolean::class.javaPrimitiveType || pType == Boolean::class.javaObjectType -> args[idx] = false
                             else -> args[idx] = null
                         }
                     }

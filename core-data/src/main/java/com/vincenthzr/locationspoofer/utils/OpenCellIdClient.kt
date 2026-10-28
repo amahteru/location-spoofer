@@ -23,7 +23,7 @@ class OpenCellIdClient {
                 .build()
             val response = client.newCall(request).execute()
             if (response.isSuccessful) {
-                val body = response.body.string() ?: return@withContext false
+                val body = response.body.string()
                 val json = JSONObject(body)
                 if (json.has("error")) {
                     json.optInt("code") == 1
@@ -58,9 +58,6 @@ class OpenCellIdClient {
                     val code = response.code
                     if (response.isSuccessful) {
                         val body = response.body.string()
-                        if (body == null) {
-                            continue
-                        }
                         val jsonObject = JSONObject(body)
                         val cells = jsonObject.optJSONArray("cells")
                         if (cells == null || cells.length() == 0) {

@@ -10,11 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
+import android.content.ClipData
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.dp
 import com.vincenthzr.locationspoofer.data.model.RootSetupTestResult
 import com.vincenthzr.locationspoofer.ui.R
@@ -58,7 +61,8 @@ fun RootSetupTestResultDialog(
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val overallOk = result.hasRoot && result.overallVerified
 
     AlertDialog(
@@ -115,7 +119,7 @@ fun RootSetupTestResultDialog(
                     appendLine("configPublished=${result.configPublished}")
                     appendLine("frameworkDetail=${result.frameworkDetail}")
                 }
-                clipboardManager.setText(AnnotatedString(summary))
+                scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, summary).toClipEntry()) }
                 Toast.makeText(
                     context,
                     resources.getString(R.string.copied_to_clipboard),

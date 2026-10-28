@@ -128,7 +128,7 @@ internal fun LocationHooker.hookWifiState(
             val wifiObj = if (mockWifi) config.optJSONObject("wifi_json") else null
             val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
             val connectedWifi =
-                if (isConnected) wifiObj!!.optJSONObject("connectedWifi") else null
+                if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
             if (connectedWifi != null) {
                 return@hookMethod "\"${connectedWifi.optString("ssid", "HOME_WIFI")}\""
             } else {

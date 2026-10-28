@@ -158,6 +158,7 @@ internal fun MainViewModel.startRoutePlanning() {
     }
 }
 
+@Suppress("DEPRECATION")
 private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state: AppState) {
     viewModelScope.launch(Dispatchers.IO) {
         try {

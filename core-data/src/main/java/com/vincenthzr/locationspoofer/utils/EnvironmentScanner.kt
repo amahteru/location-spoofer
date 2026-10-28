@@ -26,6 +26,7 @@ import kotlin.coroutines.resume
 class EnvironmentScanner(private val context: Context) {
 
     @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
     suspend fun scanWifi(): String = withContext(Dispatchers.IO) {
         val wifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -132,6 +133,7 @@ class EnvironmentScanner(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
     suspend fun scanCell(): String = withContext(Dispatchers.IO) {
         val telephonyManager =
             context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager

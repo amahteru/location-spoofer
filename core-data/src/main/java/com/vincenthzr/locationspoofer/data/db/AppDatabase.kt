@@ -63,7 +63,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "environment_database"
                 )
                     .addMigrations(MIGRATION_3_4, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
                 INSTANCE = instance
                 instance

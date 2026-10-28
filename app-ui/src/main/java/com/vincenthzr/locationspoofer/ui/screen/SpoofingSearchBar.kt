@@ -110,6 +110,7 @@ fun HomeSearchBar(
 
 private var cachedPlacesClient: com.google.android.libraries.places.api.net.PlacesClient? = null
 
+@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 fun performPoiSearch(
     context: Context,
     mapEngine: MapEngine,

@@ -52,7 +52,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
                     throw Exception("Failed to fetch updates: ${response.code}")
                 }
 
-                val jsonStr = response.body.string() ?: "[]"
+                val jsonStr = response.body.string()
                 val jsonArray = JSONArray(jsonStr)
                 val releaseList = mutableListOf<GithubRelease>()
 

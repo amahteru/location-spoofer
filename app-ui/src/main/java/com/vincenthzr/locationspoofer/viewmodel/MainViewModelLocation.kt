@@ -52,6 +52,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
 
 @android.annotation.SuppressLint("MissingPermission")
 
+@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 private fun MainViewModel.fallbackToNativeLocation(
     ctx: Context,
     forceCallback: ((Double, Double) -> Unit)?,
@@ -183,6 +184,7 @@ internal suspend fun MainViewModel.fetchRealLocationSilent(ctx: Context): Pair<D
 }
 
 @android.annotation.SuppressLint("MissingPermission")
+@Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 private suspend fun MainViewModel.fallbackToNativeLocationSilent(
     ctx: Context,
     convertToGcj: Boolean
