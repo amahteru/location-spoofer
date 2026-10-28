@@ -178,8 +178,7 @@ fun RouteBottomPanel(
                                     Icon(
                                         Icons.Rounded.Navigation,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(Modifier.width(AppSpacing.sm))
                                     Text(
