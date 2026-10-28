@@ -31,7 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.vincenthzr.locationspoofer.ui.R
 import com.vincenthzr.locationspoofer.data.model.AppState
 import com.vincenthzr.locationspoofer.data.model.ImportExportSelection
@@ -57,7 +56,7 @@ fun DataCollectionAssistScreen(
 
     var missingPermissions by remember {
         mutableStateOf(REQUIRED_PERMISSIONS.filter {
-            ContextCompat.checkSelfPermission(context, it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
         })
     }
 
@@ -65,7 +64,7 @@ fun DataCollectionAssistScreen(
         ActivityResultContracts.RequestMultiplePermissions()
     ) {
         missingPermissions = REQUIRED_PERMISSIONS.filter {
-            ContextCompat.checkSelfPermission(context, it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
 
