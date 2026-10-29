@@ -29,7 +29,7 @@
 
 ## CI 构建
 
-推送到 `main`、提交 PR 或在 Actions 页面手动触发时，`Build` 工作流会运行单元测试，构建两个方案的 Release APK，并作为构建产物 `LocationSpoofer-apk` 上传：
+推送到 `main`、提交 PR 或在 Actions 页面手动触发时，`Build` 工作流会运行单元测试，构建两个方案的 Release APK，分别作为构建产物上传，下载即为 APK 文件：
 
 ```text
 LocationSpoofer-scoped-arm64-v8a-v<版本名>.apk

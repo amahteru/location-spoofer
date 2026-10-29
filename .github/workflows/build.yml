@@ -12,13 +12,13 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -70,9 +70,16 @@ jobs:
           done
           ls -l "$DIST_DIR"
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Upload Scoped APK
+        uses: actions/upload-artifact@v7
         with:
-          name: LocationSpoofer-apk
-          path: app/build/outputs/apk/dist/*.apk
+          path: app/build/outputs/apk/dist/LocationSpoofer-scoped-*.apk
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload Global APK
+        uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/apk/dist/LocationSpoofer-global-*.apk
+          archive: false
           if-no-files-found: error
