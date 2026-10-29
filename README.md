@@ -42,7 +42,7 @@
 
 ## 安装
 
-从 [Releases](https://github.com/amahteru/location-spoofer/releases) 下载安装包，两个方案二选一：
+从仓库 [Actions](https://github.com/amahteru/location-spoofer/actions/workflows/build.yml) 的构建产物下载安装包，两个方案二选一：
 
 - `LocationSpoofer-scoped-arm64-v8a-*.apk`：非全局方案，Hook 作用域内勾选的目标应用进程。
 - `LocationSpoofer-global-arm64-v8a-*.apk`：全局方案，Hook 系统框架、电话、蓝牙三个系统进程，目标应用进程内没有 Hook 代码；各系统的适配情况见 [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md)。

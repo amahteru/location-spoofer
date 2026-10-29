@@ -1,0 +1,78 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ENCODED_KEYSTORE" ]; then
+            echo "$ENCODED_KEYSTORE" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+            echo "KEYSTORE_FILE_PATH=$RUNNER_TEMP/keystore.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::未配置 KEYSTORE_BASE64，Release APK 不签名，无法安装"
+          fi
+
+      - name: Unit Tests
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon test
+
+      - name: Build Release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          AMAP_API_KEY: ${{ secrets.AMAP_API_KEY }}
+          BAIDU_API_KEY: ${{ secrets.BAIDU_API_KEY }}
+          BAIDU_DARK_STYLE_ID: ${{ secrets.BAIDU_DARK_STYLE_ID }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: |
+          [ -n "$AMAP_API_KEY" ] || echo "::warning::未配置 AMAP_API_KEY，安装包里的高德地图不可用"
+          [ -n "$BAIDU_API_KEY" ] || echo "::warning::未配置 BAIDU_API_KEY，安装包里的百度地图不可用"
+          ./gradlew --no-daemon :app:assembleScopedRelease
+          ./gradlew --no-daemon :app:assembleGlobalRelease
+
+          VERSION=$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d'=' -f2)
+          DIST_DIR="app/build/outputs/apk/dist"
+          mkdir -p "$DIST_DIR"
+          for SCHEME in scoped global; do
+            APK=$(find "app/build/outputs/apk/$SCHEME/release" -name "*arm64-v8a*.apk" | head -n 1)
+            if [ -z "$APK" ]; then
+              echo "::error::没有找到 $SCHEME 方案的 arm64-v8a 安装包"
+              exit 1
+            fi
+            SUFFIX=""
+            case "$APK" in *unsigned*) SUFFIX="-unsigned" ;; esac
+            mv "$APK" "$DIST_DIR/LocationSpoofer-$SCHEME-arm64-v8a-v$VERSION$SUFFIX.apk"
+          done
+          ls -l "$DIST_DIR"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocationSpoofer-apk
+          path: app/build/outputs/apk/dist/*.apk
+          if-no-files-found: error

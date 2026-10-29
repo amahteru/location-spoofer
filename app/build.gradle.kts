@@ -108,7 +108,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseKeystore) signingConfigs.getByName("release") else null
             buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
         }
     }

@@ -1,6 +1,6 @@
-# 发布到自己的仓库
+# 构建与签名
 
-本项目通过 `amahteru/location-spoofer` 的 GitHub Actions 构建 Release，应用也从该仓库检查更新。
+本项目通过 `amahteru/location-spoofer` 的 GitHub Actions 构建安装包。
 
 ## 持久发布签名
 
@@ -8,7 +8,7 @@
 
 后续版本必须继续使用同一发布密钥，以保持覆盖升级能力。本地签名配置和云端签名 Secrets 应对应同一份密钥，不要每次发布重新生成。
 
-在仓库中启用 GitHub Actions，并设置以下 Repository Secrets：
+在仓库中设置以下 Repository Secrets：
 
 | Secret 名称 | 内容 |
 | --- | --- |
@@ -27,19 +27,16 @@
 
 高德、百度的 Key 在各自开放平台申请 Android 平台的 Key，包名填 `io.github.amahteru.locationspoofer`，发布版 SHA1 填发布密钥的指纹，调试版 SHA1 填本机 debug keystore 的指纹。换发布密钥或包名后要同步更新 Key 的绑定。
 
-## 后续发版
+## CI 构建
 
-1. 同步提高根目录 `gradle.properties` 的 `APP_VERSION_NAME` 和 `APP_VERSION_CODE`。版本名用于应用更新提示，版本 code 用于安装升级；均应高于已发布版本。
-2. 版本名使用 `x.y.z`，或预发布格式 `x.y.z-beta-n` / `x.y.z-beta.n`。确认远端不存在对应的 `v<版本名>` Tag。
-3. 提交修改并推送到 `main`。工作流会检查版本、构建安装包，再创建 Tag 和 Release；不要提前手动创建 Tag，否则工作流会跳过该版本。也可以在 Actions 页面手动触发同一流程。
-4. 确认工作流成功，Release 中有以下安装包：
+推送到 `main`、提交 PR 或在 Actions 页面手动触发时，`Build` 工作流会运行单元测试，构建两个方案的 Release APK，并作为构建产物 `LocationSpoofer-apk` 上传：
 
 ```text
 LocationSpoofer-scoped-arm64-v8a-v<版本名>.apk
 LocationSpoofer-global-arm64-v8a-v<版本名>.apk
 ```
 
-保留文件名中的 `-scoped-` / `-global-` 标记：应用依靠它挑选与当前安装方案一致的安装包。
+未配置签名 Secrets 时 APK 不签名，文件名带 `-unsigned`，无法安装；未配置地图 Key 时构建日志会给出警告。工作流不再创建 Tag 和 Release。
 
 ## 首次切换签名
 

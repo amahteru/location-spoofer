@@ -42,7 +42,7 @@ An LSPosed module for location spoofing on Android that also simulates nearby Wi
 
 ## Installation
 
-Download one of the two schemes from [Releases](https://github.com/amahteru/location-spoofer/releases):
+Download one of the two schemes from the build artifacts in [Actions](https://github.com/amahteru/location-spoofer/actions/workflows/build.yml):
 
 - `LocationSpoofer-scoped-arm64-v8a-*.apk`: scoped scheme, hooks the target apps selected in the module scope.
 - `LocationSpoofer-global-arm64-v8a-*.apk`: global scheme, hooks the system framework, phone and Bluetooth processes, with no hook code inside target apps; see [ADAPTATION_PROGRESS_EN.md](ADAPTATION_PROGRESS_EN.md) for per-system status.
