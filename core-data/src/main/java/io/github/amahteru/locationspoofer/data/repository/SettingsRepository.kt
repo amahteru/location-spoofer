@@ -92,11 +92,38 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         settingsManager.rootSolution = value
     }
 
+    fun getVendorOverride(): String = settingsManager.vendorOverride
+
+    fun setVendorOverride(value: String) {
+        settingsManager.vendorOverride = value
+    }
+
+    var debugDumpSystemServices: Boolean
+        get() = settingsManager.debugDumpSystemServices
+        set(value) {
+            settingsManager.debugDumpSystemServices = value
+        }
+
     fun getIgnoredVersion(): String = settingsManager.ignoredVersion
 
     fun setIgnoredVersion(value: String) {
         settingsManager.ignoredVersion = value
     }
+
+    fun getSystemHookPackages(): Set<String> = settingsManager.getSystemHookPackages()
+
+    fun setSystemHookPackages(packages: Set<String>) =
+        settingsManager.setSystemHookPackages(packages)
+
+    var isSystemHookGlobalMode: Boolean
+        get() = settingsManager.isSystemHookGlobalMode
+        set(value) {
+            settingsManager.isSystemHookGlobalMode = value
+        }
+
+    var forceLocationEnabled: Boolean
+        get() = settingsManager.forceLocationEnabled
+        set(value) { settingsManager.forceLocationEnabled = value }
 
     var isSpoofingActive: Boolean
         get() = settingsManager.isSpoofingActive

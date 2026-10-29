@@ -4,6 +4,7 @@ import io.github.amahteru.locationspoofer.data.db.AppDatabase
 import io.github.amahteru.locationspoofer.data.motion.ConfigMotionSink
 import io.github.amahteru.locationspoofer.data.motion.MotionController
 import io.github.amahteru.locationspoofer.data.state.SpoofingState
+import io.github.amahteru.locationspoofer.data.repository.HookStatusRepository
 import io.github.amahteru.locationspoofer.data.repository.LocationRepository
 import io.github.amahteru.locationspoofer.data.repository.SettingsRepository
 import io.github.amahteru.locationspoofer.data.repository.WifiRepository
@@ -30,6 +31,7 @@ val coreDataModule = module {
 
     single { LocationRepository(get(), get(), get(), get(), get(), get()) }
     single { SettingsRepository(get()) }
+    single { HookStatusRepository(get()) }
     single {
         val settings = get<SettingsManager>()
         MotionController(

@@ -25,6 +25,18 @@ android {
     }
 
 
+    flavorDimensions += "scheme"
+    productFlavors {
+        create("scoped") {
+            dimension = "scheme"
+            buildConfigField("boolean", "GLOBAL_SCHEME", "false")
+        }
+        create("global") {
+            dimension = "scheme"
+            buildConfigField("boolean", "GLOBAL_SCHEME", "true")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -32,6 +44,36 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+abstract class BundleAdaptationProgress : DefaultTask() {
+    @get:InputFiles
+    abstract val sources: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        sources.files.forEach { src ->
+            src.copyTo(outputDir.get().asFile.resolve(src.name), overwrite = true)
+        }
+    }
+}
+
+val bundleAdaptationProgress = tasks.register<BundleAdaptationProgress>("bundleAdaptationProgress") {
+    sources.from(
+        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS.md"),
+        rootProject.layout.projectDirectory.file("ADAPTATION_PROGRESS_EN.md")
+    )
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant.flavorName == "global") {
+            variant.sources.assets?.addGeneratedSourceDirectory(bundleAdaptationProgress, BundleAdaptationProgress::outputDir)
+        }
     }
 }
 

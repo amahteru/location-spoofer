@@ -64,16 +64,17 @@ SDK 37 的正式安装包名为 `platforms;android-37.0`；本地准备 `build-t
 
 ```powershell
 .\tools\gradle.ps1 :core-geo:test
-.\tools\gradle.ps1 :core-data:testDebugUnitTest :xposed:testDebugUnitTest
+.\tools\gradle.ps1 :core-data:testScopedDebugUnitTest :core-data:testGlobalDebugUnitTest :xposed:testScopedDebugUnitTest :xposed:testGlobalDebugUnitTest
 ```
 
 打包 Debug APK：
 
 ```powershell
-.\tools\gradle.ps1 :app:assembleDebug
+.\tools\gradle.ps1 :app:assembleScopedDebug
+.\tools\gradle.ps1 :app:assembleGlobalDebug
 ```
 
-APK 输出到 `app/build/outputs/apk/debug/`，只打 `arm64-v8a`。Debug 构建未配置发布密钥时自动使用调试签名，不需要为了本地初始化申请发布密钥。Google Maps Key 可留空，需要 Google 地图时再配置。
+非全局方案输出到 `app/build/outputs/apk/scoped/debug/`，全局方案输出到 `app/build/outputs/apk/global/debug/`，只打 `arm64-v8a`。Debug 构建未配置发布密钥时自动使用调试签名，不需要为了本地初始化申请发布密钥。Google Maps Key 可留空，需要 Google 地图时再配置。
 
 连接测试设备后安装：
 

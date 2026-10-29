@@ -34,6 +34,7 @@ import io.github.amahteru.locationspoofer.viewmodel.collectExportCounts
 import io.github.amahteru.locationspoofer.viewmodel.exportEnvironmentData
 import io.github.amahteru.locationspoofer.viewmodel.parseImportPackage
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+import io.github.amahteru.locationspoofer.ui.screen.SystemHookAppsConfigCard
 
 @Composable
 fun FeaturesTab(
@@ -41,7 +42,8 @@ fun FeaturesTab(
     uiState: AppState,
     tabBarHeight: Dp = 90.dp,
     onNavigateToScanner: () -> Unit,
-    onNavigateToManageData: () -> Unit
+    onNavigateToManageData: () -> Unit,
+    onNavigateToSystemHookApps: () -> Unit
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -151,6 +153,15 @@ fun FeaturesTab(
                     ManageDataCard(
                         onClick = onNavigateToManageData
                     )
+                }
+
+                if (BuildConfig.GLOBAL_SCHEME) {
+                    item {
+                        SystemHookAppsConfigCard(
+                            uiState = uiState,
+                            onClick = onNavigateToSystemHookApps
+                        )
+                    }
                 }
 
                 item {

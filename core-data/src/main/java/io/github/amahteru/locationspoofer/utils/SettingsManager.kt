@@ -72,6 +72,14 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("root_solution", "AUTO") ?: "AUTO"
         set(value) = prefs.edit { putString("root_solution", value) }
 
+    var vendorOverride: String
+        get() = prefs.getString("vendor_override", "auto") ?: "auto"
+        set(value) = prefs.edit { putString("vendor_override", value) }
+
+    var debugDumpSystemServices: Boolean
+        get() = prefs.getBoolean("debug_dump_system_services", false)
+        set(value) = prefs.edit { putBoolean("debug_dump_system_services", value) }
+
     var ignoredVersion: String
         get() = prefs.getString("ignored_version", "") ?: ""
         set(value) = prefs.edit { putString("ignored_version", value) }
@@ -260,4 +268,31 @@ class SettingsManager(context: Context) {
         }
         prefs.edit { putString("saved_routes", jsonArray.toString()) }
     }
+
+    fun getSystemHookPackages(): Set<String> {
+        val jsonString = prefs.getString("system_hook_packages", "[]") ?: "[]"
+        val set = mutableSetOf<String>()
+        try {
+            val jsonArray = JSONArray(jsonString)
+            for (i in 0 until jsonArray.length()) {
+                set.add(jsonArray.getString(i))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return set
+    }
+
+    fun setSystemHookPackages(packages: Set<String>) {
+        val jsonArray = JSONArray()
+        packages.forEach { jsonArray.put(it) }
+        prefs.edit { putString("system_hook_packages", jsonArray.toString()) }
+    }
+
+    var isSystemHookGlobalMode: Boolean
+        get() = prefs.getBoolean("is_system_hook_global_mode", true)
+        set(value) = prefs.edit { putBoolean("is_system_hook_global_mode", value) }
+    var forceLocationEnabled: Boolean
+        get() = prefs.getBoolean("force_location_enabled", false)
+        set(value) = prefs.edit { putBoolean("force_location_enabled", value) }
 }

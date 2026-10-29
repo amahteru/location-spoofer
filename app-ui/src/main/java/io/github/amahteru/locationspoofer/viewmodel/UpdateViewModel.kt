@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
+import io.github.amahteru.locationspoofer.ui.BuildConfig
 
 data class UpdateUiState(
     val isLoading: Boolean = false,
@@ -166,4 +167,5 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     }
 }
 
-private fun isAssetForCurrentScheme(assetName: String): Boolean = assetName.contains("-scoped-")
+private fun isAssetForCurrentScheme(assetName: String): Boolean =
+    assetName.contains(if (BuildConfig.GLOBAL_SCHEME) "-global-" else "-scoped-")

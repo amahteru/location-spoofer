@@ -37,6 +37,7 @@ import io.github.amahteru.locationspoofer.ui.components.AppCard
 import io.github.amahteru.locationspoofer.ui.components.AppTopBar
 import androidx.compose.ui.text.style.TextOverflow
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+import io.github.amahteru.locationspoofer.ui.BuildConfig
 
 @Composable
 fun MotionRealismScreen(
@@ -54,7 +55,7 @@ fun MotionRealismScreen(
         RealismLevelCard(uiState) { viewModel.setRealismLevel(it) }
         SpeedFluctuationCard(uiState) { viewModel.setSpeedFluctuationPct(it) }
         HintRow(stringResource(R.string.realism_next_session_hint))
-        Card(modifier = Modifier.fillMaxWidth()) {
+        if (!BuildConfig.GLOBAL_SCHEME) Card(modifier = Modifier.fillMaxWidth()) {
             SwitchListItem(
                 title = stringResource(R.string.step_simulation_title),
                 summary = stringResource(R.string.step_simulation_desc),

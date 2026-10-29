@@ -20,6 +20,7 @@ import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.NavigationCard
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+import androidx.compose.material.icons.rounded.Shield
 
 @Composable
 fun SectionHeader(icon: ImageVector, title: String, modifier: Modifier = Modifier) {
@@ -34,6 +35,24 @@ fun SectionHeader(icon: ImageVector, title: String, modifier: Modifier = Modifie
             overflow = TextOverflow.Ellipsis
         )
     }
+}
+
+@Composable
+fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
+    val statusDesc = if (uiState.isSystemHookGlobalMode) {
+        stringResource(R.string.system_hook_global_mode_summary)
+    } else if (uiState.systemHookPackages.isNotEmpty()) {
+        stringResource(R.string.selected_count_format, uiState.systemHookPackages.size)
+    } else {
+        stringResource(R.string.system_hook_apps_card_desc)
+    }
+    NavigationCard(
+        icon = Icons.Rounded.Shield,
+        title = stringResource(R.string.system_hook_apps_title),
+        summary = statusDesc,
+        tone = LabelTone.Warning,
+        onClick = onClick
+    )
 }
 
 @Composable

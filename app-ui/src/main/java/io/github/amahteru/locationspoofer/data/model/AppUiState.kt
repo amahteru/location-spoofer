@@ -2,6 +2,7 @@ package io.github.amahteru.locationspoofer.data.model
 
 import io.github.amahteru.locationspoofer.utils.AltitudeModel
 import io.github.amahteru.locationspoofer.utils.MotionRealism
+import io.github.amahteru.locationspoofer.vendor.VendorScheme
 
 enum class SimMode(val speedMs: Double) {
     STILL(0.0),
@@ -43,6 +44,8 @@ data class AppState(
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
     val rootSolution: RootSolution = RootSolution.AUTO,
+    val vendorScheme: VendorScheme = VendorScheme.AUTO,
+    val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,
     val speedFluctuationPct: Int = MotionRealism.DEFAULT_SPEED_FLUCTUATION_PCT,
     val stepSimulationEnabled: Boolean = true,
@@ -87,6 +90,11 @@ data class AppState(
     val scannedWifiCount: Int = 0,
     val scannedCellCount: Int = 0,
     val scannedBluetoothCount: Int = 0,
+    val systemHookPackages: Set<String> = emptySet(),
+    val isSystemHookGlobalMode: Boolean = false,
+    val forceLocationEnabled: Boolean = false,
+    val installedAppsForSystemHook: List<AppInfoItem> = emptyList(),
+    val isLoadingInstalledApps: Boolean = false,
     val collectedWifiJson: String = "[]",
     val collectedCellJson: String = "[]",
     val collectedBluetoothJson: String = "[]",

@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
+import io.github.amahteru.locationspoofer.vendor.VendorScheme
 
 sealed interface FavoriteToggleResult {
     data class Added(val name: String) : FavoriteToggleResult
@@ -74,6 +75,8 @@ class MainViewModel(
             } catch (e: Exception) {
                 RootSolution.AUTO
             },
+            vendorScheme = VendorScheme.fromId(settingsRepository.getVendorOverride()),
+            debugDumpSystemServices = settingsRepository.debugDumpSystemServices,
             realismLevel = settingsRepository.realismLevel,
             speedFluctuationPct = settingsRepository.speedFluctuationPct,
             stepSimulationEnabled = settingsRepository.stepSimulationEnabled,
@@ -82,6 +85,9 @@ class MainViewModel(
             savedRoutes = emptyList(),
             currentLanguage = settingsRepository.getLanguage(),
             isLanguageSet = settingsRepository.isLanguageSet(),
+            systemHookPackages = settingsRepository.getSystemHookPackages(),
+            isSystemHookGlobalMode = settingsRepository.isSystemHookGlobalMode,
+            forceLocationEnabled = settingsRepository.forceLocationEnabled,
             isPermissionSetupDone = settingsRepository.isPermissionSetupDone(),
             mockWifi = settingsRepository.mockWifi,
             mockCell = settingsRepository.mockCell,

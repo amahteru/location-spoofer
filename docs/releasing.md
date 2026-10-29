@@ -36,9 +36,10 @@
 
 ```text
 LocationSpoofer-scoped-arm64-v8a-v<版本名>.apk
+LocationSpoofer-global-arm64-v8a-v<版本名>.apk
 ```
 
-保留文件名中的 `-scoped-` 标记：应用依靠它挑选安装包，并跳过旧 Release 里已移除的全局（global）方案安装包。
+保留文件名中的 `-scoped-` / `-global-` 标记：应用依靠它挑选与当前安装方案一致的安装包。
 
 ## 首次切换签名
 

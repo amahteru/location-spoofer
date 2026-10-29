@@ -14,6 +14,13 @@ internal fun LocationHooker.gcj02ToBd09(gcjLat: Double, gcjLng: Double): Pair<Do
     return Pair(r.lat, r.lng)
 }
 
+internal fun LocationHooker.toCoordinateSystem(gcjLat: Double, gcjLng: Double, system: String): Pair<Double, Double> =
+    when (system) {
+        "WGS-84" -> gcj02ToWgs84(gcjLat, gcjLng)
+        "BD-09" -> gcj02ToBd09(gcjLat, gcjLng)
+        else -> Pair(gcjLat, gcjLng)
+    }
+
 fun bd09llToBd09mc(bdLat: Double, bdLng: Double): Pair<Double, Double> {
     val x = bdLng * 20037508.342789244 / 180.0
     val latClamped = bdLat.coerceIn(-85.0511287798, 85.0511287798)

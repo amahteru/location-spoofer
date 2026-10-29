@@ -42,12 +42,17 @@ An LSPosed module for location spoofing on Android that also simulates nearby Wi
 
 ## Installation
 
-Download `LocationSpoofer-scoped-arm64-v8a-*.apk` from [Releases](https://github.com/amahteru/location-spoofer/releases), or build it yourself:
+Download one of the two schemes from [Releases](https://github.com/amahteru/location-spoofer/releases):
+
+- `LocationSpoofer-scoped-arm64-v8a-*.apk`: scoped scheme, hooks the target apps selected in the module scope.
+- `LocationSpoofer-global-arm64-v8a-*.apk`: global scheme, hooks the system framework, phone and Bluetooth processes, with no hook code inside target apps; see [ADAPTATION_PROGRESS_EN.md](ADAPTATION_PROGRESS_EN.md) for per-system status.
+
+Or build it yourself:
 
 ```bash
 git clone https://github.com/amahteru/location-spoofer.git
 cd location-spoofer
-./gradlew installDebug
+./gradlew installScopedDebug   # or installGlobalDebug
 ```
 
 Building requires JDK 17 and the Android SDK (API 37). Map keys are not included in the repository: copy `local.yml.example` to `local.yml` in the project root and fill in your own AMap, Baidu (and optionally Google) keys, or provide them through environment variables of the same names. For Windows, see [docs/development-windows.md](docs/development-windows.md) (Chinese).
@@ -55,7 +60,7 @@ Building requires JDK 17 and the Android SDK (API 37). Map keys are not included
 ## Usage
 
 1. Grant LocationSpoofer root access in your root manager.
-2. Enable the module in LSPosed, select the apps to spoof in its scope (for example WeChat, DingTalk, Chaoxing, AMap), then force-stop those apps or reboot.
+2. Enable the module in LSPosed and set its scope: for the scoped scheme, select the apps to spoof (for example WeChat, DingTalk, Chaoxing, AMap), then force-stop those apps or reboot; for the global scheme, select System Framework, Phone and Bluetooth, reboot, then pick target apps or enable global mode under "System-level simulation" on the **Features** tab.
 3. **Location** tab: choose a position, tap "Simulate here", select the Wi-Fi, cell and Bluetooth data to simulate under "Simulation options", then tap "Start simulation".
 4. **Route** tab: add waypoints, choose the run mode and speed, then tap "Start route simulation".
 5. **Features** tab: "Collect local data", "Manage collected data", "Import & export data".

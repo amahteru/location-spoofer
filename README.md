@@ -42,12 +42,17 @@
 
 ## 安装
 
-从 [Releases](https://github.com/amahteru/location-spoofer/releases) 下载 `LocationSpoofer-scoped-arm64-v8a-*.apk` 安装，或自行构建：
+从 [Releases](https://github.com/amahteru/location-spoofer/releases) 下载安装包，两个方案二选一：
+
+- `LocationSpoofer-scoped-arm64-v8a-*.apk`：非全局方案，Hook 作用域内勾选的目标应用进程。
+- `LocationSpoofer-global-arm64-v8a-*.apk`：全局方案，Hook 系统框架、电话、蓝牙三个系统进程，目标应用进程内没有 Hook 代码；各系统的适配情况见 [ADAPTATION_PROGRESS.md](ADAPTATION_PROGRESS.md)。
+
+也可以自行构建：
 
 ```bash
 git clone https://github.com/amahteru/location-spoofer.git
 cd location-spoofer
-./gradlew installDebug
+./gradlew installScopedDebug   # 或 installGlobalDebug
 ```
 
 构建需要 JDK 17 和 Android SDK（API 37）。地图 Key 不随仓库提供：复制 `local.yml.example` 为项目根目录的 `local.yml`，填入自己申请的高德、百度（以及可选的 Google）Key，也可以用同名环境变量提供。Windows 环境见 [docs/development-windows.md](docs/development-windows.md)。
@@ -55,7 +60,7 @@ cd location-spoofer
 ## 使用
 
 1. 在 Root 管理器中授予 LocationSpoofer Root 权限。
-2. 在 LSPosed 中启用模块，在作用域里勾选要模拟的应用（如微信、钉钉、学习通、高德地图），然后强行停止这些应用或重启手机。
+2. 在 LSPosed 中启用模块并设置作用域：非全局方案勾选要模拟的应用（如微信、钉钉、学习通、高德地图），然后强行停止这些应用或重启手机；全局方案勾选系统框架、电话、蓝牙，重启手机，再在**功能**页的“系统级模拟”里选择目标应用或开启全局模式。
 3. **定位**页：选好位置后点“定点模拟”，在“模拟选项”中勾选要模拟的 Wi-Fi、基站、蓝牙数据，点“开始模拟”。
 4. **路线**页：依次添加路点，选择运行模式和速度，点“开始路线模拟”。
 5. **功能**页：采集本地数据、管理采集数据、导入与导出数据。

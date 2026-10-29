@@ -40,6 +40,12 @@ import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.UpdateUiState
 import io.github.amahteru.locationspoofer.viewmodel.getSavedLanguage
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+import androidx.compose.material.icons.rounded.Devices
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import io.github.amahteru.locationspoofer.progress.AdaptationProgress
+import io.github.amahteru.locationspoofer.progress.AdaptationProgressSource
+import io.github.amahteru.locationspoofer.vendor.VendorProfile
 
 @Composable
 fun InfoTab(
@@ -52,6 +58,7 @@ fun InfoTab(
     onNavigateToMapEngine: () -> Unit = {},
     onNavigateToSignatureAuth: () -> Unit = {},
     onNavigateToRootDiagnostics: () -> Unit = {},
+    onNavigateToVendorScheme: () -> Unit = {},
     onNavigateToMotionRealism: () -> Unit = {},
     onNavigateToBackgroundKeepAlive: () -> Unit = {},
     onNavigateToEnvTokens: () -> Unit = {}
@@ -71,6 +78,24 @@ fun InfoTab(
     val currentLangName = remember(savedLangCode, defaultLangText) {
         LANGUAGES.firstOrNull { it.code == savedLangCode }?.nativeName ?: defaultLangText
     }
+
+    val progressContext = LocalContext.current
+    val progressLocale = LocalConfiguration.current.locales[0]
+    val adaptationStatusChip = if (BuildConfig.GLOBAL_SCHEME) {
+        val adaptationStatus = remember(progressLocale) {
+            val markdown = AdaptationProgressSource(progressContext).local().markdown
+            val family = VendorProfile.current.family
+            AdaptationProgress.findGlobalSystem(markdown, family.progressKeywords)?.status ?: AdaptationProgress.Status.UNVERIFIED
+        }
+        stringResource(
+            when (adaptationStatus) {
+                AdaptationProgress.Status.VERIFIED -> R.string.progress_status_verified
+                AdaptationProgress.Status.PARTIAL -> R.string.progress_status_partial
+                AdaptationProgress.Status.BROKEN -> R.string.progress_status_broken
+                AdaptationProgress.Status.UNVERIFIED -> R.string.progress_status_unverified
+            }
+        )
+    } else null
 
     val realismLevelNames = listOf(
         stringResource(R.string.realism_level_off),
@@ -186,6 +211,13 @@ fun InfoTab(
                             title = stringResource(R.string.motion_realism_title),
                             previewChip = currentRealismLevelName,
                             onClick = onNavigateToMotionRealism
+                        )
+                        if (BuildConfig.GLOBAL_SCHEME) SettingsEntryRow(
+                            icon = Icons.Rounded.Devices,
+                            tone = LabelTone.Success,
+                            title = stringResource(R.string.system_adaptation_title),
+                            previewChip = adaptationStatusChip,
+                            onClick = onNavigateToVendorScheme
                         )
                         SettingsEntryRow(
                             icon = Icons.Rounded.Security,

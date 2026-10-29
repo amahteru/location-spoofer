@@ -3,6 +3,7 @@ package io.github.amahteru.locationspoofer.utils
 import androidx.core.content.edit
 import android.content.Context
 import android.location.Geocoder
+import io.github.amahteru.locationspoofer.data.BuildConfig
 import io.github.amahteru.locationspoofer.data.model.RoutePoint
 import io.github.amahteru.locationspoofer.data.state.SpoofingState
 import io.github.amahteru.locationspoofer.utils.CoordinateUtils
@@ -142,6 +143,15 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
     }
 
     private fun putPersistentSettings(json: JSONObject) {
+        if (BuildConfig.GLOBAL_SCHEME) {
+            val systemHookPackagesArr = JSONArray()
+            settingsManager.getSystemHookPackages().forEach { systemHookPackagesArr.put(it) }
+            json.put("system_hook_packages", systemHookPackagesArr)
+            json.put("system_hook_global_mode", settingsManager.isSystemHookGlobalMode)
+            json.put("vendor_override", settingsManager.vendorOverride)
+            json.put("force_location_enabled", settingsManager.forceLocationEnabled)
+            json.put("debug_dump_system_services", settingsManager.debugDumpSystemServices)
+        }
         json.put("realism_level", SpoofingState.realismLevel.takeIf { it >= 0 } ?: settingsManager.realismLevel)
         json.put("speed_fluctuation_pct", SpoofingState.speedFluctuationPct.takeIf { it >= 0 } ?: settingsManager.speedFluctuationPct)
         json.put("altitude_variation_m", settingsManager.altitudeVariationM)

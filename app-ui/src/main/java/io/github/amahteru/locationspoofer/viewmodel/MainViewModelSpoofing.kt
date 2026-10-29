@@ -78,10 +78,14 @@ internal fun MainViewModel.startSpoofing() {
 }
 
 private suspend fun MainViewModel.restartHookedAppsSilently() {
-    val apps = lsposedManager.getHookedApps(context)
-    if (apps.isNotEmpty()) {
+    val toKill = if (BuildConfig.GLOBAL_SCHEME) {
+        systemHookRestartTargets()
+    } else {
+        lsposedManager.getHookedApps(context).map { it.packageName }
+    }
+    if (toKill.isNotEmpty()) {
         locationRepository.checkRootAccess()
-        locationRepository.forceStopApps(apps.map { it.packageName })
+        locationRepository.forceStopApps(toKill)
     }
 }
 

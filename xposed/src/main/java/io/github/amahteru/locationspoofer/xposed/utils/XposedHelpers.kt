@@ -7,7 +7,15 @@ import java.lang.reflect.*
 import kotlin.math.*
 import io.github.libxposed.api.*
 
+interface HookReporter {
+    fun methodHooked(className: String, methodName: String, count: Int)
+    fun error(name: String, t: Throwable)
+}
+
 object XposedHelpers {
+    @Volatile
+    var hookReporter: HookReporter? = null
+
     lateinit var module: XposedModule
 
     fun isModuleInitialized(): Boolean = ::module.isInitialized
@@ -51,6 +59,18 @@ object XposedHelpers {
         val field = findFieldInternal(obj.javaClass, fieldName)
             ?: throw NoSuchFieldException(fieldName)
         return field.get(obj)
+    }
+
+    fun getIntField(obj: Any, fieldName: String): Int {
+        val field = findFieldInternal(obj.javaClass, fieldName)
+            ?: throw NoSuchFieldException(fieldName)
+        return field.getInt(obj)
+    }
+
+    fun getStaticObjectField(clazz: Class<*>, fieldName: String): Any? {
+        val field = findFieldInternal(clazz, fieldName)
+            ?: throw NoSuchFieldException(fieldName)
+        return field.get(null)
     }
 
     fun setObjectField(obj: Any, fieldName: String, value: Any?) {
@@ -187,6 +207,7 @@ object XposedHelpers {
         crossinline interceptor: (io.github.libxposed.api.XposedInterface.Chain, Executable) -> Any?
     ): List<io.github.libxposed.api.XposedInterface.HookHandle> {
         val handles = mutableListOf<io.github.libxposed.api.XposedInterface.HookHandle>()
+        var hooked = 0
         for (method in clazz.declaredMethods) {
             if (method.name == methodName && !Modifier.isAbstract(method.modifiers)) {
                 try {
@@ -197,11 +218,14 @@ object XposedHelpers {
                             }
                         })
                     handles.add(handle)
+                    hooked++
                 } catch (e: Throwable) {
                     XposedBridge.log("[LocationSpoofer] hook ${clazz.name}#$methodName failed: $e")
+                    hookReporter?.error("${clazz.name}#$methodName", e)
                 }
             }
         }
+        hookReporter?.methodHooked(clazz.name, methodName, hooked)
         return handles
     }
 

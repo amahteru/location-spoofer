@@ -11,6 +11,7 @@ android {
 
     defaultConfig {
         minSdk = 33
+        missingDimensionStrategy("scheme", "scoped")
     }
 
     compileOptions {

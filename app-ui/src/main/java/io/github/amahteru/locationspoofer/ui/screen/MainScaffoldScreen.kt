@@ -65,9 +65,11 @@ enum class MainSubScreen {
     MapEngineSettings,
     SignatureAuth,
     RootDiagnostics,
+    VendorScheme,
     MotionRealism,
     BackgroundKeepAlive,
-    EnvTokens
+    EnvTokens,
+    SystemHookApps
 }
 
 @Composable
@@ -250,7 +252,8 @@ fun MainScaffoldScreen(
                             uiState = uiState,
                             tabBarHeight = paddingValues.calculateBottomPadding(),
                             onNavigateToScanner = { currentSubScreen = MainSubScreen.ScannerMap },
-                            onNavigateToManageData = { currentSubScreen = MainSubScreen.ManageData }
+                            onNavigateToManageData = { currentSubScreen = MainSubScreen.ManageData },
+                            onNavigateToSystemHookApps = { currentSubScreen = MainSubScreen.SystemHookApps }
                         )
 
                         BottomTab.Info.ordinal -> io.github.amahteru.locationspoofer.ui.screen.tabs.InfoTab(
@@ -263,6 +266,7 @@ fun MainScaffoldScreen(
                             onNavigateToMapEngine = { currentSubScreen = MainSubScreen.MapEngineSettings },
                             onNavigateToSignatureAuth = { currentSubScreen = MainSubScreen.SignatureAuth },
                             onNavigateToRootDiagnostics = { currentSubScreen = MainSubScreen.RootDiagnostics },
+                            onNavigateToVendorScheme = { currentSubScreen = MainSubScreen.VendorScheme },
                             onNavigateToMotionRealism = { currentSubScreen = MainSubScreen.MotionRealism },
                             onNavigateToBackgroundKeepAlive = { currentSubScreen = MainSubScreen.BackgroundKeepAlive },
                             onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens }
@@ -325,6 +329,12 @@ fun MainScaffoldScreen(
                         onClose = { currentSubScreen = MainSubScreen.None }
                     )
 
+                    MainSubScreen.VendorScheme -> io.github.amahteru.locationspoofer.ui.screen.settings.VendorSchemeScreen(
+                        viewModel = viewModel,
+                        uiState = uiState,
+                        onClose = { currentSubScreen = MainSubScreen.None }
+                    )
+
                     MainSubScreen.BackgroundKeepAlive -> io.github.amahteru.locationspoofer.ui.screen.settings.BackgroundKeepAliveScreen(
                         viewModel = viewModel,
                         uiState = uiState,
@@ -335,6 +345,12 @@ fun MainScaffoldScreen(
                         viewModel = viewModel,
                         uiState = uiState,
                         onClose = { currentSubScreen = MainSubScreen.None }
+                    )
+
+                    MainSubScreen.SystemHookApps -> SystemHookAppsScreen(
+                        viewModel = viewModel,
+                        uiState = uiState,
+                        onBack = { currentSubScreen = MainSubScreen.None }
                     )
 
                     MainSubScreen.None -> Unit
