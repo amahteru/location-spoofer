@@ -111,7 +111,8 @@ class MotionController(
         clearRoute()
         joyIntensity = 0f
         _state.update { it.copy(mode = Mode.STATIC, lat = lat, lng = lng, speedMs = 0.0, hasRoute = false, paused = false, returning = false) }
-        ensureTicking()
+        tickJob?.cancel()
+        tickJob = null
     }
 
     fun onRouteStarted(
@@ -171,6 +172,7 @@ class MotionController(
         if (!s.joystickEnabled) return
         if (intensity > 0f && s.mode == Mode.STATIC) {
             _state.update { it.copy(mode = Mode.MANUAL) }
+            ensureTicking()
         }
         val wasMoving = joyIntensity > 0f
         joyBearing = bearing

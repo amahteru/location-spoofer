@@ -3,6 +3,7 @@ package io.github.amahteru.locationspoofer.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import io.github.amahteru.locationspoofer.data.motion.MotionController
 import io.github.amahteru.locationspoofer.data.repository.LocationRepository
 import io.github.amahteru.locationspoofer.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,7 @@ import org.koin.core.component.inject
 class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
     private val locationRepository: LocationRepository by inject()
     private val settingsRepository: SettingsRepository by inject()
+    private val motionController: MotionController by inject()
 
     companion object {
         const val ACTION_START = "io.github.amahteru.locationspoofer.START"
@@ -56,5 +58,6 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
     private suspend fun handleStop(context: Context) {
         settingsRepository.isSpoofingActive = false
         locationRepository.stopSpoofing(context)
+        motionController.onStopped()
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.amahteru.locationspoofer.ui.screen.LanguageSelectionScreen
 import io.github.amahteru.locationspoofer.ui.screen.PermissionSetupScreen
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
@@ -62,7 +63,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalActivityResultRegistryOwner provides this@MainActivity
             ) {
-                val uiState by viewModel.uiState.collectAsState()
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 val isDark = isSystemInDarkTheme()
                 val baseDensity = LocalDensity.current
                 val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
