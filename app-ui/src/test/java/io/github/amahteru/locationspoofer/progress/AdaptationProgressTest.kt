@@ -17,7 +17,7 @@ class AdaptationProgressTest {
         val blocks = parseMarkdownBlocks(doc)
         assertTrue(blocks.none { it is MarkdownBlock.Paragraph && (it.text.startsWith("|") || it.text == "---") })
         val first = blocks.filterIsInstance<MarkdownBlock.Table>().first()
-        assertEquals(listOf("系统", "适配器", "状态", "已验证的系统版本", "备注"), first.header)
+        assertEquals(listOf("系统", "适配器", "状态", "已验证版本", "备注"), first.header)
         assertTrue(first.rows.none { row -> row.all { it.matches(Regex("-+")) } })
     }
 
@@ -29,7 +29,7 @@ class AdaptationProgressTest {
 
         val colorOs = AdaptationProgress.findGlobalSystem(doc, RomFamily.COLOROS.progressKeywords)!!
         assertEquals(AdaptationProgress.Status.PARTIAL, colorOs.status)
-        assertEquals("ColorOS 16 / Android 16", colorOs.verifiedVersions)
+        assertEquals("ColorOS 16", colorOs.verifiedVersions)
 
         val oneUi = AdaptationProgress.findGlobalSystem(doc, RomFamily.ONEUI.progressKeywords)!!
         assertEquals(AdaptationProgress.Status.UNVERIFIED, oneUi.status)
