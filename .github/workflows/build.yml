@@ -38,7 +38,7 @@ jobs:
       - name: Unit Tests
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon test
+          ./gradlew test
 
       - name: Build Release APK
         env:
@@ -52,8 +52,7 @@ jobs:
         run: |
           [ -n "$AMAP_API_KEY" ] || echo "::warning::未配置 AMAP_API_KEY，安装包里的高德地图不可用"
           [ -n "$BAIDU_API_KEY" ] || echo "::warning::未配置 BAIDU_API_KEY，安装包里的百度地图不可用"
-          ./gradlew --no-daemon :app:assembleScopedRelease
-          ./gradlew --no-daemon :app:assembleGlobalRelease
+          ./gradlew :app:assembleScopedRelease :app:assembleGlobalRelease
 
           VERSION=$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d'=' -f2)
           DIST_DIR="app/build/outputs/apk/dist"
