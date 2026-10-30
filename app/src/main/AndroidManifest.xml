@@ -46,7 +46,6 @@
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="${baiduApiKey}" />
 
-        <!-- 百度个性化地图深色样式 ID，读取方式见 BaiduMapEngineAdapter -->
         <meta-data
             android:name="io.github.amahteru.locationspoofer.BAIDU_DARK_STYLE_ID"
             android:value="${baiduDarkStyleId}" />

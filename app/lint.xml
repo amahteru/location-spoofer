@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lint>
-    <!-- 高德搜索 9.7.1 自带 com.amap.apis.utils.core 下的类，和 3dmap 10.0.600 重复，
-         checkDuplicateClasses 直接失败；等高德发布与 3dmap 10.x 配套的搜索包再升级 -->
     <issue id="NewerVersionAvailable">
         <ignore regexp="com\.amap\.api:search" />
     </issue>

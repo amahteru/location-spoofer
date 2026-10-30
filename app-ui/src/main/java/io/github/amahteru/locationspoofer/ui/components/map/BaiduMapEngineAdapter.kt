@@ -47,7 +47,6 @@ class BaiduMapControllerImpl(
         setMapType(currentMapType)
     }
 
-    // 样式 ID 由构建时注入清单（BAIDU_DARK_STYLE_ID），未配置时保持默认亮色
     private fun darkStyleId(context: Context): String = try {
         context.packageManager
             .getApplicationInfo(context.packageName, android.content.pm.PackageManager.GET_META_DATA)

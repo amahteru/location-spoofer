@@ -250,8 +250,6 @@ object XposedHelpers {
 object XposedBridge {
     private val openCellLogLastTimes = ConcurrentHashMap<String, Long>()
 
-    // 目标 App 能读到自己进程的 logcat，部分框架（如 Vector）的 module.log 也写进 logcat，
-    // 所以 release 包在 Hook 进程里不输出任何日志
     private val loggingEnabled = io.github.amahteru.locationspoofer.xposed.BuildConfig.DEBUG
 
     private fun logcat(priority: Int, msg: String, t: Throwable? = null) {
