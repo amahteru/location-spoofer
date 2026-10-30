@@ -197,7 +197,7 @@ internal fun LocationHooker.hookBluetoothLE(
                 val bondedSet = java.util.HashSet<Any>()
                 try {
                     for (i in 0 until bluetoothArray.length()) {
-                        val obj = bluetoothArray.getJSONObject(i)
+                        val obj = bluetoothArray.optJSONObject(i) ?: continue
                         if (obj.optBoolean("isConnected", false)) {
                             val address = obj.optString("address", "00:00:00:00:00:00")
                             val dev = createBluetoothDevice(classLoader, address)
@@ -323,7 +323,8 @@ internal fun LocationHooker.hookBluetoothLE(
                         val address = (XposedHelpers.callMethod(chain.thisObject, "getAddress") as? String)?.uppercase()
                         if (address != null) {
                             for (i in 0 until bluetoothArray.length()) {
-                                if (bluetoothArray.getJSONObject(i).optString("address").uppercase() == address) {
+                                val obj = bluetoothArray.optJSONObject(i) ?: continue
+                                if (obj.optString("address").uppercase() == address) {
                                     return@hookAllMethods 2
                                 }
                             }
@@ -344,7 +345,7 @@ internal fun LocationHooker.hookBluetoothLE(
                         val address = (XposedHelpers.callMethod(thisDevice, "getAddress") as? String)?.uppercase()
                         if (address != null) {
                             for (i in 0 until bluetoothArray.length()) {
-                                val obj = bluetoothArray.getJSONObject(i)
+                                val obj = bluetoothArray.optJSONObject(i) ?: continue
                                 if (obj.optString("address").uppercase() == address) {
                                     return@hookAllMethods if (obj.optBoolean("isConnected", false)) 12 else 10
                                 }
@@ -367,7 +368,8 @@ internal fun LocationHooker.hookBluetoothLE(
                         var isMockDevice = false
                         if (address != null) {
                             for (i in 0 until bluetoothArray.length()) {
-                                if (bluetoothArray.getJSONObject(i).optString("address").uppercase() == address) {
+                                val obj = bluetoothArray.optJSONObject(i) ?: continue
+                                if (obj.optString("address").uppercase() == address) {
                                     isMockDevice = true
                                     break
                                 }

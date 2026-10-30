@@ -7,12 +7,14 @@ import java.lang.reflect.*
 import kotlin.math.*
 import io.github.libxposed.api.*
 
+private data class MotionSnapshot(
+    val motion: SpoofedMotion,
+    val system: String,
+    val timestamp: Long
+)
+
 @Volatile
-private var cachedMotionSnapshot: SpoofedMotion? = null
-@Volatile
-private var cachedMotionSystem: String? = null
-@Volatile
-private var cachedMotionTimestamp: Long = 0L
+private var cachedMotionSnapshot: MotionSnapshot? = null
 
 internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ-02"): SpoofedMotion? {
     val config = readConfig() ?: return null
@@ -20,8 +22,8 @@ internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ
 
     val now = System.currentTimeMillis()
     val cached = cachedMotionSnapshot
-    if (cached != null && cachedMotionSystem == defaultSystem && (now - cachedMotionTimestamp) in 0..300L) {
-        return cached
+    if (cached != null && cached.system == defaultSystem && (now - cached.timestamp) in 0..300L) {
+        return cached.motion
     }
 
     val rawMotion = RouteEngine.calculateCurrentPosition(config, now)
@@ -29,9 +31,7 @@ internal fun LocationHooker.getCurrentSpoofedMotion(defaultSystem: String = "GCJ
     val jittered = getJitteredLocation(finalCoords.first, finalCoords.second)
     val motion = SpoofedMotion(jittered.first, jittered.second, rawMotion.bearing, rawMotion.speed)
 
-    cachedMotionSnapshot = motion
-    cachedMotionSystem = defaultSystem
-    cachedMotionTimestamp = now
+    cachedMotionSnapshot = MotionSnapshot(motion, defaultSystem, now)
     return motion
 }
 

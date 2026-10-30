@@ -54,7 +54,10 @@ internal fun LocationHooker.hookAddressFields(clazz: Class<*>, classLoader: Clas
                     }
                     if (fakeValue != null) {
                         val res = result as? String
-                        if (fakeValue.isNotEmpty() || res.isNullOrEmpty() || res.contains("Unknown", ignoreCase = true)) {
+                        val shouldOverride = fakeValue.isNotEmpty() ||
+                                (cachedCity.isNotEmpty() && (method.name == "getCityCode" || method.name == "getAdCode")) ||
+                                res.isNullOrEmpty() || res.contains("Unknown", ignoreCase = true)
+                        if (shouldOverride) {
                             result = fakeValue
                         }
                     }

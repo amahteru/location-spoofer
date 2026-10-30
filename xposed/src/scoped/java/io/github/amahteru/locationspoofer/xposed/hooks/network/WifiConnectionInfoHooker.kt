@@ -34,31 +34,26 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                     }
 
                     when (method.name) {
-                        "getBSSID" -> return@hookMethod connectedWifi?.optString("bssid")
-                            ?: "02:00:00:00:00:00"
+                        "getBSSID" -> return@hookMethod connectedWifi.optString("bssid", "02:00:00:00:00:00")
 
-                        "getMacAddress" -> return@hookMethod connectedWifi?.optString("macAddress")
-                            ?: "02:00:00:00:00:00"
+                        "getMacAddress" -> return@hookMethod connectedWifi.optString("macAddress", "02:00:00:00:00:00")
 
                         "getSSID" -> {
-                            val ssidVal = connectedWifi?.optString("ssid", "") ?: ""
+                            val ssidVal = connectedWifi.optString("ssid", "")
                             val finalSsid =
                                 if (ssidVal.isEmpty() || ssidVal == "<unknown ssid>") "" else ssidVal
                             return@hookMethod if (finalSsid.isEmpty()) "<unknown ssid>" else "\"$finalSsid\""
                         }
 
-                        "getNetworkId" -> return@hookMethod connectedWifi?.optInt("networkId", -1)
-                            ?: -1
+                        "getNetworkId" -> return@hookMethod connectedWifi.optInt("networkId", -1)
 
-                        "getRssi" -> return@hookMethod connectedWifi?.optInt("level", -127) ?: -127
+                        "getRssi" -> return@hookMethod connectedWifi.optInt("level", -127)
 
-                        "getLinkSpeed" -> return@hookMethod connectedWifi?.optInt("linkSpeed", -1)
-                            ?: -1
+                        "getLinkSpeed" -> return@hookMethod connectedWifi.optInt("linkSpeed", -1)
 
-                        "getFrequency" -> return@hookMethod connectedWifi?.optInt("frequency", -1)
-                            ?: -1
+                        "getFrequency" -> return@hookMethod connectedWifi.optInt("frequency", -1)
 
-                        "getIpAddress" -> return@hookMethod if (isConnected) 0x6401A8C0 else 0
+                        "getIpAddress" -> return@hookMethod 0x6401A8C0
                     }
                     return@hookMethod chain.proceed(chain.args.toTypedArray())
                 }
@@ -88,8 +83,7 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                 val enumClass = XposedHelpers.findClass(
                     "android.net.wifi.SupplicantState", classLoader
                 )
-                val stateStr = if (isConnected) "COMPLETED" else "DISCONNECTED"
-                return@hookMethod enumClass.getField(stateStr).get(null)
+                return@hookMethod enumClass.getField("COMPLETED").get(null)
             } catch (e: Throwable) {
             }
             return@hookMethod chain.proceed(chain.args.toTypedArray())
@@ -114,9 +108,8 @@ internal fun LocationHooker.hookWifiConnectionInfo(
             }
 
             val currentResult = chain.proceed(chain.args.toTypedArray())
-            if (isConnected && connectedWifi != null) {
-                try {
-                    val ssidVal = connectedWifi.optString("ssid", "")
+            try {
+                val ssidVal = connectedWifi.optString("ssid", "")
                     val finalSsid =
                         if (ssidVal.isEmpty() || ssidVal == "<unknown ssid>") "HOME_WIFI" else ssidVal
                     val bssidVal = connectedWifi.optString("bssid", "02:00:00:00:00:00")
@@ -273,85 +266,6 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                     }
                 } catch (e: Throwable) {
                 }
-            } else {
-                if (currentResult != null) {
-                    try {
-                        XposedHelpers.setObjectField(
-                            currentResult,
-                            "mBSSID",
-                            "02:00:00:00:00:00"
-                        )
-                    } catch (e: Throwable) {
-                    }
-                    try {
-                        XposedHelpers.setObjectField(
-                            currentResult,
-                            "mMacAddress",
-                            "02:00:00:00:00:00"
-                        )
-                    } catch (e: Throwable) {
-                    }
-                    try {
-                        XposedHelpers.setIntField(currentResult, "mNetworkId", -1)
-                    } catch (e: Throwable) {
-                    }
-                    try {
-                        XposedHelpers.setIntField(currentResult, "mRssi", -127)
-                    } catch (e: Throwable) {
-                    }
-                    try {
-                        XposedHelpers.setIntField(currentResult, "mLinkSpeed", -1)
-                    } catch (e: Throwable) {
-                    }
-                    try {
-                        XposedHelpers.setIntField(currentResult, "mFrequency", -1)
-                    } catch (e: Throwable) {
-                    }
-                } else {
-                    if (isCoreSystemProcess) return@hookMethod currentResult
-                    try {
-                        val wifiInfoClass = XposedHelpers.findClass(
-                            "android.net.wifi.WifiInfo",
-                            classLoader
-                        )
-                        val fakeWifiInfo = XposedHelpers.newInstance(wifiInfoClass)
-                        try {
-                            XposedHelpers.setObjectField(
-                                fakeWifiInfo,
-                                "mBSSID",
-                                "02:00:00:00:00:00"
-                            )
-                        } catch (e: Throwable) {
-                        }
-                        try {
-                            XposedHelpers.setObjectField(
-                                fakeWifiInfo,
-                                "mMacAddress",
-                                "02:00:00:00:00:00"
-                            )
-                        } catch (e: Throwable) {
-                        }
-                        try {
-                            XposedHelpers.setIntField(fakeWifiInfo, "mNetworkId", -1)
-                        } catch (e: Throwable) {
-                        }
-                        try {
-                            XposedHelpers.setIntField(fakeWifiInfo, "mRssi", -127)
-                        } catch (e: Throwable) {
-                        }
-                        try {
-                            XposedHelpers.setIntField(fakeWifiInfo, "mLinkSpeed", -1)
-                        } catch (e: Throwable) {
-                        }
-                        try {
-                            XposedHelpers.setIntField(fakeWifiInfo, "mFrequency", -1)
-                        } catch (e: Throwable) {
-                        }
-                        return@hookMethod fakeWifiInfo
-                    } catch (e: Throwable) {
-                    }
-                }
-            }
             return@hookMethod currentResult
         }
     } catch (e: Throwable) {
