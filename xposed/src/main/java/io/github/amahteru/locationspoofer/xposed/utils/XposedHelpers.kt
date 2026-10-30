@@ -91,6 +91,12 @@ object XposedHelpers {
         field.setDouble(obj, value)
     }
 
+    fun setFloatField(obj: Any, fieldName: String, value: Float) {
+        val field = findFieldInternal(obj.javaClass, fieldName)
+            ?: throw NoSuchFieldException(fieldName)
+        field.setFloat(obj, value)
+    }
+
     fun setBooleanField(obj: Any, fieldName: String, value: Boolean) {
         val field = findFieldInternal(obj.javaClass, fieldName)
             ?: throw NoSuchFieldException(fieldName)

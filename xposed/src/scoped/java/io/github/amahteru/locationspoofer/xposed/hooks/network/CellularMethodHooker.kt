@@ -31,9 +31,12 @@ internal fun LocationHooker.hookCellEnvironment(
             )
             return chain.proceed(chain.args.toTypedArray())
         }
+        val mockCellForLog = config.optBoolean("mock_cell", true)
+        if (!mockCellForLog) {
+            return chain.proceed(chain.args.toTypedArray())
+        }
         val lat = config.optDouble("lat", 0.0)
         val lng = config.optDouble("lng", 0.0)
-        val mockCellForLog = config.optBoolean("mock_cell", true)
         val cellCountForLog = config.optJSONArray("cell_json")?.length() ?: 0
         XposedBridge.logOpenCellIdEvery(
             "$methodName:called:$mockCellForLog:$cellCountForLog",
@@ -43,20 +46,14 @@ internal fun LocationHooker.hookCellEnvironment(
         when (methodName) {
             "getCellLocation" -> {
                 try {
-                    val mockCell = config.optBoolean("mock_cell", true)
-                    if (mockCell) {
-                        val gsmCellLocationClass = XposedHelpers.findClass(
-                            "android.telephony.gsm.GsmCellLocation", classLoader
-                        )
-                        val fakeLocation = XposedHelpers.newInstance(gsmCellLocationClass)
-                        val (lac, cid) = registeredCellCodes(config, lat, lng)
-                        XposedHelpers.callMethod(fakeLocation, "setLacAndCid", lac, cid)
-                        XposedBridge.logOpenCellId("getCellLocation returning GsmCellLocation lac=$lac cid=$cid")
-                        return fakeLocation
-                    } else {
-                        XposedBridge.logOpenCellId("getCellLocation returning null because mock_cell=false")
-                        return null
-                    }
+                    val gsmCellLocationClass = XposedHelpers.findClass(
+                        "android.telephony.gsm.GsmCellLocation", classLoader
+                    )
+                    val fakeLocation = XposedHelpers.newInstance(gsmCellLocationClass)
+                    val (lac, cid) = registeredCellCodes(config, lat, lng)
+                    XposedHelpers.callMethod(fakeLocation, "setLacAndCid", lac, cid)
+                    XposedBridge.logOpenCellId("getCellLocation returning GsmCellLocation lac=$lac cid=$cid")
+                    return fakeLocation
                 } catch (e: Throwable) {
                     XposedBridge.logOpenCellId("getCellLocation failed: $e")
                     return null
@@ -65,17 +62,12 @@ internal fun LocationHooker.hookCellEnvironment(
 
             "getAllCellInfo" -> {
                 try {
-                    if (config.optBoolean("mock_cell", true)) {
-                        val fakeCells = buildFakeCellInfoList(classLoader, lat, lng, config)
-                        XposedBridge.logOpenCellIdEvery(
-                            "getAllCellInfo:return:${fakeCells.size}",
-                            "getAllCellInfo returning fakeCells=${fakeCells.size}"
-                        )
-                        return fakeCells
-                    } else {
-                        XposedBridge.logOpenCellId("getAllCellInfo returning empty because mock_cell=false")
-                        return java.util.ArrayList<Any>()
-                    }
+                    val fakeCells = buildFakeCellInfoList(classLoader, lat, lng, config)
+                    XposedBridge.logOpenCellIdEvery(
+                        "getAllCellInfo:return:${fakeCells.size}",
+                        "getAllCellInfo returning fakeCells=${fakeCells.size}"
+                    )
+                    return fakeCells
                 } catch (e: Throwable) {
                     XposedBridge.logOpenCellId("getAllCellInfo build failed: $e")
                     return java.util.ArrayList<Any>()
@@ -136,7 +128,10 @@ internal fun LocationHooker.hookCellEnvironment(
             return chain.proceed(chain.args.toTypedArray())
         }
         val mockCell = config.optBoolean("mock_cell", true)
-        val cellArray = if (mockCell) config.optJSONArray("cell_json") else null
+        if (!mockCell) {
+            return chain.proceed(chain.args.toTypedArray())
+        }
+        val cellArray = config.optJSONArray("cell_json")
         XposedBridge.logOpenCellIdEvery(
             "$methodName:called:$mockCell:${cellArray?.length() ?: 0}",
             "$methodName called mockCell=$mockCell cellJsonCount=${cellArray?.length() ?: 0}"
@@ -153,8 +148,6 @@ internal fun LocationHooker.hookCellEnvironment(
                         "getNetworkOperator returning $operator"
                     )
                     return operator
-                } else if (!mockCell) {
-                    return ""
                 }
             }
 
@@ -178,8 +171,6 @@ internal fun LocationHooker.hookCellEnvironment(
                         "getNetworkOperatorName returning ${result}"
                     )
                     return result
-                } else if (!mockCell) {
-                    return ""
                 }
             }
 
@@ -189,11 +180,11 @@ internal fun LocationHooker.hookCellEnvironment(
             "getSimOperatorName" -> {
             }
 
-            "getNetworkType" -> return if (mockCell) 13 else 0
-            "getDataNetworkType" -> return if (mockCell) 13 else 0
+            "getNetworkType" -> return 13
+            "getDataNetworkType" -> return 13
             "getPhoneType" -> return 1
             "getServiceState", "getServiceStateForSlot" -> {
-                if (mockCell) buildFakeServiceState(classLoader, cellArray)?.let {
+                buildFakeServiceState(classLoader, cellArray)?.let {
                     XposedBridge.logOpenCellIdEvery(
                         "$methodName:return-service-state",
                         "$methodName returning fake ServiceState"
@@ -203,7 +194,7 @@ internal fun LocationHooker.hookCellEnvironment(
             }
 
             "getSignalStrength" -> {
-                if (mockCell) buildFakeSignalStrength(classLoader, config)?.let {
+                buildFakeSignalStrength(classLoader, config)?.let {
                     XposedBridge.logOpenCellIdEvery(
                         "getSignalStrength:return-signal-strength",
                         "getSignalStrength returning fake SignalStrength"

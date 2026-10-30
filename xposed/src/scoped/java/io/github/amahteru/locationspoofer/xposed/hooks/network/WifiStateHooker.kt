@@ -17,13 +17,7 @@ internal fun LocationHooker.hookWifiState(
             "android.net.wifi.WifiManager", classLoader, "getWifiState"
         ) { chain, method ->
             val config = readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean(
-                    "active",
-                    false
-                )
-            ) return@hookMethod chain.proceed(chain.args.toTypedArray())
-            val mockWifi = config.optBoolean("mock_wifi", true)
-            if (mockWifi) {
+            if (config.optBoolean("active", false) && config.optBoolean("mock_wifi", true)) {
                 return@hookMethod 3
             }
             return@hookMethod chain.proceed(chain.args.toTypedArray())
@@ -37,19 +31,8 @@ internal fun LocationHooker.hookWifiState(
             "android.net.wifi.WifiManager", classLoader, "isWifiEnabled"
         ) { chain, method ->
             val config = readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean(
-                    "active",
-                    false
-                )
-            ) return@hookMethod chain.proceed(chain.args.toTypedArray())
-            val mockWifi = config.optBoolean("mock_wifi", true)
-            val wifiObj = config.optJSONObject("wifi_json")
-            val hasWifiData =
-                wifiObj != null && (wifiObj.has("connectedWifi") || wifiObj.optJSONArray(
-                    "nearbyWifi"
-                )?.length() ?: 0 > 0)
-            if (mockWifi) {
-                return@hookMethod hasWifiData
+            if (config.optBoolean("active", false) && config.optBoolean("mock_wifi", true)) {
+                return@hookMethod true
             }
             return@hookMethod chain.proceed(chain.args.toTypedArray())
         }

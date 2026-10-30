@@ -22,13 +22,10 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                 ) { chain, method ->
                     val config =
                         readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-                    if (!config.optBoolean(
-                            "active",
-                            false
-                        )
-                    ) return@hookMethod chain.proceed(chain.args.toTypedArray())
-                    val mockWifi = config.optBoolean("mock_wifi", true)
-                    val wifiObj = if (mockWifi) config.optJSONObject("wifi_json") else null
+                    if (!config.optBoolean("active", false) || !config.optBoolean("mock_wifi", true)) {
+                        return@hookMethod chain.proceed(chain.args.toTypedArray())
+                    }
+                    val wifiObj = config.optJSONObject("wifi_json")
                     val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
                     val connectedWifi =
                         if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
@@ -74,20 +71,16 @@ internal fun LocationHooker.hookWifiConnectionInfo(
             "android.net.wifi.WifiInfo", classLoader, "getSupplicantState"
         ) { chain, method ->
             val config = readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean(
-                    "active",
-                    false
-                )
-            ) return@hookMethod chain.proceed(chain.args.toTypedArray())
-            val mockWifi = config.optBoolean("mock_wifi", true)
-            val wifiObj = if (mockWifi) config.optJSONObject("wifi_json") else null
+            if (!config.optBoolean("active", false) || !config.optBoolean("mock_wifi", true)) {
+                return@hookMethod chain.proceed(chain.args.toTypedArray())
+            }
+            val wifiObj = config.optJSONObject("wifi_json")
             val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
             try {
                 val enumClass = XposedHelpers.findClass(
                     "android.net.wifi.SupplicantState", classLoader
                 )
-                val stateStr =
-                    if (mockWifi && isConnected) "COMPLETED" else "DISCONNECTED"
+                val stateStr = if (isConnected) "COMPLETED" else "DISCONNECTED"
                 return@hookMethod enumClass.getField(stateStr).get(null)
             } catch (e: Throwable) {
             }
@@ -101,13 +94,10 @@ internal fun LocationHooker.hookWifiConnectionInfo(
             "android.net.wifi.WifiManager", classLoader, "getConnectionInfo"
         ) { chain, method ->
             val config = readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean(
-                    "active",
-                    false
-                )
-            ) return@hookMethod chain.proceed(chain.args.toTypedArray())
-            val mockWifi = config.optBoolean("mock_wifi", true)
-            val wifiObj = if (mockWifi) config.optJSONObject("wifi_json") else null
+            if (!config.optBoolean("active", false) || !config.optBoolean("mock_wifi", true)) {
+                return@hookMethod chain.proceed(chain.args.toTypedArray())
+            }
+            val wifiObj = config.optJSONObject("wifi_json")
             val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
             val connectedWifi =
                 if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
@@ -210,13 +200,17 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                                 classLoader
                             )
                             val builder = XposedHelpers.newInstance(builderClass)
-                            XposedHelpers.callMethod(builder, "setSsid", finalSsid)
-                            XposedHelpers.callMethod(builder, "setBssid", bssidVal)
-                            XposedHelpers.callMethod(builder, "setRssi", levelVal)
-                            XposedHelpers.callMethod(builder, "setFrequency", freqVal)
-                            XposedHelpers.callMethod(builder, "setLinkSpeed", linkSpeedVal)
+                            try {
+                                XposedHelpers.callMethod(builder, "setSsid", finalSsid.toByteArray(Charsets.UTF_8))
+                            } catch (_: Throwable) {
+                                try { XposedHelpers.callMethod(builder, "setSsid", finalSsid) } catch (_: Throwable) {}
+                            }
+                            try { XposedHelpers.callMethod(builder, "setBssid", bssidVal) } catch (_: Throwable) {}
+                            try { XposedHelpers.callMethod(builder, "setRssi", levelVal) } catch (_: Throwable) {}
+                            try { XposedHelpers.callMethod(builder, "setFrequency", freqVal) } catch (_: Throwable) {}
+                            try { XposedHelpers.callMethod(builder, "setLinkSpeed", linkSpeedVal) } catch (_: Throwable) {}
                             builtInfo = XposedHelpers.callMethod(builder, "build")
-                            builtWithBuilder = true
+                            builtWithBuilder = (builtInfo != null)
                         } catch (e: Throwable) {
                         }
 

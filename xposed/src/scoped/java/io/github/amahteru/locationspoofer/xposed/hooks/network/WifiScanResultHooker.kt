@@ -36,16 +36,12 @@ internal fun LocationHooker.hookWifiScanResults(classLoader: ClassLoader) {
             "android.net.wifi.WifiManager", classLoader, "getScanResults"
         ) { chain, method ->
             val config = readConfig() ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
-            if (!config.optBoolean(
-                    "active",
-                    false
-                )
-            ) return@hookMethod chain.proceed(chain.args.toTypedArray())
+            if (!config.optBoolean("active", false) || !config.optBoolean("mock_wifi", true)) {
+                return@hookMethod chain.proceed(chain.args.toTypedArray())
+            }
             val fakeList = java.util.ArrayList<Any>()
-            val mockWifi = config.optBoolean("mock_wifi", true)
-            val wifiObj = if (mockWifi) config.optJSONObject("wifi_json") else null
-            if (mockWifi) {
-                try {
+            val wifiObj = config.optJSONObject("wifi_json")
+            try {
                     val scanResultClass =
                         XposedHelpers.findClass("android.net.wifi.ScanResult", classLoader)
                     val baseTimestamp = android.os.SystemClock.elapsedRealtimeNanos()
@@ -143,7 +139,6 @@ internal fun LocationHooker.hookWifiScanResults(classLoader: ClassLoader) {
                     }
                 } catch (e: Throwable) {
                 }
-            }
             return@hookMethod fakeList
         }
     } catch (e: Throwable) {

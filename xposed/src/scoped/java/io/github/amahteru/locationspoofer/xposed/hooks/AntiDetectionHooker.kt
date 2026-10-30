@@ -15,7 +15,10 @@ internal fun LocationHooker.hookAntiDetection(classLoader: ClassLoader) {
                 "android:bluetooth_scan", "android:bluetooth_connect", "android:bluetooth_advertise"
             )
 
-            val opMethods = arrayOf("checkOp", "checkOpNoThrow", "noteOp", "noteOpNoThrow", "noteProxyOp", "noteProxyOpNoThrow")
+            val opMethods = arrayOf(
+                "checkOp", "checkOpNoThrow", "noteOp", "noteOpNoThrow", "noteProxyOp", "noteProxyOpNoThrow",
+                "unsafeCheckOp", "unsafeCheckOpNoThrow", "unsafeCheckOpRaw", "unsafeCheckOpRawNoThrow"
+            )
             for (mName in opMethods) {
                 try {
                     XposedHelpers.hookAllMethods(appOpsClass, mName) { chain, _ ->

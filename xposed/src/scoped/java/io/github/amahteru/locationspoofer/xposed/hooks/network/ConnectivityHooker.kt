@@ -95,27 +95,6 @@ internal fun LocationHooker.hookConnectivityLayer(
                             return@hookMethod fakeInfo
                         }
                     }
-                } else {
-                    val currentInfo = result
-                    if (currentInfo != null) {
-                        try {
-                            val type = XposedHelpers.callMethod(currentInfo, "getType") as Int
-                            if (type == 1) {
-                                val stateEnum = XposedHelpers.findClass(
-                                    "android.net.NetworkInfo\$State",
-                                    classLoader
-                                )
-                                XposedHelpers.setObjectField(
-                                    currentInfo,
-                                    "mState",
-                                    stateEnum.getField("DISCONNECTED").get(null)
-                                )
-                                XposedHelpers.callMethod(currentInfo, "setIsAvailable", false)
-                                return@hookMethod currentInfo
-                            }
-                        } catch (e: Throwable) {
-                        }
-                    }
                 }
             }
             return@hookMethod result
@@ -173,27 +152,6 @@ internal fun LocationHooker.hookConnectivityLayer(
                         val fakeInfo = buildFakeNetworkInfo()
                         if (fakeInfo != null) {
                             return@hookMethod fakeInfo
-                        }
-                    }
-                } else {
-                    val currentInfo = result
-                    if (currentInfo != null) {
-                        try {
-                            val type = XposedHelpers.callMethod(currentInfo, "getType") as Int
-                            if (type == 1) {
-                                val stateEnum = XposedHelpers.findClass(
-                                    "android.net.NetworkInfo\$State",
-                                    classLoader
-                                )
-                                XposedHelpers.setObjectField(
-                                    currentInfo,
-                                    "mState",
-                                    stateEnum.getField("DISCONNECTED").get(null)
-                                )
-                                XposedHelpers.callMethod(currentInfo, "setIsAvailable", false)
-                                return@hookMethod currentInfo
-                            }
-                        } catch (e: Throwable) {
                         }
                     }
                 }
