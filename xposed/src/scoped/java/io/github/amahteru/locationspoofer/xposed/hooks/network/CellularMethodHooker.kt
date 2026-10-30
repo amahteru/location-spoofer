@@ -174,14 +174,18 @@ internal fun LocationHooker.hookCellEnvironment(
                 }
             }
 
-            "getSimOperator" -> {
+            "getNetworkType", "getDataNetworkType" -> {
+                val registered = registeredCellJson(cellArray)
+                val type = if (registered != null) {
+                    normalizeCellType(registered.optString("type", registered.optString("radio", "LTE")))
+                } else "LTE"
+                return when (type) {
+                    "NR" -> 20
+                    "GSM" -> 16
+                    "WCDMA", "UMTS" -> 3
+                    else -> 13
+                }
             }
-
-            "getSimOperatorName" -> {
-            }
-
-            "getNetworkType" -> return 13
-            "getDataNetworkType" -> return 13
             "getPhoneType" -> return 1
             "getServiceState", "getServiceStateForSlot" -> {
                 buildFakeServiceState(classLoader, cellArray)?.let {

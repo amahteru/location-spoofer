@@ -190,17 +190,18 @@ internal fun LocationHooker.hookBluetoothLE(
                 if (!config.optBoolean("active", false) || !config.optBoolean("mock_bluetooth", true)) {
                     return@hookAllMethods chain.proceed(chain.args.toTypedArray())
                 }
+                val bluetoothArray = config.optJSONArray("bluetooth_json")
+                if (bluetoothArray == null || bluetoothArray.length() == 0) {
+                    return@hookAllMethods chain.proceed(chain.args.toTypedArray())
+                }
                 val bondedSet = java.util.HashSet<Any>()
                 try {
-                    val bluetoothArray = config.optJSONArray("bluetooth_json")
-                    if (bluetoothArray != null && bluetoothArray.length() > 0) {
-                        for (i in 0 until bluetoothArray.length()) {
-                            val obj = bluetoothArray.getJSONObject(i)
-                            if (obj.optBoolean("isConnected", false)) {
-                                val address = obj.optString("address", "00:00:00:00:00:00")
-                                val dev = createBluetoothDevice(classLoader, address)
-                                if (dev != null) bondedSet.add(dev)
-                            }
+                    for (i in 0 until bluetoothArray.length()) {
+                        val obj = bluetoothArray.getJSONObject(i)
+                        if (obj.optBoolean("isConnected", false)) {
+                            val address = obj.optString("address", "00:00:00:00:00:00")
+                            val dev = createBluetoothDevice(classLoader, address)
+                            if (dev != null) bondedSet.add(dev)
                         }
                     }
                 } catch (_: Throwable) {}
@@ -317,7 +318,17 @@ internal fun LocationHooker.hookBluetoothLE(
             XposedHelpers.hookAllMethods(bluetoothDeviceClass, "getType") { chain, _ ->
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)) {
-                    return@hookAllMethods 2
+                    val bluetoothArray = config.optJSONArray("bluetooth_json")
+                    if (bluetoothArray != null && bluetoothArray.length() > 0) {
+                        val address = (XposedHelpers.callMethod(chain.thisObject, "getAddress") as? String)?.uppercase()
+                        if (address != null) {
+                            for (i in 0 until bluetoothArray.length()) {
+                                if (bluetoothArray.getJSONObject(i).optString("address").uppercase() == address) {
+                                    return@hookAllMethods 2
+                                }
+                            }
+                        }
+                    }
                 }
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
@@ -327,20 +338,19 @@ internal fun LocationHooker.hookBluetoothLE(
             XposedHelpers.hookAllMethods(bluetoothDeviceClass, "getBondState") { chain, _ ->
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)) {
-                    val thisDevice = chain.thisObject
-                    val address = (XposedHelpers.callMethod(thisDevice, "getAddress") as? String)?.uppercase()
                     val bluetoothArray = config.optJSONArray("bluetooth_json")
-                    if (address != null && bluetoothArray != null) {
-                        for (i in 0 until bluetoothArray.length()) {
-                            val obj = bluetoothArray.getJSONObject(i)
-                            if (obj.optString("address").uppercase() == address) {
-                                if (obj.optBoolean("isConnected", false)) {
-                                    return@hookAllMethods 12
+                    if (bluetoothArray != null && bluetoothArray.length() > 0) {
+                        val thisDevice = chain.thisObject
+                        val address = (XposedHelpers.callMethod(thisDevice, "getAddress") as? String)?.uppercase()
+                        if (address != null) {
+                            for (i in 0 until bluetoothArray.length()) {
+                                val obj = bluetoothArray.getJSONObject(i)
+                                if (obj.optString("address").uppercase() == address) {
+                                    return@hookAllMethods if (obj.optBoolean("isConnected", false)) 12 else 10
                                 }
                             }
                         }
                     }
-                    return@hookAllMethods 10
                 }
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())
             }
@@ -350,20 +360,36 @@ internal fun LocationHooker.hookBluetoothLE(
             XposedHelpers.hookAllMethods(bluetoothDeviceClass, "getUuids") { chain, _ ->
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false) && config.optBoolean("mock_bluetooth", true)) {
-                    val parcelUuidClass = XposedHelpers.findClassIfExists("android.os.ParcelUuid", classLoader)
-                    if (parcelUuidClass != null) {
-                        try {
-                            val uuidObj = XposedHelpers.callStaticMethod(
-                                parcelUuidClass,
-                                "fromString",
-                                "0000fe3c-0000-1000-8000-00805f9b34fb"
-                            )
-                            if (uuidObj != null) {
-                                val array = java.lang.reflect.Array.newInstance(parcelUuidClass, 1)
-                                java.lang.reflect.Array.set(array, 0, uuidObj)
-                                return@hookAllMethods array
+                    val bluetoothArray = config.optJSONArray("bluetooth_json")
+                    if (bluetoothArray != null && bluetoothArray.length() > 0) {
+                        val thisDevice = chain.thisObject
+                        val address = (XposedHelpers.callMethod(thisDevice, "getAddress") as? String)?.uppercase()
+                        var isMockDevice = false
+                        if (address != null) {
+                            for (i in 0 until bluetoothArray.length()) {
+                                if (bluetoothArray.getJSONObject(i).optString("address").uppercase() == address) {
+                                    isMockDevice = true
+                                    break
+                                }
                             }
-                        } catch (_: Throwable) {}
+                        }
+                        if (isMockDevice) {
+                            val parcelUuidClass = XposedHelpers.findClassIfExists("android.os.ParcelUuid", classLoader)
+                            if (parcelUuidClass != null) {
+                                try {
+                                    val uuidObj = XposedHelpers.callStaticMethod(
+                                        parcelUuidClass,
+                                        "fromString",
+                                        "0000fe3c-0000-1000-8000-00805f9b34fb"
+                                    )
+                                    if (uuidObj != null) {
+                                        val array = java.lang.reflect.Array.newInstance(parcelUuidClass, 1)
+                                        java.lang.reflect.Array.set(array, 0, uuidObj)
+                                        return@hookAllMethods array
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        }
                     }
                 }
                 return@hookAllMethods chain.proceed(chain.args.toTypedArray())

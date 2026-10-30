@@ -31,7 +31,6 @@ internal fun LocationHooker.hookAMapSDK(classLoader: ClassLoader) {
                                 try { XposedHelpers.callMethod(amapLoc, "setSatellites", config.optInt("satellite_count", 20)) } catch (_: Throwable) {}
                                 val accuracy = getJitteredAccuracy()
                                 try { XposedHelpers.callMethod(amapLoc, "setAccuracy", accuracy) } catch (_: Throwable) {}
-                                try { XposedHelpers.setFloatField(amapLoc, "mAccuracy", accuracy) } catch (_: Throwable) {}
                             }
                         }
                     }
@@ -245,7 +244,6 @@ internal fun LocationHooker.hookAMapSDK(classLoader: ClassLoader) {
                             try { XposedHelpers.callMethod(amapLoc, "setSatellites", config.optInt("satellite_count", 20)) } catch (_: Throwable) {}
                             val accuracy = getJitteredAccuracy()
                             try { XposedHelpers.callMethod(amapLoc, "setAccuracy", accuracy) } catch (_: Throwable) {}
-                            try { XposedHelpers.setFloatField(amapLoc, "mAccuracy", accuracy) } catch (_: Throwable) {}
                             return@hookAllMethods amapLoc
                         }
                     }

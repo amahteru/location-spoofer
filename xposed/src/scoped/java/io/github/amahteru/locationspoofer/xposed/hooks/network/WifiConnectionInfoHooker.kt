@@ -29,6 +29,9 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                     val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
                     val connectedWifi =
                         if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
+                    if (!isConnected || connectedWifi == null) {
+                        return@hookMethod chain.proceed(chain.args.toTypedArray())
+                    }
 
                     when (method.name) {
                         "getBSSID" -> return@hookMethod connectedWifi?.optString("bssid")
@@ -76,6 +79,11 @@ internal fun LocationHooker.hookWifiConnectionInfo(
             }
             val wifiObj = config.optJSONObject("wifi_json")
             val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
+            val connectedWifi =
+                if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
+            if (!isConnected || connectedWifi == null) {
+                return@hookMethod chain.proceed(chain.args.toTypedArray())
+            }
             try {
                 val enumClass = XposedHelpers.findClass(
                     "android.net.wifi.SupplicantState", classLoader
@@ -101,6 +109,9 @@ internal fun LocationHooker.hookWifiConnectionInfo(
             val isConnected = wifiObj?.optBoolean("isConnected", false) ?: false
             val connectedWifi =
                 if (isConnected) wifiObj.optJSONObject("connectedWifi") else null
+            if (!isConnected || connectedWifi == null) {
+                return@hookMethod chain.proceed(chain.args.toTypedArray())
+            }
 
             val currentResult = chain.proceed(chain.args.toTypedArray())
             if (isConnected && connectedWifi != null) {
@@ -202,9 +213,7 @@ internal fun LocationHooker.hookWifiConnectionInfo(
                             val builder = XposedHelpers.newInstance(builderClass)
                             try {
                                 XposedHelpers.callMethod(builder, "setSsid", finalSsid.toByteArray(Charsets.UTF_8))
-                            } catch (_: Throwable) {
-                                try { XposedHelpers.callMethod(builder, "setSsid", finalSsid) } catch (_: Throwable) {}
-                            }
+                            } catch (_: Throwable) {}
                             try { XposedHelpers.callMethod(builder, "setBssid", bssidVal) } catch (_: Throwable) {}
                             try { XposedHelpers.callMethod(builder, "setRssi", levelVal) } catch (_: Throwable) {}
                             try { XposedHelpers.callMethod(builder, "setFrequency", freqVal) } catch (_: Throwable) {}

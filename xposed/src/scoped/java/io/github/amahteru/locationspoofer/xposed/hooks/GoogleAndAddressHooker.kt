@@ -37,24 +37,25 @@ internal fun LocationHooker.hookAddressFields(clazz: Class<*>, classLoader: Clas
 
                 val config = readConfig()
                 if (config != null && config.optBoolean("active", false)) {
-                    val res = result as? String
-                    if (res.isNullOrEmpty() || res.contains("Unknown", ignoreCase = true)) {
-                        result = when (method.name) {
-                            "getCity" -> cachedCity
-                            "getProvince" -> cachedProvince
-                            "getDistrict" -> cachedDistrict
-                            "getAddress", "getAddrStr" -> cachedAddress
-                            "getCountry", "getNation" -> cachedCountry
-                            "getStreet" -> cachedStreet
-                            "getStreetNum", "getStreetNumber", "getStreetNo" -> cachedStreetNum
-                            "getCityCode" -> ""
-                            "getAdCode" -> ""
-                            "getPoiName" -> cachedPoiName
-                            "getAoiName" -> cachedPoiName
-                            "getTown" -> ""
-                            "getVillage" -> ""
-                            "getLocationDescribe" -> "在${cachedPoiName}附近"
-                            else -> ""
+                    val fakeValue = when (method.name) {
+                        "getCity" -> cachedCity
+                        "getProvince" -> cachedProvince
+                        "getDistrict" -> cachedDistrict
+                        "getAddress", "getAddrStr" -> cachedAddress
+                        "getCountry", "getNation" -> cachedCountry
+                        "getStreet" -> cachedStreet
+                        "getStreetNum", "getStreetNumber", "getStreetNo" -> cachedStreetNum
+                        "getCityCode" -> ""
+                        "getAdCode" -> ""
+                        "getPoiName", "getAoiName" -> cachedPoiName
+                        "getTown", "getVillage" -> ""
+                        "getLocationDescribe" -> if (cachedPoiName.isNotEmpty()) "在${cachedPoiName}附近" else ""
+                        else -> null
+                    }
+                    if (fakeValue != null) {
+                        val res = result as? String
+                        if (fakeValue.isNotEmpty() || res.isNullOrEmpty() || res.contains("Unknown", ignoreCase = true)) {
+                            result = fakeValue
                         }
                     }
                 }

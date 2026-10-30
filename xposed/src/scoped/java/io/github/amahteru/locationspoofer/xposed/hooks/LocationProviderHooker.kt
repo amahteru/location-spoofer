@@ -116,6 +116,22 @@ internal fun LocationHooker.hookLocationProviders(classLoader: ClassLoader, curr
                                         return@hookAllMethods lChain.proceed(lChain.args.toTypedArray())
                                     }
                                 } catch (_: Throwable) {}
+
+                                try {
+                                    XposedHelpers.hookAllMethods(listenerClazz, "accept") { lChain, _ ->
+                                        val config = readConfig()
+                                        if (config != null && config.optBoolean("active", false) && currentPkg.substringBefore(":") != "io.github.amahteru.locationspoofer") {
+                                            val firstArg = lChain.args.firstOrNull()
+                                            if (firstArg is android.location.Location) {
+                                                val motion = getCurrentSpoofedMotion(defaultCoordinateSystemOf(firstArg))
+                                                if (motion != null) {
+                                                    applySpoofedFix(firstArg, motion, config)
+                                                }
+                                            }
+                                        }
+                                        return@hookAllMethods lChain.proceed(lChain.args.toTypedArray())
+                                    }
+                                } catch (_: Throwable) {}
                             }
                         }
                     } catch (e: Throwable) {
