@@ -27,7 +27,7 @@ object ColorOs16Vendor : SystemVersionVendor(ColorOsVendor) {
 
     override fun installExtraHooks(hooker: LocationHooker, classLoader: ClassLoader) {
         super.installExtraHooks(hooker, classLoader)
-        if (hooker.isBluetoothProcessInstance && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        if (hooker.isBluetoothProcessInstance) {
             val pendingIntent = ColorOs16BleDelivery(hooker, classLoader)
             hooker.vendorExtraHooks.add(pendingIntent)
             pendingIntent.install()

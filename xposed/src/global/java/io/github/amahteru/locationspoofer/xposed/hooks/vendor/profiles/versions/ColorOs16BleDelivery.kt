@@ -26,7 +26,6 @@ import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
-@androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.S)
 internal class ColorOs16BleDelivery(module: LocationHooker, loader: ClassLoader) :
     ColorOs16HookSupport(module, loader, "BLE") {
     private class Owner {

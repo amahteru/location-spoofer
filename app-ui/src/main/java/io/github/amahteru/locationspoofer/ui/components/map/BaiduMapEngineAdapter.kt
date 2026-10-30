@@ -49,9 +49,12 @@ class BaiduMapControllerImpl(
 
     private fun darkStyleId(context: Context): String = try {
         context.packageManager
-            .getApplicationInfo(context.packageName, android.content.pm.PackageManager.GET_META_DATA)
-            .metaData?.get("io.github.amahteru.locationspoofer.BAIDU_DARK_STYLE_ID")
-            ?.toString().orEmpty().trim()
+            .getApplicationInfo(
+                context.packageName,
+                android.content.pm.PackageManager.ApplicationInfoFlags.of(
+                    android.content.pm.PackageManager.GET_META_DATA.toLong()
+                )
+            ).metaData?.getString("io.github.amahteru.locationspoofer.BAIDU_DARK_STYLE_ID").orEmpty().trim()
     } catch (e: Exception) {
         ""
     }
