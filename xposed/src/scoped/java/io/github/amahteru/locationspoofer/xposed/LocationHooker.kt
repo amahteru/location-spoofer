@@ -354,13 +354,21 @@ class LocationHooker : XposedModule() {
 
                     val worker = Thread {
                         val workerThread = Thread.currentThread()
+                        var tickCount = 0
                         while (configWorker === workerThread && !workerThread.isInterrupted) {
                             try {
-                                Thread.sleep(1_000L)
+                                Thread.sleep(40L)
+                                tickCount = (tickCount + 1) % 25
                                 val newConfig = readConfig()
 
                                 if (newConfig != null && newConfig.optBoolean("active", false)) {
-                                    cachedProvince = newConfig.optString("province", "")
+                                    val cl = currentClassLoader
+                                    if (cl != null) {
+                                        SensorStepHooker.dispatchStepEvents(newConfig, cl)
+                                    }
+
+                                    if (tickCount == 0) {
+                                        cachedProvince = newConfig.optString("province", "")
                                     cachedCity = newConfig.optString("city", "")
                                     cachedDistrict = newConfig.optString("district", "")
                                     cachedStreet = newConfig.optString("street", "")
@@ -642,15 +650,13 @@ class LocationHooker : XposedModule() {
                                             }
                                         }
 
-                                        if (cl != null) {
-                                            SensorStepHooker.dispatchStepEvents(newConfig, cl)
-                                        }
                                     }
 
                                     if (mainHandler != null) {
                                         mainHandler.post(dispatchBlock)
                                     } else {
                                         dispatchBlock.run()
+                                    }
                                     }
                                 }
                             } catch (_: InterruptedException) {

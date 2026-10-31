@@ -91,20 +91,39 @@ object MotionRealism {
                 level.cadenceVariation * cadenceNoise.integral(elapsedSec)
             )
 
-        fun accelerometer(
+        private inline fun <T> withStepContext(
             stepsFloat: Double,
-            speed: Double,
-            noise: Random
-        ): FloatArray {
+            block: (stepPhase: Double, stepIndex: Long, strength: Double) -> T
+        ): T {
             val stepIndex = floor(stepsFloat).toLong()
             val stepPhase = stepsFloat - stepIndex
             val strength = 1 + level.stepAmplitudeVariation * hashUnit(startTimestamp xor STEP_SALT, stepIndex)
-            val out = proceduralGait(stepPhase, stepsFloat, stepIndex, speed, strength)
-            if (level.sensorNoise > 0) {
-                for (i in 0..2) out[i] += (noise.nextGaussian() * level.sensorNoise).toFloat()
-            }
-            return out
+            return block(stepPhase, stepIndex, strength)
         }
+
+        fun accelerometer(stepsFloat: Double, speed: Double, noise: Random): FloatArray =
+            withStepContext(stepsFloat) { stepPhase, stepIndex, strength ->
+                val out = proceduralGait(stepPhase, stepsFloat, stepIndex, speed, strength)
+                if (level.sensorNoise > 0) {
+                    for (i in 0..2) out[i] += (noise.nextGaussian() * level.sensorNoise).toFloat()
+                }
+                out
+            }
+
+        fun gyroscope(stepsFloat: Double, speed: Double, noise: Random): FloatArray =
+            withStepContext(stepsFloat) { stepPhase, stepIndex, strength ->
+                val out = proceduralGyroscope(stepPhase, stepsFloat, stepIndex, speed, strength)
+                if (level.sensorNoise > 0) {
+                    val noiseLevel = (level.sensorNoise * 0.1).toFloat()
+                    for (i in 0..2) out[i] += (noise.nextGaussian() * noiseLevel).toFloat()
+                }
+                out
+            }
+
+        fun rotationVector(stepsFloat: Double, speed: Double, noise: Random): FloatArray =
+            withStepContext(stepsFloat) { stepPhase, _, strength ->
+                proceduralRotationVector(stepPhase, stepsFloat, speed, strength)
+            }
     }
 
     @Volatile
@@ -174,6 +193,49 @@ object MotionRealism {
             (strength * 0.35 * amplitude * forward).toFloat(),
             z.toFloat()
         )
+    }
+
+    private fun proceduralGyroscope(
+        stepPhase: Double,
+        stepsFloat: Double,
+        stepIndex: Long,
+        speed: Double,
+        strength: Double
+    ): FloatArray {
+        if (speed <= 0.1) return floatArrayOf(0f, 0f, 0f)
+        val running = speed >= RUN_SPEED_THRESHOLD
+        val baseAmp = if (running) 0.6 + 0.25 * speed else 0.25 + 0.15 * speed
+        val pitchRate = baseAmp * sin(2 * PI * stepPhase)
+        val rollRate = 0.7 * baseAmp * sin(PI * stepsFloat)
+        val yawRate = 0.9 * baseAmp * cos(PI * stepsFloat)
+        return floatArrayOf(
+            (strength * pitchRate).toFloat(),
+            (strength * rollRate).toFloat(),
+            (strength * yawRate).toFloat()
+        )
+    }
+
+    private fun proceduralRotationVector(
+        stepPhase: Double,
+        stepsFloat: Double,
+        speed: Double,
+        strength: Double
+    ): FloatArray {
+        if (speed <= 0.1) {
+            val pitch0 = 0.35
+            return floatArrayOf(sin(pitch0 / 2).toFloat(), 0f, 0f, cos(pitch0 / 2).toFloat())
+        }
+        val running = speed >= RUN_SPEED_THRESHOLD
+        val swayScale = if (running) 0.08 else 0.04
+        val pitch = 0.35 + strength * swayScale * cos(2 * PI * stepPhase)
+        val roll = strength * swayScale * sin(PI * stepsFloat)
+        val yaw = strength * swayScale * 1.2 * cos(PI * stepsFloat)
+
+        val qx = sin(pitch / 2) * cos(roll / 2) * cos(yaw / 2) - cos(pitch / 2) * sin(roll / 2) * sin(yaw / 2)
+        val qy = cos(pitch / 2) * sin(roll / 2) * cos(yaw / 2) + sin(pitch / 2) * cos(roll / 2) * sin(yaw / 2)
+        val qz = cos(pitch / 2) * cos(roll / 2) * sin(yaw / 2) - sin(pitch / 2) * sin(roll / 2) * cos(yaw / 2)
+        val qw = cos(pitch / 2) * cos(roll / 2) * cos(yaw / 2) + sin(pitch / 2) * sin(roll / 2) * sin(yaw / 2)
+        return floatArrayOf(qx.toFloat(), qy.toFloat(), qz.toFloat(), qw.toFloat())
     }
 
     private fun hashUnit(seed: Long, n: Long): Double {

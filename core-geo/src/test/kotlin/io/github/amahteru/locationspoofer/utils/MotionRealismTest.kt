@@ -97,4 +97,25 @@ class MotionRealismTest {
         assertTrue(a === b)
         assertTrue(a !== c)
     }
+
+    @Test
+    fun `gyroscope produces non-zero periodic angular velocity when running`() {
+        val s = MotionRealism.Session(start, MotionRealism.Level.MEDIUM, 0)
+        val rnd = Random(42)
+        val samples = (0 until 20).map { i -> s.gyroscope(i * 0.1, 3.5, rnd) }
+        assertTrue(samples.any { abs(it[0]) > 0.1f })
+        assertTrue(samples.any { abs(it[1]) > 0.1f })
+        assertTrue(samples.any { abs(it[2]) > 0.1f })
+    }
+
+    @Test
+    fun `rotation vector is valid unit quaternion`() {
+        val s = MotionRealism.Session(start, MotionRealism.Level.MEDIUM, 0)
+        val rnd = Random(42)
+        for (i in 0 until 50) {
+            val q = s.rotationVector(i * 0.1, 3.2, rnd)
+            val normSq = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]
+            assertEquals(1.0, normSq.toDouble(), 0.05)
+        }
+    }
 }

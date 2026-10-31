@@ -35,6 +35,8 @@ object SensorStepHooker {
     private var mockStepCounterSensor: Sensor? = null
     private var mockStepDetectorSensor: Sensor? = null
     private var mockAccelerometerSensor: Sensor? = null
+    private var mockGyroscopeSensor: Sensor? = null
+    private var mockRotationVectorSensor: Sensor? = null
 
     private val handleToTypeMap = ConcurrentHashMap<Int, Int>()
 
@@ -51,7 +53,7 @@ object SensorStepHooker {
                 XposedHelpers.hookAllMethods(managerClass, "getDefaultSensor") { chain, _ ->
                     val result = chain.proceed(chain.args.toTypedArray())
                     val type = (chain.args.firstOrNull() as? Int) ?: return@hookAllMethods result
-                    if (result == null && (type == Sensor.TYPE_STEP_COUNTER || type == Sensor.TYPE_STEP_DETECTOR)) {
+                    if (result == null && (type == Sensor.TYPE_STEP_COUNTER || type == Sensor.TYPE_STEP_DETECTOR || type == Sensor.TYPE_ACCELEROMETER || type == Sensor.TYPE_GYROSCOPE || type == Sensor.TYPE_ROTATION_VECTOR)) {
                         return@hookAllMethods getOrCreateMockSensor(type, classLoader)
                     }
                     return@hookAllMethods result
@@ -62,7 +64,7 @@ object SensorStepHooker {
                 XposedHelpers.hookAllMethods(managerClass, "getSensorList") { chain, _ ->
                     val result = chain.proceed(chain.args.toTypedArray())
                     val type = (chain.args.firstOrNull() as? Int) ?: return@hookAllMethods result
-                    if (type == Sensor.TYPE_STEP_COUNTER || type == Sensor.TYPE_STEP_DETECTOR) {
+                    if (type == Sensor.TYPE_STEP_COUNTER || type == Sensor.TYPE_STEP_DETECTOR || type == Sensor.TYPE_ACCELEROMETER || type == Sensor.TYPE_GYROSCOPE || type == Sensor.TYPE_ROTATION_VECTOR) {
                         if (result is List<*> && result.isEmpty()) {
                             val mock = getOrCreateMockSensor(type, classLoader)
                             if (mock != null) return@hookAllMethods listOf(mock)
@@ -95,7 +97,7 @@ object SensorStepHooker {
 
                         if (listener != null) {
                             val targetSensor = sensor ?: getOrCreateMockSensor(Sensor.TYPE_STEP_COUNTER, classLoader)
-                            if (targetSensor != null && (targetSensor.type == Sensor.TYPE_STEP_COUNTER || targetSensor.type == Sensor.TYPE_STEP_DETECTOR || targetSensor.type == Sensor.TYPE_ACCELEROMETER)) {
+                            if (targetSensor != null && (targetSensor.type == Sensor.TYPE_STEP_COUNTER || targetSensor.type == Sensor.TYPE_STEP_DETECTOR || targetSensor.type == Sensor.TYPE_ACCELEROMETER || targetSensor.type == Sensor.TYPE_GYROSCOPE || targetSensor.type == Sensor.TYPE_ROTATION_VECTOR)) {
                                 val entry = CapturedSensorListener(listener, targetSensor, handler)
                                 if (!capturedListeners.any { it.listener === listener && it.sensor?.type == targetSensor.type }) {
                                     capturedListeners.add(entry)
@@ -160,6 +162,14 @@ object SensorStepHooker {
                             if (speed > 0.1) {
                                 applySyntheticVibration(values, config, speed)
                             }
+                        } else if (sensorType == Sensor.TYPE_GYROSCOPE && values.size >= 3) {
+                            if (speed > 0.1) {
+                                applySyntheticGyroscope(values, config, speed)
+                            }
+                        } else if (sensorType == Sensor.TYPE_ROTATION_VECTOR && values.size >= 3) {
+                            if (speed > 0.1) {
+                                applySyntheticRotationVector(values, config, speed)
+                            }
                         }
                     }
                 }
@@ -172,7 +182,8 @@ object SensorStepHooker {
         capturedListeners.map { arrayOf<Any?>(it.listener, it.sensor, it.handler) }.toTypedArray(),
         stepBase, lastStepsFloat, lastStepInitTime,
         mockStepCounterSensor, mockStepDetectorSensor, mockAccelerometerSensor,
-        handleToTypeMap.map { arrayOf(it.key, it.value) }.toTypedArray()
+        handleToTypeMap.map { arrayOf(it.key, it.value) }.toTypedArray(),
+        mockGyroscopeSensor, mockRotationVectorSensor
     )
 
     internal fun clearReloadState() { capturedListeners.clear(); hookedListenerClasses.clear() }
@@ -192,6 +203,8 @@ object SensorStepHooker {
         (state[7] as? Array<*>)?.filterIsInstance<Array<*>>()?.forEach {
             handleToTypeMap[it[0] as Int] = it[1] as Int
         }
+        mockGyroscopeSensor = state.getOrNull(8) as? Sensor
+        mockRotationVectorSensor = state.getOrNull(9) as? Sensor
     }
 
     private fun hookConcreteListenerClass(clazz: Class<*>, classLoader: ClassLoader) {
@@ -215,6 +228,12 @@ object SensorStepHooker {
                             } else if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3 && speed > 0.1) {
                                 applySyntheticVibration(event.values, config, speed)
                                 event.timestamp = SystemClock.elapsedRealtimeNanos()
+                            } else if (event.sensor.type == Sensor.TYPE_GYROSCOPE && event.values.size >= 3 && speed > 0.1) {
+                                applySyntheticGyroscope(event.values, config, speed)
+                                event.timestamp = SystemClock.elapsedRealtimeNanos()
+                            } else if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR && event.values.size >= 3 && speed > 0.1) {
+                                applySyntheticRotationVector(event.values, config, speed)
+                                event.timestamp = SystemClock.elapsedRealtimeNanos()
                             }
                         }
                     }
@@ -224,14 +243,33 @@ object SensorStepHooker {
         }
     }
 
-    private fun applySyntheticVibration(values: FloatArray, config: JSONObject, speed: Double) {
+    private fun currentMotionContext(config: JSONObject, speed: Double): Pair<Double, Double> {
         val now = System.currentTimeMillis()
         val stepsFloat = calculateCurrentStepsFloat(config, now)
         val motionSpeed = RouteEngine.calculateCurrentPosition(config, now).speed.toDouble().takeIf { it > 0.0 } ?: speed
+        return stepsFloat to motionSpeed
+    }
+
+    private fun applySyntheticVibration(values: FloatArray, config: JSONObject, speed: Double) {
+        val (stepsFloat, motionSpeed) = currentMotionContext(config, speed)
         val synthetic = RouteEngine.realismSession(config).accelerometer(stepsFloat, motionSpeed, noiseRng)
         values[0] = synthetic[0]
         values[1] = synthetic[1]
         values[2] = synthetic[2]
+    }
+
+    private fun applySyntheticGyroscope(values: FloatArray, config: JSONObject, speed: Double) {
+        val (stepsFloat, motionSpeed) = currentMotionContext(config, speed)
+        val synthetic = RouteEngine.realismSession(config).gyroscope(stepsFloat, motionSpeed, noiseRng)
+        values[0] = synthetic[0]
+        values[1] = synthetic[1]
+        values[2] = synthetic[2]
+    }
+
+    private fun applySyntheticRotationVector(values: FloatArray, config: JSONObject, speed: Double) {
+        val (stepsFloat, motionSpeed) = currentMotionContext(config, speed)
+        val synthetic = RouteEngine.realismSession(config).rotationVector(stepsFloat, motionSpeed, noiseRng)
+        System.arraycopy(synthetic, 0, values, 0, minOf(values.size, synthetic.size))
     }
 
     fun calculateCurrentSteps(config: JSONObject, now: Long = System.currentTimeMillis()): Long =
@@ -266,74 +304,47 @@ object SensorStepHooker {
         }
     }
 
-    fun dispatchStepEvents(config: JSONObject, classLoader: ClassLoader) {
-        if (!config.optBoolean("active", false)) return
-        val enableStep = config.optBoolean("enable_step_simulation", true)
-        if (!enableStep) return
+    private fun deliverSensorEvent(entry: CapturedSensorListener, values: FloatArray) {
+        val sensor = entry.sensor ?: return
+        val event = createSensorEvent(sensor, values) ?: return
+        val targetHandler = entry.handler ?: Handler(Looper.getMainLooper())
+        targetHandler.post {
+            try {
+                if (entry.listener is SensorEventListener) {
+                    entry.listener.onSensorChanged(event)
+                } else {
+                    XposedHelpers.callMethod(entry.listener, "onSensorChanged", event)
+                }
+            } catch (_: Throwable) {}
+        }
+    }
 
+    fun dispatchStepEvents(config: JSONObject, classLoader: ClassLoader) {
+        if (!config.optBoolean("active", false) || !config.optBoolean("enable_step_simulation", true)) return
         val speed = config.optDouble("speed_m_s", 0.0)
         if (speed <= 0.05) return
-
-        val now = System.currentTimeMillis()
-        val totalSteps = calculateCurrentSteps(config, now)
 
         val listeners = capturedListeners.toList()
         if (listeners.isEmpty()) return
 
-        for (entry in listeners) {
-            val listener = entry.listener
-            val sensor = entry.sensor ?: continue
-            val targetHandler = entry.handler ?: Handler(Looper.getMainLooper())
+        val now = System.currentTimeMillis()
+        val totalSteps = calculateCurrentSteps(config, now)
+        val stepsFloat = calculateCurrentStepsFloat(config, now)
+        val motionSpeed = RouteEngine.calculateCurrentPosition(config, now).speed.toDouble().takeIf { it > 0.0 } ?: speed
+        val session = RouteEngine.realismSession(config)
 
+        val accel = session.accelerometer(stepsFloat, motionSpeed, noiseRng)
+        val gyro = session.gyroscope(stepsFloat, motionSpeed, noiseRng)
+        val rotVec = session.rotationVector(stepsFloat, motionSpeed, noiseRng)
+
+        for (entry in listeners) {
+            val sensor = entry.sensor ?: continue
             when (sensor.type) {
-                Sensor.TYPE_STEP_COUNTER -> {
-                    val event = createSensorEvent(sensor, floatArrayOf(totalSteps.toFloat()))
-                    if (event != null) {
-                        targetHandler.post {
-                            try {
-                                if (listener is SensorEventListener) {
-                                    listener.onSensorChanged(event)
-                                } else {
-                                    XposedHelpers.callMethod(listener, "onSensorChanged", event)
-                                }
-                            } catch (_: Throwable) {}
-                        }
-                    }
-                }
-                Sensor.TYPE_STEP_DETECTOR -> {
-                    if (speed > 0.1) {
-                        val event = createSensorEvent(sensor, floatArrayOf(1.0f))
-                        if (event != null) {
-                            targetHandler.post {
-                                try {
-                                    if (listener is SensorEventListener) {
-                                        listener.onSensorChanged(event)
-                                    } else {
-                                        XposedHelpers.callMethod(listener, "onSensorChanged", event)
-                                    }
-                                } catch (_: Throwable) {}
-                            }
-                        }
-                    }
-                }
-                Sensor.TYPE_ACCELEROMETER -> {
-                    if (speed > 0.1) {
-                        val rawValues = floatArrayOf(0f, 0f, 9.8f)
-                        applySyntheticVibration(rawValues, config, speed)
-                        val event = createSensorEvent(sensor, rawValues)
-                        if (event != null) {
-                            targetHandler.post {
-                                try {
-                                    if (listener is SensorEventListener) {
-                                        listener.onSensorChanged(event)
-                                    } else {
-                                        XposedHelpers.callMethod(listener, "onSensorChanged", event)
-                                    }
-                                } catch (_: Throwable) {}
-                            }
-                        }
-                    }
-                }
+                Sensor.TYPE_STEP_COUNTER -> deliverSensorEvent(entry, floatArrayOf(totalSteps.toFloat()))
+                Sensor.TYPE_STEP_DETECTOR -> if (speed > 0.1) deliverSensorEvent(entry, floatArrayOf(1.0f))
+                Sensor.TYPE_ACCELEROMETER -> if (speed > 0.1) deliverSensorEvent(entry, accel)
+                Sensor.TYPE_GYROSCOPE -> if (speed > 0.1) deliverSensorEvent(entry, gyro)
+                Sensor.TYPE_ROTATION_VECTOR -> if (speed > 0.1) deliverSensorEvent(entry, rotVec)
             }
         }
     }
@@ -352,6 +363,8 @@ object SensorStepHooker {
         if (type == Sensor.TYPE_STEP_COUNTER && mockStepCounterSensor != null) return mockStepCounterSensor
         if (type == Sensor.TYPE_STEP_DETECTOR && mockStepDetectorSensor != null) return mockStepDetectorSensor
         if (type == Sensor.TYPE_ACCELEROMETER && mockAccelerometerSensor != null) return mockAccelerometerSensor
+        if (type == Sensor.TYPE_GYROSCOPE && mockGyroscopeSensor != null) return mockGyroscopeSensor
+        if (type == Sensor.TYPE_ROTATION_VECTOR && mockRotationVectorSensor != null) return mockRotationVectorSensor
 
         try {
             val sensorClass = Class.forName("android.hardware.Sensor", false, classLoader)
@@ -363,6 +376,8 @@ object SensorStepHooker {
             setSensorField(sensor, "mName", when(type) {
                 Sensor.TYPE_STEP_COUNTER -> "Step Counter Sensor"
                 Sensor.TYPE_STEP_DETECTOR -> "Step Detector Sensor"
+                Sensor.TYPE_GYROSCOPE -> "Gyroscope Sensor"
+                Sensor.TYPE_ROTATION_VECTOR -> "Rotation Vector Sensor"
                 else -> "Accelerometer Sensor"
             })
             setSensorField(sensor, "mVendor", "Android")
@@ -374,6 +389,8 @@ object SensorStepHooker {
                 Sensor.TYPE_STEP_COUNTER -> mockStepCounterSensor = sensor
                 Sensor.TYPE_STEP_DETECTOR -> mockStepDetectorSensor = sensor
                 Sensor.TYPE_ACCELEROMETER -> mockAccelerometerSensor = sensor
+                Sensor.TYPE_GYROSCOPE -> mockGyroscopeSensor = sensor
+                Sensor.TYPE_ROTATION_VECTOR -> mockRotationVectorSensor = sensor
             }
             return sensor
         } catch (_: Throwable) {
