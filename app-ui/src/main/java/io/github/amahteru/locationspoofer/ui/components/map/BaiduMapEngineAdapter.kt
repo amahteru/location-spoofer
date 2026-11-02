@@ -292,11 +292,9 @@ fun BaiduMapViewContainer(
     }
 
     MapAndroidView(baiduMapView, modifier) {
-        map.setOnMapLoadedCallback {
-            val controller = BaiduMapControllerImpl(map, this, context)
-            onControllerCreated(controller)
-            controller.setDarkMode(isDark, context)
-            onMapReady(controller)
-        }
+        val controller = BaiduMapControllerImpl(map, this, context)
+        onControllerCreated(controller)
+        controller.setDarkMode(isDark, context)
+        onMapReady(controller)
     }
 }
