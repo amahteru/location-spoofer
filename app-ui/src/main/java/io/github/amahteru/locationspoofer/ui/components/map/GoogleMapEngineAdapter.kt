@@ -56,10 +56,7 @@ class GMapControllerImpl(
     override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float) {
         map.addPolyline(
             GPolylineOptions().color(colorInt).width(width).apply {
-                points.forEach {
-                    val wgs = gcj02ToWgs84(it.first, it.second)
-                    add(GLatLng(wgs.first, wgs.second))
-                }
+                points.forEach { add(GLatLng(it.first, it.second)) }
             }
         )
     }
@@ -72,10 +69,9 @@ class GMapControllerImpl(
         strokeColorInt: Int,
         strokeWidth: Float
     ) {
-        val wgs = gcj02ToWgs84(lat, lng)
         map.addCircle(
             CircleOptions()
-                .center(GLatLng(wgs.first, wgs.second))
+                .center(GLatLng(lat, lng))
                 .radius(radius)
                 .fillColor(fillColorInt)
                 .strokeColor(strokeColorInt)
@@ -90,31 +86,23 @@ class GMapControllerImpl(
         type: MarkerType
     ): AppMapMarker {
         val bitmap = GaodeMarkerHelper.getMarkerBitmap(context, title, type)
-        val wgs = gcj02ToWgs84(lat, lng)
         val marker = map.addMarker(
             GMarkerOptions()
-                .position(GLatLng(wgs.first, wgs.second))
+                .position(GLatLng(lat, lng))
                 .title(title)
                 .icon(GBitmapDescriptorFactory.fromBitmap(bitmap))
                 .anchor(0.5f, 0.9f)
         )
         return object : AppMapMarker {
             override fun setPosition(lat: Double, lng: Double) {
-                val w = gcj02ToWgs84(lat, lng)
-                marker?.position = GLatLng(w.first, w.second)
+                marker?.position = GLatLng(lat, lng)
             }
         }
     }
 
     override fun animateCamera(lat: Double, lng: Double, zoom: Float?) {
-        val wgs = gcj02ToWgs84(lat, lng)
-        if (zoom != null) map.animateCamera(
-            GCameraUpdateFactory.newLatLngZoom(
-                GLatLng(wgs.first, wgs.second),
-                zoom
-            )
-        )
-        else map.animateCamera(GCameraUpdateFactory.newLatLng(GLatLng(wgs.first, wgs.second)))
+        if (zoom != null) map.animateCamera(GCameraUpdateFactory.newLatLngZoom(GLatLng(lat, lng), zoom))
+        else map.animateCamera(GCameraUpdateFactory.newLatLng(GLatLng(lat, lng)))
     }
 
     override fun fitBounds(
@@ -126,10 +114,7 @@ class GMapControllerImpl(
     ) {
         if (points.isEmpty()) return
         val builder = LatLngBounds.Builder()
-        points.forEach {
-            val wgs = gcj02ToWgs84(it.first, it.second)
-            builder.include(GLatLng(wgs.first, wgs.second))
-        }
+        points.forEach { builder.include(GLatLng(it.first, it.second)) }
         try {
             val bounds = builder.build()
             map.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
@@ -155,26 +140,12 @@ class GMapControllerImpl(
     }
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Float?) {
-        val wgs = gcj02ToWgs84(lat, lng)
-        if (zoom != null) map.moveCamera(
-            GCameraUpdateFactory.newLatLngZoom(
-                GLatLng(wgs.first, wgs.second),
-                zoom
-            )
-        )
-        else map.moveCamera(GCameraUpdateFactory.newLatLng(GLatLng(wgs.first, wgs.second)))
+        if (zoom != null) map.moveCamera(GCameraUpdateFactory.newLatLngZoom(GLatLng(lat, lng), zoom))
+        else map.moveCamera(GCameraUpdateFactory.newLatLng(GLatLng(lat, lng)))
     }
 
-    override val cameraTargetLat: Double?
-        get() {
-            val target = map.cameraPosition.target
-            return wgs84ToGcj02(target.latitude, target.longitude).first
-        }
-    override val cameraTargetLng: Double?
-        get() {
-            val target = map.cameraPosition.target
-            return wgs84ToGcj02(target.latitude, target.longitude).second
-        }
+    override val cameraTargetLat: Double? get() = map.cameraPosition.target.latitude
+    override val cameraTargetLng: Double? get() = map.cameraPosition.target.longitude
 
     private var cameraFinishListener: ((Double, Double) -> Unit)? = null
     private var cameraMoveListener: ((Double, Double) -> Unit)? = null
@@ -182,13 +153,11 @@ class GMapControllerImpl(
     init {
         map.setOnCameraMoveListener {
             val target = map.cameraPosition.target
-            val gcj = wgs84ToGcj02(target.latitude, target.longitude)
-            cameraMoveListener?.invoke(gcj.first, gcj.second)
+            cameraMoveListener?.invoke(target.latitude, target.longitude)
         }
         map.setOnCameraIdleListener {
             val target = map.cameraPosition.target
-            val gcj = wgs84ToGcj02(target.latitude, target.longitude)
-            cameraFinishListener?.invoke(gcj.first, gcj.second)
+            cameraFinishListener?.invoke(target.latitude, target.longitude)
         }
     }
 

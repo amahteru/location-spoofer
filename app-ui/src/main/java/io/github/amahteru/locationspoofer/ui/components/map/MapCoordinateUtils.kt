@@ -10,17 +10,6 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
-import io.github.amahteru.locationspoofer.utils.CoordinateUtils
-
-fun wgs84ToGcj02(wgsLat: Double, wgsLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.wgs84ToGcj02(wgsLat, wgsLng)
-    return Pair(r.lat, r.lng)
-}
-
-fun gcj02ToWgs84(gcjLat: Double, gcjLng: Double): Pair<Double, Double> {
-    val r = CoordinateUtils.gcj02ToWgs84(gcjLat, gcjLng)
-    return Pair(r.lat, r.lng)
-}
 
 object GaodeMarkerHelper {
     private val bitmapCache = mutableMapOf<String, Bitmap>()
