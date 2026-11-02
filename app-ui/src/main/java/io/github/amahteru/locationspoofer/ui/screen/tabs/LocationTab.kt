@@ -1,6 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
-import android.widget.Toast
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -90,7 +90,7 @@ fun LocationTab(
     ) { uri ->
         uri?.let {
             viewModel.importEnvironmentData(it) { message ->
-                Toast.makeText(context, resources.getString(message), Toast.LENGTH_SHORT).show()
+                AppSnackbar.show(resources.getString(message))
             }
         }
     }
@@ -197,16 +197,12 @@ fun LocationTab(
                         )
                     })"
                 }
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.pinned_collected_location_toast, label),
-                    Toast.LENGTH_SHORT
-                ).show()
+                AppSnackbar.show(resources.getString(R.string.pinned_collected_location_toast, label))
             },
             onFavorite = { item ->
                 viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
                     if (result == FavoriteToggleResult.Failed) {
-                        Toast.makeText(context, resources.getString(R.string.favorite_failed), Toast.LENGTH_SHORT).show()
+                        AppSnackbar.show(resources.getString(R.string.favorite_failed))
                     }
                 }
             },

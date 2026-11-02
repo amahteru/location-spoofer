@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import androidx.annotation.RawRes
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -29,6 +30,7 @@ import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.SubPageOverlay
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.AppMapView
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
@@ -69,13 +71,16 @@ enum class MainSubScreen {
     MotionRealism,
     BackgroundKeepAlive,
     EnvTokens,
+    About,
+    Licenses,
     SystemHookApps
 }
 
 @Composable
 fun MainScaffoldScreen(
     viewModel: MainViewModel,
-    uiState: AppState
+    uiState: AppState,
+    @RawRes librariesRes: Int
 ) {
     val pageCount = BottomTab.values().size
     var selectedTab by remember { mutableIntStateOf(BottomTab.Location.ordinal) }
@@ -271,7 +276,8 @@ fun MainScaffoldScreen(
                             onNavigateToVendorScheme = { currentSubScreen = MainSubScreen.VendorScheme },
                             onNavigateToMotionRealism = { currentSubScreen = MainSubScreen.MotionRealism },
                             onNavigateToBackgroundKeepAlive = { currentSubScreen = MainSubScreen.BackgroundKeepAlive },
-                            onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens }
+                            onNavigateToEnvTokens = { currentSubScreen = MainSubScreen.EnvTokens },
+                            onNavigateToAbout = { currentSubScreen = MainSubScreen.About }
                         )
                     }
                 }
@@ -281,84 +287,107 @@ fun MainScaffoldScreen(
         SubPageOverlay(visible = currentSubScreen != MainSubScreen.None) {
             val subScreenToRender =
                 if (currentSubScreen != MainSubScreen.None) currentSubScreen else activeSubScreen
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (subScreenToRender) {
-                    MainSubScreen.ScannerMap -> ScannerMapScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+            AnimatedContent(
+                targetState = subScreenToRender,
+                transitionSpec = { motion.pageSlideTransition(if (targetState > initialState) 1 else -1) },
+                label = "sub_screen_transition"
+            ) { screen ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (screen) {
+                        MainSubScreen.ScannerMap -> ScannerMapScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.ManageData -> ManageDataScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.ManageData -> ManageDataScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.Update -> UpdateScreen(
-                        updateViewModel = updateViewModel,
-                        viewModel = viewModel,
-                        onBack = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.Update -> UpdateScreen(
+                            updateViewModel = updateViewModel,
+                            viewModel = viewModel,
+                            onBack = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.LanguageSettings -> io.github.amahteru.locationspoofer.ui.screen.settings.LanguageSettingsScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.LanguageSettings -> io.github.amahteru.locationspoofer.ui.screen.settings.LanguageSettingsScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.MapEngineSettings -> io.github.amahteru.locationspoofer.ui.screen.settings.MapEngineSettingsScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.MapEngineSettings -> io.github.amahteru.locationspoofer.ui.screen.settings.MapEngineSettingsScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.SignatureAuth -> io.github.amahteru.locationspoofer.ui.screen.settings.SignatureAuthScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.SignatureAuth -> io.github.amahteru.locationspoofer.ui.screen.settings.SignatureAuthScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.RootDiagnostics -> io.github.amahteru.locationspoofer.ui.screen.settings.RootDiagnosticsScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.RootDiagnostics -> io.github.amahteru.locationspoofer.ui.screen.settings.RootDiagnosticsScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.MotionRealism -> io.github.amahteru.locationspoofer.ui.screen.settings.MotionRealismScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.MotionRealism -> io.github.amahteru.locationspoofer.ui.screen.settings.MotionRealismScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.VendorScheme -> io.github.amahteru.locationspoofer.ui.screen.settings.VendorSchemeScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.VendorScheme -> io.github.amahteru.locationspoofer.ui.screen.settings.VendorSchemeScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.BackgroundKeepAlive -> io.github.amahteru.locationspoofer.ui.screen.settings.BackgroundKeepAliveScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.BackgroundKeepAlive -> io.github.amahteru.locationspoofer.ui.screen.settings.BackgroundKeepAliveScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.EnvTokens -> io.github.amahteru.locationspoofer.ui.screen.settings.EnvTokensScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onClose = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.EnvTokens -> io.github.amahteru.locationspoofer.ui.screen.settings.EnvTokensScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.SystemHookApps -> SystemHookAppsScreen(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onBack = { currentSubScreen = MainSubScreen.None }
-                    )
+                        MainSubScreen.About -> io.github.amahteru.locationspoofer.ui.screen.settings.AboutScreen(
+                            onOpenLicenses = { currentSubScreen = MainSubScreen.Licenses },
+                            onClose = { currentSubScreen = MainSubScreen.None }
+                        )
 
-                    MainSubScreen.None -> Unit
+                        MainSubScreen.Licenses -> io.github.amahteru.locationspoofer.ui.screen.settings.LicensesScreen(
+                            librariesRes = librariesRes,
+                            onClose = { currentSubScreen = MainSubScreen.About }
+                        )
+
+                        MainSubScreen.SystemHookApps -> SystemHookAppsScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            onBack = { currentSubScreen = MainSubScreen.None }
+                        )
+
+                        MainSubScreen.None -> Unit
+                    }
                 }
             }
         }
+
+        AppSnackbar.Host(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = if (currentSubScreen == MainSubScreen.None) 80.dp else 0.dp)
+        )
 
         if (showStartupUpdateDialog && latestRelease != null) {
             StartupUpdateDialog(

@@ -1,7 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.AppRootTopBar
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -45,7 +44,6 @@ fun FeaturesTab(
     onNavigateToManageData: () -> Unit,
     onNavigateToSystemHookApps: () -> Unit
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
 
     var exportCounts by remember { mutableStateOf<ImportExportCounts?>(null) }
@@ -59,11 +57,7 @@ fun FeaturesTab(
     ) { uri ->
         uri?.let {
             viewModel.exportEnvironmentData(it, exportSelection) { success ->
-                Toast.makeText(
-                    context,
-                    resources.getString(if (success) R.string.export_success else R.string.export_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
+                AppSnackbar.show(resources.getString(if (success) R.string.export_success else R.string.export_failed))
             }
         }
     }
@@ -73,11 +67,7 @@ fun FeaturesTab(
         uri?.let {
             viewModel.parseImportPackage(it) { pkg ->
                 if (pkg == null) {
-                    Toast.makeText(
-                        context,
-                        resources.getString(R.string.import_parse_failed),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    AppSnackbar.show(resources.getString(R.string.import_parse_failed))
                 } else {
                     pendingImportPackage = pkg
                 }
@@ -113,7 +103,7 @@ fun FeaturesTab(
             onConfirm = { selection ->
                 pendingImportPackage = null
                 viewModel.applyImportPackage(pkg, selection) { message ->
-                    Toast.makeText(context, resources.getString(message), Toast.LENGTH_SHORT).show()
+                    AppSnackbar.show(resources.getString(message))
                 }
             },
             onDismiss = { pendingImportPackage = null }

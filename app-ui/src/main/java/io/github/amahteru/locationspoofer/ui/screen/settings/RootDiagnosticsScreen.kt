@@ -1,10 +1,10 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,7 +42,6 @@ fun RootDiagnosticsScreen(
     uiState: AppState,
     onClose: () -> Unit
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
 
     BackHandler(onBack = onClose)
@@ -113,11 +111,7 @@ fun RootDiagnosticsScreen(
             onDismiss = { viewModel.dismissRestartHookedAppsDialog() },
             onConfirm = {
                 viewModel.confirmRestartHookedApps { count ->
-                    Toast.makeText(
-                        context,
-                        resources.getString(R.string.restart_hooked_apps_done, count),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    AppSnackbar.show(resources.getString(R.string.restart_hooked_apps_done, count))
                 }
             }
         )

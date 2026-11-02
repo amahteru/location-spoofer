@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.core.net.toUri
 import io.github.amahteru.locationspoofer.ui.BuildConfig
 import androidx.lifecycle.viewModelScope
@@ -17,11 +18,7 @@ internal fun MainViewModel.startSpoofing() {
     val state = _uiState.value
 
     if (state.isContinuousScanning || state.isStoppingCollection) {
-        android.widget.Toast.makeText(
-            context,
-            context.getString(io.github.amahteru.locationspoofer.ui.R.string.disable_continuous_scan_first),
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
+        AppSnackbar.show(context.getString(io.github.amahteru.locationspoofer.ui.R.string.disable_continuous_scan_first))
         return
     }
 
@@ -169,11 +166,7 @@ internal fun MainViewModel.toggleContinuousScanning() {
     val state = _uiState.value
     if (state.isStoppingCollection || state.pendingCollectionLocations.isNotEmpty() || state.pendingCollectionRoute != null) return
     if (state.isSpoofingActive) {
-        android.widget.Toast.makeText(
-            context,
-            context.getString(R.string.stop_spoofing_before_scan),
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
+        AppSnackbar.show(context.getString(R.string.stop_spoofing_before_scan))
         return
     }
 
@@ -243,7 +236,7 @@ internal fun MainViewModel.toggleContinuousScanning() {
         } catch (error: Exception) {
             error.printStackTrace()
             withContext(Dispatchers.Main) {
-                android.widget.Toast.makeText(context, R.string.collection_save_failed, android.widget.Toast.LENGTH_LONG).show()
+                AppSnackbar.show(context.getString(R.string.collection_save_failed), long = true)
             }
         } finally {
             withContext(NonCancellable) {
@@ -271,7 +264,7 @@ internal fun MainViewModel.toggleContinuousScanning() {
                         )
                     }
                     if (requestedStop && savedIds.isEmpty()) {
-                        android.widget.Toast.makeText(context, R.string.collection_no_saved_points, android.widget.Toast.LENGTH_LONG).show()
+                        AppSnackbar.show(context.getString(R.string.collection_no_saved_points), long = true)
                     }
                 }
             }
@@ -306,7 +299,7 @@ internal fun MainViewModel.saveCollectionInfo(locationId: Long, placeName: Strin
             throw cancelled
         } catch (error: Exception) {
             _uiState.update { it.copy(isSavingCollectionInfo = false) }
-            android.widget.Toast.makeText(context, R.string.collection_info_save_failed, android.widget.Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.collection_info_save_failed), long = true)
         }
     }
 }

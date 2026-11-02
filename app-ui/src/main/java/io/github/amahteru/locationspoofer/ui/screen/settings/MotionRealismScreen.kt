@@ -121,7 +121,7 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.Rounded.Speed,
-            LabelTone.Warning,
+            LabelTone.Tertiary,
             stringResource(R.string.speed_fluctuation_title),
             stringResource(R.string.speed_fluctuation_desc)
         )

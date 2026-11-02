@@ -1,7 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.ui.R
@@ -38,7 +37,6 @@ fun EnvTokensScreen(
     uiState: AppState,
     onClose: () -> Unit
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
     var localWigleToken by remember(uiState.wigleToken) { mutableStateOf(uiState.wigleToken) }
     var localOpencellidToken by remember(uiState.opencellidToken) { mutableStateOf(uiState.opencellidToken) }
@@ -75,11 +73,7 @@ fun EnvTokensScreen(
             onClick = {
                 viewModel.setWigleApiToken(localWigleToken)
                 viewModel.setOpencellidApiToken(localOpencellidToken)
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.save_success),
-                    Toast.LENGTH_SHORT
-                ).show()
+                AppSnackbar.show(resources.getString(R.string.save_success))
             },
             modifier = Modifier.fillMaxWidth()
         ) {

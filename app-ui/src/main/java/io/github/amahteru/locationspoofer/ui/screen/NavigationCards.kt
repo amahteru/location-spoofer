@@ -10,8 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,7 +48,7 @@ fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
         icon = Icons.Rounded.Shield,
         title = stringResource(R.string.system_hook_apps_title),
         summary = statusDesc,
-        tone = LabelTone.Warning,
+        tone = LabelTone.Tertiary,
         onClick = onClick
     )
 }
@@ -69,7 +67,7 @@ fun ScannerMapCard(
         icon = Icons.Rounded.Map,
         title = stringResource(R.string.env_map_scan),
         summary = statusText,
-        tone = LabelTone.Success,
+        tone = LabelTone.Primary,
         onClick = onClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -115,30 +113,6 @@ fun ImportExportDataCard(onImportClick: () -> Unit, onExportClick: () -> Unit) {
             FilledTonalButton(onClick = onExportClick) {
                 Text(stringResource(R.string.export_data))
             }
-        }
-    }
-}
-
-@Composable
-fun FooterLinks() {
-    val uriHandler = LocalUriHandler.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = AppSpacing.lg),
-        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md, Alignment.CenterHorizontally)
-    ) {
-        OutlinedButton(
-            onClick = { uriHandler.openUri("https://github.com/amahteru/location-spoofer") },
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_github),
-                contentDescription = null,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.brand_github))
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.data.motion.MotionController
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
@@ -140,11 +141,7 @@ internal fun MainViewModel.setStopAtDestination(stop: Boolean) {
 internal fun MainViewModel.startRoutePlanning() {
     val state = _uiState.value
     if (state.isContinuousScanning || state.isStoppingCollection) {
-        android.widget.Toast.makeText(
-            context,
-            context.getString(io.github.amahteru.locationspoofer.ui.R.string.disable_continuous_scan_route_first),
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
+        AppSnackbar.show(context.getString(io.github.amahteru.locationspoofer.ui.R.string.disable_continuous_scan_route_first))
         return
     }
     if (state.routePoints.size < 2) return
@@ -207,11 +204,7 @@ private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state
             } else {
                 withContext(Dispatchers.Main) {
                     _uiState.update { it.copy(isFetchingRoute = false) }
-                    android.widget.Toast.makeText(
-                        context,
-                        context.getString(R.string.route_plan_failed_fallback_straight),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
+                    AppSnackbar.show(context.getString(R.string.route_plan_failed_fallback_straight))
                     startSimulationWithPoints(points, state)
                 }
             }
@@ -230,8 +223,7 @@ private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state
                         msg = context.getString(R.string.amap_quota_exhausted_fallback_format)
                     }
                 }
-                android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG)
-                    .show()
+                AppSnackbar.show(msg, long = true)
                 startSimulationWithPoints(points, state)
             }
         }

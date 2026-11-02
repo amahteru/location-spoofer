@@ -1,10 +1,10 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.StatusLabel
 import io.github.amahteru.locationspoofer.ui.components.AppTopBar
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -49,7 +48,6 @@ fun ManageDataScreen(
     onClose: () -> Unit,
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
     var editingItem by remember { mutableStateOf<CompleteLocation?>(null) }
@@ -224,7 +222,7 @@ fun ManageDataScreen(
                                 onFavorite = {
                                     viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
                                         if (result == FavoriteToggleResult.Failed) {
-                                            Toast.makeText(context, resources.getString(R.string.favorite_failed), Toast.LENGTH_SHORT).show()
+                                            AppSnackbar.show(resources.getString(R.string.favorite_failed))
                                         }
                                     }
                                 }

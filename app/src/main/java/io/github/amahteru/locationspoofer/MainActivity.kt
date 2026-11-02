@@ -154,7 +154,8 @@ fun MainScreen(
             AppStage.PermissionSetup -> PermissionSetupScreen(viewModel, uiState)
             AppStage.Main -> io.github.amahteru.locationspoofer.ui.screen.MainScaffoldScreen(
                 viewModel = viewModel,
-                uiState = uiState
+                uiState = uiState,
+                librariesRes = R.raw.aboutlibraries
             )
         }
     }

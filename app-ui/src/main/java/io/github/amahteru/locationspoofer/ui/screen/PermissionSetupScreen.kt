@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.MediumButtonDefaults
 import android.Manifest
 import android.content.Context
@@ -88,7 +89,7 @@ private enum class AppPermission(
         R.string.perm_overlay_title, R.string.perm_overlay_desc
     ),
     BATTERY(
-        Icons.Rounded.BatteryChargingFull, LabelTone.Warning,
+        Icons.Rounded.BatteryChargingFull, LabelTone.Tertiary,
         R.string.ignore_battery_optimizations_title, R.string.perm_battery_desc
     );
 
@@ -224,11 +225,7 @@ fun PermissionSetupScreen(viewModel: MainViewModel, uiState: AppState) {
                     viewModel.recheckRootAccess { root ->
                         checkingRoot = false
                         if (!root) {
-                            android.widget.Toast.makeText(
-                                context,
-                                resources.getString(R.string.env_root_denied),
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
+                            AppSnackbar.show(resources.getString(R.string.env_root_denied))
                         }
                     }
                 },
@@ -256,6 +253,8 @@ fun PermissionSetupScreen(viewModel: MainViewModel, uiState: AppState) {
             )
         }
 
+        AppSnackbar.Host()
+
         Button(
             onClick = { viewModel.completePermissionSetup() },
             enabled = environmentReady,
@@ -280,7 +279,7 @@ private fun EnvironmentGroup(
 ) {
     GroupCard(title = stringResource(R.string.permission_group_environment)) {
         ListItem(
-            leadingContent = { ToneIcon(Icons.Rounded.Tag, LabelTone.Error) },
+            leadingContent = { ToneIcon(Icons.Rounded.Tag, LabelTone.Primary) },
             headlineContent = { Text(stringResource(R.string.env_root_title)) },
             supportingContent = { Text(stringResource(R.string.env_root_desc)) },
             trailingContent = {
@@ -295,7 +294,7 @@ private fun EnvironmentGroup(
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
         ListItem(
-            leadingContent = { ToneIcon(Icons.Rounded.Extension, LabelTone.Error) },
+            leadingContent = { ToneIcon(Icons.Rounded.Extension, LabelTone.Primary) },
             headlineContent = { Text(stringResource(R.string.env_lsposed_title)) },
             supportingContent = { Text(stringResource(R.string.env_lsposed_desc)) },
             trailingContent = {

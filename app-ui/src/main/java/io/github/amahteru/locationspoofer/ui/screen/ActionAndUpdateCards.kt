@@ -83,7 +83,7 @@ fun UpdateCheckCard(
         title = stringResource(R.string.check_updates),
         summary = if (showNew) stringResource(R.string.new_version_available_badge, cleanNewVersion)
         else stringResource(R.string.check_updates_desc),
-        tone = if (hasNewVersion) LabelTone.Error else LabelTone.Primary,
+        tone = LabelTone.Primary,
         onClick = onCheckClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {

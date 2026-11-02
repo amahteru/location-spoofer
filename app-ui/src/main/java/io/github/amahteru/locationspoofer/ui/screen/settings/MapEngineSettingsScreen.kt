@@ -1,7 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -16,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,7 +41,6 @@ fun MapEngineSettingsScreen(
     uiState: AppState,
     onClose: () -> Unit
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
     var localAmapApiKey by remember(uiState.amapApiKey) { mutableStateOf(uiState.amapApiKey) }
     var localBaiduApiKey by remember(uiState.baiduApiKey) { mutableStateOf(uiState.baiduApiKey) }
@@ -112,11 +110,7 @@ fun MapEngineSettingsScreen(
                 viewModel.setAmapApiKey(localAmapApiKey)
                 viewModel.setBaiduApiKey(localBaiduApiKey)
                 viewModel.setGoogleApiKey(localGoogleApiKey)
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.restart_required_hint),
-                    Toast.LENGTH_SHORT
-                ).show()
+                AppSnackbar.show(resources.getString(R.string.restart_required_hint))
             },
             modifier = Modifier.fillMaxWidth()
         ) {

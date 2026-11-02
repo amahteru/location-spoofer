@@ -1,6 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
+import io.github.amahteru.locationspoofer.ui.components.AppRootTopBar
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material3.Card
 import androidx.compose.foundation.background
@@ -9,30 +10,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.VpnKey
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.MapEngine
-import io.github.amahteru.locationspoofer.ui.screen.FooterLinks
 import io.github.amahteru.locationspoofer.ui.screen.LANGUAGES
 import io.github.amahteru.locationspoofer.ui.screen.UpdateCheckCard
 import io.github.amahteru.locationspoofer.ui.screen.isNewerVersion
@@ -61,7 +56,8 @@ fun InfoTab(
     onNavigateToVendorScheme: () -> Unit = {},
     onNavigateToMotionRealism: () -> Unit = {},
     onNavigateToBackgroundKeepAlive: () -> Unit = {},
-    onNavigateToEnvTokens: () -> Unit = {}
+    onNavigateToEnvTokens: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {}
 ) {
     val currentVersion = BuildConfig.VERSION_NAME
     val targetReleases = remember(updateUiState?.releases, uiState.checkBetaUpdates) {
@@ -118,11 +114,29 @@ fun InfoTab(
         }
     }
 
-    Box(
+    val entries = buildList {
+        add(SettingsEntry(Icons.Rounded.Language, stringResource(R.string.select_language), onNavigateToLanguage, currentLangName))
+        add(SettingsEntry(Icons.Rounded.Map, stringResource(R.string.map_config), onNavigateToMapEngine, currentEngineName))
+        add(SettingsEntry(Icons.AutoMirrored.Rounded.DirectionsWalk, stringResource(R.string.motion_realism_title), onNavigateToMotionRealism, currentRealismLevelName))
+        if (BuildConfig.GLOBAL_SCHEME) {
+            add(SettingsEntry(Icons.Rounded.Devices, stringResource(R.string.system_adaptation_title), onNavigateToVendorScheme, adaptationStatusChip))
+        }
+        add(SettingsEntry(Icons.Rounded.Security, stringResource(R.string.env_and_signature), onNavigateToSignatureAuth))
+        add(SettingsEntry(Icons.Rounded.Shield, stringResource(R.string.root_solution_title), onNavigateToRootDiagnostics))
+        add(SettingsEntry(Icons.Rounded.BatteryChargingFull, stringResource(R.string.background_keep_alive_title), onNavigateToBackgroundKeepAlive))
+        add(SettingsEntry(Icons.Rounded.VpnKey, stringResource(R.string.env_datasource_tokens_title), onNavigateToEnvTokens))
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        AppRootTopBar(
+            title = stringResource(R.string.tab_info),
+            subtitle = stringResource(R.string.info_tab_desc)
+        )
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -130,56 +144,6 @@ fun InfoTab(
             contentPadding = PaddingValues(bottom = tabBarHeight + AppSpacing.xl),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(top = AppSpacing.lg, bottom = AppSpacing.md),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(MaterialTheme.shapes.large),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        AndroidView(
-                            factory = { ctx ->
-                                android.widget.ImageView(ctx).apply {
-                                    scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                                    try {
-                                        val icon =
-                                            ctx.packageManager.getApplicationIcon(ctx.packageName)
-                                        setImageDrawable(icon)
-                                    } catch (e: Exception) {
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    Spacer(Modifier.height(AppSpacing.lg))
-
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-
-                    Spacer(Modifier.height(AppSpacing.sm))
-
-                    Text(
-                        text = stringResource(R.string.app_slogan),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = AppSpacing.xl)
-                    )
-                }
-            }
-
             item {
                 UpdateCheckCard(
                     hasNewVersion = hasNewVersion,
@@ -191,83 +155,39 @@ fun InfoTab(
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Language,
-                            tone = LabelTone.Primary,
-                            title = stringResource(R.string.select_language),
-                            previewChip = currentLangName,
-                            onClick = onNavigateToLanguage
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Map,
-                            tone = LabelTone.Success,
-                            title = stringResource(R.string.map_config),
-                            previewChip = currentEngineName,
-                            onClick = onNavigateToMapEngine
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.AutoMirrored.Rounded.DirectionsWalk,
-                            tone = LabelTone.Tertiary,
-                            title = stringResource(R.string.motion_realism_title),
-                            previewChip = currentRealismLevelName,
-                            onClick = onNavigateToMotionRealism
-                        )
-                        if (BuildConfig.GLOBAL_SCHEME) SettingsEntryRow(
-                            icon = Icons.Rounded.Devices,
-                            tone = LabelTone.Success,
-                            title = stringResource(R.string.system_adaptation_title),
-                            previewChip = adaptationStatusChip,
-                            onClick = onNavigateToVendorScheme
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Security,
-                            tone = LabelTone.Warning,
-                            title = stringResource(R.string.env_and_signature),
-                            onClick = onNavigateToSignatureAuth
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.Shield,
-                            tone = LabelTone.Primary,
-                            title = stringResource(R.string.root_solution_title),
-                            onClick = onNavigateToRootDiagnostics
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.BatteryChargingFull,
-                            tone = LabelTone.Warning,
-                            title = stringResource(R.string.background_keep_alive_title),
-                            onClick = onNavigateToBackgroundKeepAlive
-                        )
-                        SettingsEntryRow(
-                            icon = Icons.Rounded.VpnKey,
-                            tone = LabelTone.Primary,
-                            title = stringResource(R.string.env_datasource_tokens_title),
-                            onClick = onNavigateToEnvTokens
-                        )
+                        entries.forEachIndexed { index, entry ->
+                            NavigationListItem(
+                                icon = entry.icon,
+                                title = entry.title,
+                                summary = entry.summary,
+                                tone = toneAt(index + 1),
+                                onClick = entry.onClick
+                            )
+                        }
                     }
                 }
             }
 
             item {
-                Spacer(Modifier.height(AppSpacing.sm))
-                FooterLinks()
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    NavigationListItem(
+                        icon = Icons.Rounded.Info,
+                        title = stringResource(R.string.about_title),
+                        summary = stringResource(R.string.about_version_format, currentVersion),
+                        tone = toneAt(entries.size + 1),
+                        onClick = onNavigateToAbout
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-private fun SettingsEntryRow(
-    icon: ImageVector,
-    tone: LabelTone,
-    title: String,
-    onClick: () -> Unit,
-    previewChip: String? = null
-) {
-    NavigationListItem(
-        icon = icon,
-        title = title,
-        summary = previewChip,
-        tone = tone,
-        onClick = onClick
-    )
-}
+private class SettingsEntry(
+    val icon: ImageVector,
+    val title: String,
+    val onClick: () -> Unit,
+    val summary: String? = null
+)
+
+private fun toneAt(position: Int) = if (position % 2 == 0) LabelTone.Primary else LabelTone.Tertiary

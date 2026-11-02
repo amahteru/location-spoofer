@@ -1,8 +1,8 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -154,7 +154,7 @@ private fun performPoiSearch(
                 override fun onGetPoiResult(result: com.baidu.mapapi.search.poi.PoiResult?) {
                     if (result == null || result.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.NO_ERROR) {
                         if (result?.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.RESULT_NOT_FOUND) {
-                            Toast.makeText(context, context.getString(R.string.baidu_search_failed_format, result?.error?.name ?: ""), Toast.LENGTH_LONG).show()
+                            AppSnackbar.show(context.getString(R.string.baidu_search_failed_format, result?.error?.name ?: ""), long = true)
                         }
                         onResult(emptyList())
                         mPoiSearch.destroy()
@@ -183,7 +183,7 @@ private fun performPoiSearch(
                 .pageCapacity(20)
             mPoiSearch.searchInCity(option)
         } catch (e: Exception) {
-            Toast.makeText(context, context.getString(R.string.baidu_search_failed_format, e.message ?: ""), Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.baidu_search_failed_format, e.message ?: ""), long = true)
             onResult(emptyList())
         }
     } else if (mapEngine == MapEngine.GOOGLE) {
@@ -191,7 +191,7 @@ private fun performPoiSearch(
             val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
             val key = prefs.getString("google_api_key", "")
             if (key.isNullOrBlank()) {
-                Toast.makeText(context, context.getString(R.string.google_key_required_hint), Toast.LENGTH_LONG).show()
+                AppSnackbar.show(context.getString(R.string.google_key_required_hint), long = true)
                 onResult(emptyList())
                 return
             }
@@ -252,11 +252,11 @@ private fun performPoiSearch(
                     }
                 }
                 .addOnFailureListener { exception ->
-                    Toast.makeText(context, context.getString(R.string.google_search_failed_format, exception.message ?: ""), Toast.LENGTH_LONG).show()
+                    AppSnackbar.show(context.getString(R.string.google_search_failed_format, exception.message ?: ""), long = true)
                     onResult(emptyList())
                 }
         } catch (e: Exception) {
-            Toast.makeText(context, context.getString(R.string.google_search_failed_format, e.message ?: ""), Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.google_search_failed_format, e.message ?: ""), long = true)
             onResult(emptyList())
         }
     } else {
@@ -281,17 +281,9 @@ private fun performPoiSearch(
                         } ?: emptyList())
                     } else {
                         if (rCode == 10003 || rCode == 10012 || rCode == 10013 || rCode == 10014 || rCode == 1800 || rCode == 18000) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.amap_search_failed_quota),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            AppSnackbar.show(context.getString(R.string.amap_search_failed_quota), long = true)
                         } else if (rCode != 1000) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.amap_search_failed_code_format, rCode),
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            AppSnackbar.show(context.getString(R.string.amap_search_failed_code_format, rCode))
                         }
                         onResult(emptyList())
                     }
@@ -301,7 +293,7 @@ private fun performPoiSearch(
             })
             search.searchPOIAsyn()
         } catch (e: Exception) {
-            Toast.makeText(context, context.getString(R.string.amap_search_exception_format, e.message ?: ""), Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.amap_search_exception_format, e.message ?: ""), long = true)
             onResult(emptyList())
         }
     }

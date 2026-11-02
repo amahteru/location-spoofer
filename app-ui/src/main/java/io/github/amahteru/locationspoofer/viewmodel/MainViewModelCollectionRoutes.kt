@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.data.db.CompleteLocation
 import io.github.amahteru.locationspoofer.data.model.CollectionRouteMatcher
@@ -56,7 +57,7 @@ internal fun MainViewModel.saveCollectionRouteInfo(id: Long, name: String, remar
             throw cancelled
         } catch (error: Exception) {
             _uiState.update { it.copy(isSavingCollectionInfo = false) }
-            android.widget.Toast.makeText(context, R.string.collection_info_save_failed, android.widget.Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.collection_info_save_failed), long = true)
         }
     }
 }

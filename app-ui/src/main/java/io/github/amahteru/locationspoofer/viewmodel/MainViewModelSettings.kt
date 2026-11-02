@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.ui.R
@@ -31,7 +32,7 @@ internal fun MainViewModel.initialize() {
             val now = System.currentTimeMillis()
             if (now - lastShown < 10_000L) return@collect
             lastShown = now
-            android.widget.Toast.makeText(context, R.string.config_write_failed, android.widget.Toast.LENGTH_LONG).show()
+            AppSnackbar.show(context.getString(R.string.config_write_failed), long = true)
         }
     }
     viewModelScope.launch(Dispatchers.IO) {

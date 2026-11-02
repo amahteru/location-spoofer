@@ -1,12 +1,12 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.core.net.toUri
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.rounded.AppSettingsAlt
 import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -55,7 +55,7 @@ fun BackgroundKeepAliveScreen(
                     icon = Icons.Rounded.BatteryChargingFull,
                     title = stringResource(R.string.ignore_battery_optimizations_title),
                     summary = stringResource(R.string.ignore_battery_optimizations_desc),
-                    tone = LabelTone.Warning,
+                    tone = LabelTone.Tertiary,
                     onClick = {
                         try {
                             val intent =
@@ -71,11 +71,7 @@ fun BackgroundKeepAliveScreen(
                                     android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                 context.startActivity(intent)
                             } catch (e: Exception) {
-                                Toast.makeText(
-                                    context,
-                                    resources.getString(R.string.open_battery_opt_failed, e.message ?: ""),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                AppSnackbar.show(resources.getString(R.string.open_battery_opt_failed, e.message ?: ""))
                             }
                         }
                     }
@@ -95,11 +91,7 @@ fun BackgroundKeepAliveScreen(
                                 }
                         context.startActivity(intent)
                     } catch (e: Exception) {
-                        Toast.makeText(
-                            context,
-                            resources.getString(R.string.open_app_info_failed, e.message ?: ""),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        AppSnackbar.show(resources.getString(R.string.open_app_info_failed, e.message ?: ""))
                     }
                     }
                 )

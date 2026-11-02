@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import android.content.Context
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
@@ -68,15 +69,11 @@ private fun MainViewModel.fallbackToNativeLocation(
 
         locationManager.getCurrentLocation(provider, null, ctx.mainExecutor) { location ->
             if (location != null) applyNativeLocation(ctx, location, forceCallback, convertToGcj)
-            else if (forceCallback != null) android.widget.Toast.makeText(ctx, io.github.amahteru.locationspoofer.ui.R.string.location_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+            else if (forceCallback != null) AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_unavailable))
         }
     } catch (e: SecurityException) {
         if (forceCallback != null) {
-            android.widget.Toast.makeText(
-                ctx,
-                ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_permission_denied),
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_permission_denied))
         }
     } catch (e: Exception) {
         e.printStackTrace()
