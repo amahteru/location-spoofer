@@ -153,7 +153,7 @@
     <string name="about_title">关于</string>
     <string name="about_version_format">版本 %1$s</string>
     <string name="about_github_desc">查看源代码与发布记录</string>
-    <string name="app_slogan">这是一个模拟定位软件，仅此而已</string>
+    <string name="app_slogan">位置、路线与周边环境模拟</string>
     <string name="about_licenses_desc">本项目与第三方库的许可证</string>
     <string name="licenses_title">开源许可</string>
     <string name="licenses_project_section">本项目</string>

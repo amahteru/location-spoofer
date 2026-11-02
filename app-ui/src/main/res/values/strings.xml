@@ -154,7 +154,7 @@
     <string name="about_title">About</string>
     <string name="about_version_format">Version %1$s</string>
     <string name="about_github_desc">Source code and releases</string>
-    <string name="app_slogan">A location simulation tool, and that’s it</string>
+    <string name="app_slogan">Location, route and nearby environment simulation</string>
     <string name="about_licenses_desc">Licenses for this app and third-party libraries</string>
     <string name="licenses_title">Open source licenses</string>
     <string name="licenses_project_section">This app</string>
