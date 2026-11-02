@@ -2,7 +2,9 @@ package io.github.amahteru.locationspoofer.ui.theme
 
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -17,6 +19,7 @@ object AppMotion {
     fun <T> pageSlideSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 700f)
     fun <T> defaultEffectsSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 1600f)
     fun <T> fastEffectsSpec(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 3800f)
+    fun <T> fadeThroughInSpec(): FiniteAnimationSpec<T> = tween(durationMillis = 210, delayMillis = 90, easing = LinearOutSlowInEasing)
 
     fun pageSlideTransition(direction: Int): ContentTransform =
         slideInHorizontally(pageSlideSpec()) { width -> width * direction } togetherWith

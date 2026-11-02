@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.maps.CameraUpdateFactory as GCameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.MapView as GMapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory as GBitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -22,6 +23,7 @@ import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
 class GMapControllerImpl(
@@ -191,12 +193,17 @@ fun GoogleMapViewContainer(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     isDark: Boolean,
+    initialCamera: MapCamera?,
     modifier: Modifier,
-    onMapReady: (AppMapController) -> Unit,
-    onControllerCreated: (AppMapController) -> Unit
+    onMapReady: (AppMapController) -> Unit
 ) {
     val gmapView = remember {
-        GMapView(context).apply {
+        GMapView(
+            context,
+            GoogleMapOptions()
+                .backgroundColor(if (isDark) 0xFF242F3E.toInt() else null)
+                .apply { initialCamera?.let { camera(CameraPosition(GLatLng(it.lat, it.lng), it.zoom, 0f, 0f)) } }
+        ).apply {
             onCreate(Bundle())
         }
     }
@@ -223,7 +230,6 @@ fun GoogleMapViewContainer(
     MapAndroidView(gmapView, modifier) {
         getMapAsync { map ->
             val controller = GMapControllerImpl(map, this, context)
-            onControllerCreated(controller)
             controller.setDarkMode(isDark, context)
             onMapReady(controller)
         }

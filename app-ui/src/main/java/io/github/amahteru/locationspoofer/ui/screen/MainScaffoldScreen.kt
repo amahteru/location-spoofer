@@ -27,6 +27,7 @@ import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
+import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.SubPageOverlay
 import io.github.amahteru.locationspoofer.ui.components.AppMapView
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
@@ -173,13 +174,15 @@ fun MainScaffoldScreen(
                     AppMapView(
                         modifier = Modifier.fillMaxSize(),
                         mapEngine = mapEngineOnScreen,
+                        initialCamera = MapCamera(
+                            uiState.latitudeInput.toDoubleOrNull() ?: 39.9042,
+                            uiState.longitudeInput.toDoubleOrNull() ?: 116.4074,
+                            15f
+                        ),
                         onMapReady = { controller ->
                             mapController = controller
                             controller.disableUiControls()
                             controller.setMapType(uiState.mapType)
-                            val initLat = uiState.latitudeInput.toDoubleOrNull() ?: 39.9042
-                            val initLng = uiState.longitudeInput.toDoubleOrNull() ?: 116.4074
-                            controller.moveCamera(initLat, initLng, 15f)
 
                             controller.setOnCameraChangeListener { lat, lng ->
                                 if (currentSelectedTab == BottomTab.Location.ordinal) {

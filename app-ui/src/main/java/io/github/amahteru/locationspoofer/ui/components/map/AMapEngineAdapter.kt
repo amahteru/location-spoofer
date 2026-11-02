@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.amap.api.maps.AMap
+import com.amap.api.maps.AMapOptions
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.TextureMapView
 import com.amap.api.maps.model.BitmapDescriptorFactory
@@ -18,6 +19,7 @@ import com.amap.api.maps.model.PolylineOptions as AMapPolylineOptions
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
 class AMapControllerImpl(
@@ -198,12 +200,17 @@ fun AMapViewContainer(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     isDark: Boolean,
+    initialCamera: MapCamera?,
     modifier: Modifier,
-    onMapReady: (AppMapController) -> Unit,
-    onControllerCreated: (AppMapController) -> Unit
+    onMapReady: (AppMapController) -> Unit
 ) {
     val amapView = remember {
-        val view = TextureMapView(context)
+        val view = TextureMapView(
+            context,
+            AMapOptions()
+                .mapType(if (isDark) AMap.MAP_TYPE_NIGHT else AMap.MAP_TYPE_NORMAL)
+                .apply { initialCamera?.let { camera(CameraPosition(AMapLatLng(it.lat, it.lng), it.zoom, 0f, 0f)) } }
+        )
         view.onCreate(Bundle())
         view
     }
@@ -230,7 +237,6 @@ fun AMapViewContainer(
     MapAndroidView(amapView, modifier) {
         map.setOnMapLoadedListener {
             val controller = AMapControllerImpl(map, context)
-            onControllerCreated(controller)
             controller.setDarkMode(isDark, context)
             onMapReady(controller)
         }

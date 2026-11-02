@@ -2,6 +2,8 @@ package io.github.amahteru.locationspoofer
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.LocalActivityResultRegistryOwner
@@ -37,6 +39,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModel()
+    private var isContentReady = false
 
     override fun attachBaseContext(newBase: Context) {
         val prefs = newBase.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -63,11 +66,21 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+        val content = findViewById<View>(android.R.id.content)
+        content.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                if (!isContentReady) return false
+                content.viewTreeObserver.removeOnPreDrawListener(this)
+                return true
+            }
+        })
+
         setContent {
             CompositionLocalProvider(
                 LocalActivityResultRegistryOwner provides this@MainActivity
             ) {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                if (!uiState.isInitializing) SideEffect { isContentReady = true }
                 val isDark = isSystemInDarkTheme()
                 val baseDensity = LocalDensity.current
                 val appDensity = remember(baseDensity.density, baseDensity.fontScale) {

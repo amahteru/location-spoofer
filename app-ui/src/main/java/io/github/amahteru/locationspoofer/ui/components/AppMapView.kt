@@ -1,8 +1,12 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import io.github.amahteru.locationspoofer.data.model.AppMapType
@@ -10,12 +14,15 @@ import io.github.amahteru.locationspoofer.data.model.MapEngine
 import io.github.amahteru.locationspoofer.ui.components.map.AMapViewContainer
 import io.github.amahteru.locationspoofer.ui.components.map.BaiduMapViewContainer
 import io.github.amahteru.locationspoofer.ui.components.map.GoogleMapViewContainer
+import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 
 interface AppMapMarker {
     fun setPosition(lat: Double, lng: Double)
 }
 
 enum class MarkerType { GREEN, RED, ORANGE, DEFAULT }
+
+data class MapCamera(val lat: Double, val lng: Double, val zoom: Float)
 
 interface AppMapController {
     fun clear()
@@ -57,6 +64,7 @@ interface AppMapController {
 fun AppMapView(
     mapEngine: MapEngine,
     modifier: Modifier = Modifier,
+    initialCamera: MapCamera? = null,
     onMapReady: (AppMapController) -> Unit
 ) {
     val context = LocalContext.current
@@ -73,39 +81,56 @@ fun AppMapView(
     } else {
         mapEngine
     }
+    var settledEngine by remember { mutableStateOf(activeEngine) }
+    var renderedEngine by remember { mutableStateOf<MapEngine?>(null) }
 
-    when (activeEngine) {
-        MapEngine.BAIDU -> {
-            BaiduMapViewContainer(
-                context = context,
-                lifecycleOwner = lifecycleOwner,
-                isDark = isDark,
-                modifier = modifier,
-                onMapReady = onMapReady,
-                onControllerCreated = { mapController = it }
-            )
-        }
+    Box(modifier = modifier) {
+        listOf(settledEngine, activeEngine).distinct().forEach { engine ->
+            key(engine) {
+                val alpha = animateFloatAsState(
+                    targetValue = if (engine == renderedEngine || engine != activeEngine) 1f else 0f,
+                    animationSpec = AppMotion.fadeThroughInSpec(),
+                    label = "map_reveal",
+                    finishedListener = { if (it == 1f && engine == activeEngine) settledEngine = engine }
+                )
+                val engineModifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { this.alpha = alpha.value }
+                val onEngineReady = { controller: AppMapController ->
+                    mapController = controller
+                    renderedEngine = engine
+                    onMapReady(controller)
+                }
 
-        MapEngine.GOOGLE -> {
-            GoogleMapViewContainer(
-                context = context,
-                lifecycleOwner = lifecycleOwner,
-                isDark = isDark,
-                modifier = modifier,
-                onMapReady = onMapReady,
-                onControllerCreated = { mapController = it }
-            )
-        }
+                when (engine) {
+                    MapEngine.BAIDU -> BaiduMapViewContainer(
+                        context = context,
+                        lifecycleOwner = lifecycleOwner,
+                        isDark = isDark,
+                        initialCamera = initialCamera,
+                        modifier = engineModifier,
+                        onMapReady = onEngineReady
+                    )
 
-        else -> {
-            AMapViewContainer(
-                context = context,
-                lifecycleOwner = lifecycleOwner,
-                isDark = isDark,
-                modifier = modifier,
-                onMapReady = onMapReady,
-                onControllerCreated = { mapController = it }
-            )
+                    MapEngine.GOOGLE -> GoogleMapViewContainer(
+                        context = context,
+                        lifecycleOwner = lifecycleOwner,
+                        isDark = isDark,
+                        initialCamera = initialCamera,
+                        modifier = engineModifier,
+                        onMapReady = onEngineReady
+                    )
+
+                    else -> AMapViewContainer(
+                        context = context,
+                        lifecycleOwner = lifecycleOwner,
+                        isDark = isDark,
+                        initialCamera = initialCamera,
+                        modifier = engineModifier,
+                        onMapReady = onEngineReady
+                    )
+                }
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ import io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
+import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.AppMapView
 import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
@@ -86,12 +87,14 @@ fun ScannerMapScreen(
         AppMapView(
             mapEngine = uiState.mapEngine,
             modifier = Modifier.fillMaxSize(),
+            initialCamera = MapCamera(
+                uiState.latitudeInput.toDoubleOrNull() ?: 39.9042,
+                uiState.longitudeInput.toDoubleOrNull() ?: 116.4074,
+                16.5f
+            ),
             onMapReady = { controller ->
                 mapController = controller
                 controller.disableUiControls()
-                val currentLat = uiState.latitudeInput.toDoubleOrNull() ?: 39.9042
-                val currentLng = uiState.longitudeInput.toDoubleOrNull() ?: 116.4074
-                controller.moveCamera(currentLat, currentLng, 16.5f)
             }
         )
 

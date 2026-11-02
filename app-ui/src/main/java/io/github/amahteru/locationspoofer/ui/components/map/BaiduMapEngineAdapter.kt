@@ -7,12 +7,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.baidu.mapapi.map.BaiduMap
+import com.baidu.mapapi.map.BaiduMapOptions
+import com.baidu.mapapi.map.MapStatus
 import com.baidu.mapapi.map.Stroke
 import com.baidu.mapapi.map.TextureMapView
 import com.baidu.mapapi.model.LatLng
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
 class BaiduMapControllerImpl(
@@ -256,12 +259,17 @@ fun BaiduMapViewContainer(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     isDark: Boolean,
+    initialCamera: MapCamera?,
     modifier: Modifier,
-    onMapReady: (AppMapController) -> Unit,
-    onControllerCreated: (AppMapController) -> Unit
+    onMapReady: (AppMapController) -> Unit
 ) {
     val baiduMapView = remember {
-        TextureMapView(context)
+        TextureMapView(
+            context,
+            BaiduMapOptions().apply {
+                initialCamera?.let { mapStatus(MapStatus.Builder().target(LatLng(it.lat, it.lng)).zoom(it.zoom).build()) }
+            }
+        )
     }
 
     DisposableEffect(lifecycleOwner.lifecycle, baiduMapView) {
@@ -285,8 +293,7 @@ fun BaiduMapViewContainer(
 
     MapAndroidView(baiduMapView, modifier) {
         val controller = BaiduMapControllerImpl(map, this, context)
-        onControllerCreated(controller)
         controller.setDarkMode(isDark, context)
-        onMapReady(controller)
+        map.setOnFirstFrameDrawListener { post { onMapReady(controller) } }
     }
 }
