@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.ui.R
 import androidx.compose.runtime.Composable
-import com.amap.api.maps.AMapException
 import com.amap.api.services.poisearch.PoiResult
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener
 import com.baidu.mapapi.search.poi.PoiCitySearchOption
@@ -154,6 +153,9 @@ private fun performPoiSearch(
                 OnGetPoiSearchResultListener {
                 override fun onGetPoiResult(result: com.baidu.mapapi.search.poi.PoiResult?) {
                     if (result == null || result.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.NO_ERROR) {
+                        if (result?.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.RESULT_NOT_FOUND) {
+                            Toast.makeText(context, context.getString(R.string.baidu_search_failed_format, result?.error?.name ?: ""), Toast.LENGTH_LONG).show()
+                        }
                         onResult(emptyList())
                         mPoiSearch.destroy()
                         return
@@ -181,7 +183,7 @@ private fun performPoiSearch(
                 .pageCapacity(20)
             mPoiSearch.searchInCity(option)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Toast.makeText(context, context.getString(R.string.baidu_search_failed_format, e.message ?: ""), Toast.LENGTH_LONG).show()
             onResult(emptyList())
         }
     } else if (mapEngine == MapEngine.GOOGLE) {
@@ -299,19 +301,7 @@ private fun performPoiSearch(
             })
             search.searchPOIAsyn()
         } catch (e: Exception) {
-            e.printStackTrace()
-            val msg = e.message ?: ""
-            if (e is AMapException || msg.contains(
-                    "limit",
-                    ignoreCase = true
-                ) || msg.contains("额度")
-            ) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.amap_search_exception_format, msg),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            Toast.makeText(context, context.getString(R.string.amap_search_exception_format, e.message ?: ""), Toast.LENGTH_LONG).show()
             onResult(emptyList())
         }
     }

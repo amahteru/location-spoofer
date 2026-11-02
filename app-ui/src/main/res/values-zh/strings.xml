@@ -86,7 +86,6 @@
     <string name="custom_google_key_hint">输入您的谷歌地图密钥…</string>
     <string name="google_key_required_hint">使用谷歌地图需先在设置中配置个人谷歌 API 密钥</string>
     <string name="copy">复制</string>
-    <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="restart_required_hint">修改 API 密钥后需重启应用生效</string>
     <string name="check_updates">检查更新</string>
     <string name="check_updates_desc">从 GitHub 获取最新版本</string>
@@ -149,7 +148,6 @@
     <string name="map_engine_amap">高德地图</string>
     <string name="map_engine_baidu">百度地图</string>
     <string name="map_engine_google">谷歌地图</string>
-    <string name="located_to_saved_point">已定位至收藏的地点「%s」</string>
     <string name="starting_ellipsis">启动中…</string>
     <string name="new_version_available_badge">发现新版本 v%s 可用</string>
     <string name="no_search_results">未找到搜索结果</string>
@@ -160,7 +158,6 @@
     <string name="selected_waypoints_count">已选 %d 个路点</string>
     <string name="total_saved_routes">已收藏 %d 条路线</string>
     <string name="add_points_save_hint">添加路点后点击「收藏」即可保存规划路线</string>
-    <string name="loaded_route">已加载路线「%s」</string>
     <string name="add_start_point">添加起始点</string>
     <string name="add_nth_point">添加第 %d 点</string>
     <string name="reselect">重选</string>
@@ -362,10 +359,8 @@
     <string name="category_empty">暂无可导出内容</string>
     <string name="import_parse_failed">无法解析该文件，请选择有效的备份文件</string>
     <string name="add_to_favorites">收藏</string>
-    <string name="favorited_toast">已收藏「%1$s」</string>
     <string name="favorite_failed">操作失败，该记录可能已被删除</string>
     <string name="remove_from_favorites">取消收藏</string>
-    <string name="unfavorited_toast">已取消收藏「%1$s」</string>
     <string name="env_simulation_section">环境模拟</string>
     <string name="enable_slight_jitter_desc">加入自然的 GPS 漂移</string>
     <string name="refresh_data">刷新</string>
@@ -509,4 +504,7 @@
     <string name="vendor_scheme_reboot_notice">切换方案后需重启设备才能生效</string>
     <string name="vendor_scheme_title">厂商适配方案</string>
     <string name="google_search_failed_format">谷歌搜索失败：%s</string>
+    <string name="import_failed">导入失败，请重试</string>
+    <string name="baidu_search_failed_format">百度搜索失败：%s</string>
+    <string name="location_unavailable">无法获取当前位置</string>
 </resources>

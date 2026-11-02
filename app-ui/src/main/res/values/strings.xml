@@ -82,7 +82,6 @@
     <string name="custom_google_key_hint">Enter your Google Maps API key…</string>
     <string name="google_key_required_hint">Set up your own Google Maps API key in Settings first</string>
     <string name="copy">Copy</string>
-    <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="restart_required_hint">Restart the app for API key changes to take effect</string>
     <string name="check_updates">Check for updates</string>
     <string name="check_updates_desc">Get updates from GitHub</string>
@@ -150,7 +149,6 @@
     <string name="map_engine_amap">AMap</string>
     <string name="map_engine_baidu">Baidu Maps</string>
     <string name="map_engine_google">Google Maps</string>
-    <string name="located_to_saved_point">Moved to favorite “%s”</string>
     <string name="starting_ellipsis">Starting…</string>
     <string name="new_version_available_badge">New version v%s available</string>
     <string name="no_search_results">No results</string>
@@ -161,7 +159,6 @@
     <string name="selected_waypoints_count">Waypoints selected: %d</string>
     <string name="total_saved_routes">Favorite routes: %d</string>
     <string name="add_points_save_hint">Add waypoints, then tap “Favorite” to save the route</string>
-    <string name="loaded_route">Loaded route “%s”</string>
     <string name="add_start_point">Start point</string>
     <string name="add_nth_point">Waypoint %d</string>
     <string name="reselect">Reselect</string>
@@ -362,10 +359,8 @@
     <string name="category_empty">Nothing to include</string>
     <string name="import_parse_failed">Couldn’t read this file. Pick a valid backup</string>
     <string name="add_to_favorites">Favorite</string>
-    <string name="favorited_toast">Added “%1$s” to favorites</string>
     <string name="favorite_failed">Operation failed. The record may have been deleted</string>
     <string name="remove_from_favorites">Remove from favorites</string>
-    <string name="unfavorited_toast">Removed “%1$s” from favorites</string>
     <string name="env_simulation_section">Environment simulation</string>
     <string name="enable_slight_jitter_desc">Adds natural GPS drift</string>
     <string name="refresh_data">Refresh</string>
@@ -509,4 +504,7 @@
     <string name="vendor_scheme_reboot_notice">Takes effect after a device reboot</string>
     <string name="vendor_scheme_title">Vendor adaptation</string>
     <string name="google_search_failed_format">Google search failed: %s</string>
+    <string name="import_failed">Couldn’t import. Please try again</string>
+    <string name="baidu_search_failed_format">Baidu search failed: %s</string>
+    <string name="location_unavailable">Couldn’t get current location</string>
 </resources>

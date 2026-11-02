@@ -112,12 +112,8 @@ fun FeaturesTab(
             ),
             onConfirm = { selection ->
                 pendingImportPackage = null
-                viewModel.applyImportPackage(pkg, selection) {
-                    Toast.makeText(
-                        context,
-                        resources.getString(R.string.import_merge_success),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                viewModel.applyImportPackage(pkg, selection) { message ->
+                    Toast.makeText(context, resources.getString(message), Toast.LENGTH_SHORT).show()
                 }
             },
             onDismiss = { pendingImportPackage = null }

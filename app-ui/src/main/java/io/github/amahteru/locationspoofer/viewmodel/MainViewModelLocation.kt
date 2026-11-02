@@ -67,8 +67,8 @@ private fun MainViewModel.fallbackToNativeLocation(
             }
 
         locationManager.getCurrentLocation(provider, null, ctx.mainExecutor) { location ->
-            if (location == null) return@getCurrentLocation
-            applyNativeLocation(ctx, location, forceCallback, convertToGcj)
+            if (location != null) applyNativeLocation(ctx, location, forceCallback, convertToGcj)
+            else if (forceCallback != null) android.widget.Toast.makeText(ctx, io.github.amahteru.locationspoofer.ui.R.string.location_unavailable, android.widget.Toast.LENGTH_SHORT).show()
         }
     } catch (e: SecurityException) {
         if (forceCallback != null) {

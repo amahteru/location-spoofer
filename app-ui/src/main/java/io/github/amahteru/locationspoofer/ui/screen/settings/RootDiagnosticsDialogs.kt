@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,8 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.toClipEntry
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import android.content.ClipData
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,8 +56,6 @@ fun RootSetupTestResultDialog(
     result: RootSetupTestResult,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
     val overallOk = result.hasRoot && result.overallVerified
@@ -120,11 +115,6 @@ fun RootSetupTestResultDialog(
                     appendLine("frameworkDetail=${result.frameworkDetail}")
                 }
                 scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, summary).toClipEntry()) }
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.copied_to_clipboard),
-                    Toast.LENGTH_SHORT
-                ).show()
             }) {
                 Text(stringResource(R.string.copy_diagnostic_info))
             }

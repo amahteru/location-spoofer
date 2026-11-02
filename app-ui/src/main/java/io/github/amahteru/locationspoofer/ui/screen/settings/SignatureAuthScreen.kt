@@ -4,7 +4,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import android.content.ClipData
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,7 +43,6 @@ fun SignatureAuthScreen(
     onClose: () -> Unit
 ) {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
@@ -63,7 +60,6 @@ fun SignatureAuthScreen(
                     value = context.packageName,
                     onCopy = {
                         scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, context.packageName).toClipEntry()) }
-                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
                     }
                 )
                 CopyableListItem(
@@ -71,7 +67,6 @@ fun SignatureAuthScreen(
                     value = uiState.appSha1.ifBlank { stringResource(R.string.reading_signature) },
                     onCopy = {
                         scope.launch { clipboard.setClipEntry(ClipData.newPlainText(null, uiState.appSha1).toClipEntry()) }
-                        Toast.makeText(context, resources.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
                     }
                 )
             }

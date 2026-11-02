@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs.route
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,8 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -35,8 +32,6 @@ fun SavedRoutesDialog(
     bottomBarHeight: Dp,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
     val density = LocalDensity.current
 
     AppBottomSheet(
@@ -81,11 +76,6 @@ fun SavedRoutesDialog(
                                 }
                             }
                             onDismiss()
-                            Toast.makeText(
-                                context,
-                                resources.getString(R.string.loaded_route, route.name),
-                                Toast.LENGTH_SHORT
-                            ).show()
                         },
                         leadingContent = { Icon(Icons.Rounded.Route, contentDescription = null) },
                         headlineContent = { Text(route.name) },

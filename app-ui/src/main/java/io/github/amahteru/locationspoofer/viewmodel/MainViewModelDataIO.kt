@@ -481,9 +481,9 @@ internal fun MainViewModel.exportEnvironmentData(
     }
 }
 
-internal fun MainViewModel.importEnvironmentData(uri: android.net.Uri, onComplete: () -> Unit) {
+internal fun MainViewModel.importEnvironmentData(uri: android.net.Uri, onComplete: (Int) -> Unit) {
     parseImportPackage(uri) { pkg ->
-        if (pkg == null) onComplete()
+        if (pkg == null) onComplete(io.github.amahteru.locationspoofer.ui.R.string.import_parse_failed)
         else applyImportPackage(pkg, ImportExportSelection(), onComplete)
     }
 }
@@ -552,7 +552,7 @@ private fun MainViewModel.parseImportPackageInternal(
 internal fun MainViewModel.applyImportPackage(
     pkg: io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage,
     selection: ImportExportSelection,
-    onComplete: () -> Unit
+    onComplete: (Int) -> Unit
 ) {
     viewModelScope.launch(Dispatchers.IO) {
         try {
@@ -631,11 +631,11 @@ internal fun MainViewModel.applyImportPackage(
             }
 
             launch(Dispatchers.Main) {
-                onComplete()
+                onComplete(io.github.amahteru.locationspoofer.ui.R.string.import_merge_success)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            launch(Dispatchers.Main) { onComplete() }
+            launch(Dispatchers.Main) { onComplete(io.github.amahteru.locationspoofer.ui.R.string.import_failed) }
         }
     }
 }

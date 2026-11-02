@@ -223,20 +223,9 @@ fun ManageDataScreen(
                                 onDelete = { itemToDelete = item },
                                 onFavorite = {
                                     viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                                        val message = when (result) {
-                                            is FavoriteToggleResult.Added -> resources.getString(
-                                                R.string.favorited_toast,
-                                                result.name
-                                            )
-
-                                            is FavoriteToggleResult.Removed -> resources.getString(
-                                                R.string.unfavorited_toast,
-                                                result.name
-                                            )
-
-                                            FavoriteToggleResult.Failed -> resources.getString(R.string.favorite_failed)
+                                        if (result == FavoriteToggleResult.Failed) {
+                                            Toast.makeText(context, resources.getString(R.string.favorite_failed), Toast.LENGTH_SHORT).show()
                                         }
-                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             )

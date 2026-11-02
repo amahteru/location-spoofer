@@ -106,8 +106,8 @@ fun LocationTab(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         uri?.let {
-            viewModel.importEnvironmentData(it) {
-                Toast.makeText(context, resources.getString(R.string.import_merge_success), Toast.LENGTH_SHORT).show()
+            viewModel.importEnvironmentData(it) { message ->
+                Toast.makeText(context, resources.getString(message), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -167,11 +167,6 @@ fun LocationTab(
             onSelectSavedLocation = { location ->
                 viewModel.loadSavedLocation(location)
                 mapController?.animateCamera(location.lat, location.lng, 17.5f)
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.located_to_saved_point, location.name),
-                    Toast.LENGTH_SHORT
-                ).show()
             },
             onDeleteSavedLocation = { location ->
                 viewModel.removeSavedLocation(location)
@@ -231,20 +226,9 @@ fun LocationTab(
             },
             onFavorite = { item ->
                 viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                    val message = when (result) {
-                        is FavoriteToggleResult.Added -> resources.getString(
-                            R.string.favorited_toast,
-                            result.name
-                        )
-
-                        is FavoriteToggleResult.Removed -> resources.getString(
-                            R.string.unfavorited_toast,
-                            result.name
-                        )
-
-                        FavoriteToggleResult.Failed -> resources.getString(R.string.favorite_failed)
+                    if (result == FavoriteToggleResult.Failed) {
+                        Toast.makeText(context, resources.getString(R.string.favorite_failed), Toast.LENGTH_SHORT).show()
                     }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
             },
             onImportClick = {
@@ -262,11 +246,6 @@ fun LocationTab(
                 viewModel.loadSavedLocation(location)
                 mapController?.animateCamera(location.lat, location.lng, 17.5f)
                 onIntent(SpoofingIntent.SetSavedLocationsVisible(false))
-                Toast.makeText(
-                    context,
-                    resources.getString(R.string.located_to_saved_point, location.name),
-                    Toast.LENGTH_SHORT
-                ).show()
             },
             onDelete = viewModel::removeSavedLocation
         )
