@@ -2,7 +2,7 @@ package io.github.amahteru.locationspoofer.ui.screen.tabs.location
 
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,11 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
@@ -42,10 +40,6 @@ fun LocationControlPanel(
     onPanelStateChange: (LocationPanelState) -> Unit,
     viewModel: MainViewModel,
     tabBarHeight: Dp,
-    savedCardHeightDp: Dp,
-    coordCardHeightDp: Dp,
-    onSavedCardHeightMeasured: (Int) -> Unit,
-    onCoordCardHeightMeasured: (Int) -> Unit,
     onSaveClick: () -> Unit,
     onCustomClick: () -> Unit,
     onStartFixedSpoofing: () -> Unit,
@@ -57,7 +51,6 @@ fun LocationControlPanel(
 ) {
     val motion = AppMotion
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
-    val density = LocalDensity.current
 
     val dragGestureModifier = Modifier.pointerInput(panelState) {
         detectVerticalDragGestures(
@@ -85,30 +78,22 @@ fun LocationControlPanel(
         )
     }
 
-    val rawDrawerOffsetY by animateDpAsState(
+    val drawerProgress by animateFloatAsState(
         targetValue = when (panelState) {
-            LocationPanelState.EXPANDED -> 0.dp
-            LocationPanelState.DEFAULT -> savedCardHeightDp + AppSpacing.sm
-            LocationPanelState.COLLAPSED -> savedCardHeightDp + coordCardHeightDp + AppSpacing.sm * 2
+            LocationPanelState.EXPANDED -> 0f
+            LocationPanelState.DEFAULT -> 1f
+            LocationPanelState.COLLAPSED -> 2f
         },
         animationSpec = motion.defaultSpatialSpec(),
-        label = "drawer_offset_y"
+        label = "drawer_progress"
     )
 
-    val drawerOffsetYPx = with(density) { rawDrawerOffsetY.toPx() }
-
-    Box(
+    Layout(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = AppSpacing.lg)
-            .padding(bottom = (tabBarHeight + AppSpacing.sm).coerceAtLeast(0.dp))
-            .offset { IntOffset(0, drawerOffsetYPx.roundToInt()) }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+            .padding(bottom = (tabBarHeight + AppSpacing.sm).coerceAtLeast(0.dp)),
+        content = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,11 +173,6 @@ fun LocationControlPanel(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned {
-                        if (it.size.height > 0) {
-                            onCoordCardHeightMeasured(it.size.height)
-                        }
-                    }
                     .then(dragGestureModifier),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -222,11 +202,6 @@ fun LocationControlPanel(
             }
 
             SavedLocationsCard(
-                modifier = Modifier.onGloballyPositioned {
-                    if (it.size.height > 0) {
-                        onSavedCardHeightMeasured(it.size.height)
-                    }
-                },
                 savedLocations = uiState.savedLocations,
                 panelState = panelState,
                 onSelect = onSelectSavedLocation,
@@ -242,6 +217,24 @@ fun LocationControlPanel(
                 onOpenManageDialog = onOpenManageSavedLocations,
                 dragGestureModifier = dragGestureModifier
             )
+        }
+    ) { measurables, constraints ->
+        val gap = AppSpacing.sm.roundToPx()
+        val placeables = measurables.map { it.measure(constraints.copy(minHeight = 0)) }
+        val defaultOffset = placeables[3].height + gap
+        val collapsedOffset = defaultOffset + placeables[2].height + gap
+        val offsetY = if (drawerProgress <= 1f) {
+            defaultOffset * drawerProgress
+        } else {
+            defaultOffset + (collapsedOffset - defaultOffset) * (drawerProgress - 1f)
+        }.roundToInt()
+
+        layout(constraints.maxWidth, placeables.sumOf { it.height } + gap * (placeables.size - 1)) {
+            var y = offsetY
+            placeables.forEach {
+                it.place(0, y)
+                y += it.height + gap
+            }
         }
     }
 }

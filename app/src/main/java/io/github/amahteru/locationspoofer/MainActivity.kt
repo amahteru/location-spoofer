@@ -11,7 +11,11 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -132,7 +136,7 @@ fun MainScreen(
         label = "app_stage_transition"
     ) { targetStage ->
         when (targetStage) {
-            AppStage.Initializing -> Unit
+            AppStage.Initializing -> Spacer(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars))
             AppStage.Language -> LanguageSelectionScreen(viewModel)
             AppStage.PermissionSetup -> PermissionSetupScreen(viewModel, uiState)
             AppStage.Main -> io.github.amahteru.locationspoofer.ui.screen.MainScaffoldScreen(

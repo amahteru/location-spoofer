@@ -16,7 +16,6 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -73,22 +72,6 @@ fun LocationTab(
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
     val onIntent = { intent: SpoofingIntent -> viewModel.handleSpoofingIntent(intent) }
     var showLocalDataDialog by remember { mutableStateOf(false) }
-
-    var persistentSavedCardHeightPx by remember { mutableIntStateOf(0) }
-    var persistentCoordCardHeightPx by remember { mutableIntStateOf(0) }
-    val density = LocalDensity.current
-
-    val savedCardHeightDp = if (persistentSavedCardHeightPx > 0) {
-        with(density) { persistentSavedCardHeightPx.toDp() }
-    } else {
-        180.dp
-    }
-
-    val coordCardHeightDp = if (persistentCoordCardHeightPx > 0) {
-        with(density) { persistentCoordCardHeightPx.toDp() }
-    } else {
-        210.dp
-    }
 
     var panelState by remember {
         mutableStateOf(
@@ -154,10 +137,6 @@ fun LocationTab(
             onPanelStateChange = { panelState = it },
             viewModel = viewModel,
             tabBarHeight = tabBarHeight,
-            savedCardHeightDp = savedCardHeightDp,
-            coordCardHeightDp = coordCardHeightDp,
-            onSavedCardHeightMeasured = { persistentSavedCardHeightPx = it },
-            onCoordCardHeightMeasured = { persistentCoordCardHeightPx = it },
             onSaveClick = { onIntent(SpoofingIntent.SetSaveDialogVisible(true)) },
             onCustomClick = { onIntent(SpoofingIntent.SetCustomCoordDialogVisible(true)) },
             onStartFixedSpoofing = {
