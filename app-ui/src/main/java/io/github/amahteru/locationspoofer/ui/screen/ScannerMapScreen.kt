@@ -32,7 +32,6 @@ import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.fetchCurrentLocation
-import io.github.amahteru.locationspoofer.viewmodel.isDomesticEnvironment
 import io.github.amahteru.locationspoofer.viewmodel.setMapEngine
 import io.github.amahteru.locationspoofer.viewmodel.setMapType
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
@@ -86,7 +85,6 @@ fun ScannerMapScreen(
     ) {
         AppMapView(
             mapEngine = uiState.mapEngine,
-            isDomestic = viewModel.isDomesticEnvironment(),
             modifier = Modifier.fillMaxSize(),
             onMapReady = { controller ->
                 mapController = controller

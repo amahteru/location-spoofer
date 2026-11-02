@@ -31,7 +31,6 @@ import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
 import io.github.amahteru.locationspoofer.viewmodel.FavoriteToggleResult
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
-import io.github.amahteru.locationspoofer.viewmodel.isDomesticEnvironment
 import io.github.amahteru.locationspoofer.data.model.geometry
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedRoute
 import io.github.amahteru.locationspoofer.viewmodel.saveCollectionRouteInfo
@@ -164,7 +163,6 @@ fun ManageDataScreen(
                     Box(modifier = Modifier.fillMaxSize()) {
                         AppMapView(
                             mapEngine = uiState.mapEngine,
-                            isDomestic = viewModel.isDomesticEnvironment(),
                             modifier = Modifier.fillMaxSize(),
                             onMapReady = { controller ->
                                 mapController = controller

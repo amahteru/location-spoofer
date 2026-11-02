@@ -125,10 +125,6 @@ class BaiduMapControllerImpl(
         map.animateMapStatus(update)
     }
 
-    override fun fitBounds(points: List<Pair<Double, Double>>, padding: Int) {
-        fitBounds(points, padding, padding, padding, padding)
-    }
-
     override fun fitBounds(
         points: List<Pair<Double, Double>>,
         paddingLeft: Int,
@@ -242,18 +238,15 @@ class BaiduMapControllerImpl(
 
     override fun setMapType(type: AppMapType) {
         currentMapType = type
-        when (type) {
-            AppMapType.NORMAL -> {
-                map.mapType = BaiduMap.MAP_TYPE_NORMAL
-            }
-
-            AppMapType.SATELLITE -> {
-                map.mapType = BaiduMap.MAP_TYPE_SATELLITE
-            }
-
-            AppMapType.MAP_3D -> {
-                map.mapType = BaiduMap.MAP_TYPE_NORMAL
-            }
+        map.mapType = if (type == AppMapType.SATELLITE) BaiduMap.MAP_TYPE_SATELLITE else BaiduMap.MAP_TYPE_NORMAL
+        val overlook = if (type == AppMapType.MAP_3D) -45f else 0f
+        val status = map.mapStatus ?: return
+        if (status.overlook != overlook) {
+            map.setMapStatus(
+                com.baidu.mapapi.map.MapStatusUpdateFactory.newMapStatus(
+                    com.baidu.mapapi.map.MapStatus.Builder(status).overlook(overlook).build()
+                )
+            )
         }
     }
 }
@@ -276,7 +269,6 @@ fun BaiduMapViewContainer(
             when (event) {
                 Lifecycle.Event.ON_RESUME -> baiduMapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> baiduMapView.onPause()
-                Lifecycle.Event.ON_DESTROY -> baiduMapView.onDestroy()
                 else -> {}
             }
         }

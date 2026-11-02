@@ -31,16 +31,17 @@ interface AppMapController {
 
     fun addMarker(lat: Double, lng: Double, title: String, type: MarkerType): AppMapMarker
     fun animateCamera(lat: Double, lng: Double, zoom: Float? = null)
-    fun fitBounds(points: List<Pair<Double, Double>>, padding: Int)
+    fun fitBounds(points: List<Pair<Double, Double>>, padding: Int) {
+        fitBounds(points, padding, padding, padding, padding)
+    }
+
     fun fitBounds(
         points: List<Pair<Double, Double>>,
         paddingLeft: Int,
         paddingTop: Int,
         paddingRight: Int,
         paddingBottom: Int
-    ) {
-        fitBounds(points, maxOf(paddingLeft, paddingRight, paddingTop, paddingBottom))
-    }
+    )
 
     fun moveCamera(lat: Double, lng: Double, zoom: Float? = null)
     val cameraTargetLat: Double?
@@ -52,15 +53,9 @@ interface AppMapController {
     fun setDarkMode(isDark: Boolean, context: android.content.Context)
 }
 
-typealias AMapControllerImpl = io.github.amahteru.locationspoofer.ui.components.map.AMapControllerImpl
-typealias BaiduMapControllerImpl = io.github.amahteru.locationspoofer.ui.components.map.BaiduMapControllerImpl
-typealias GMapControllerImpl = io.github.amahteru.locationspoofer.ui.components.map.GMapControllerImpl
-typealias GaodeMarkerHelper = io.github.amahteru.locationspoofer.ui.components.map.GaodeMarkerHelper
-
 @Composable
 fun AppMapView(
     mapEngine: MapEngine,
-    isDomestic: Boolean,
     modifier: Modifier = Modifier,
     onMapReady: (AppMapController) -> Unit
 ) {

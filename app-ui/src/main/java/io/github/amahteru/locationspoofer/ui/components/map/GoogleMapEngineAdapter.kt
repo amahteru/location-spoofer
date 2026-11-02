@@ -11,6 +11,7 @@ import com.google.android.gms.maps.CameraUpdateFactory as GCameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView as GMapView
 import com.google.android.gms.maps.model.BitmapDescriptorFactory as GBitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng as GLatLng
 import com.google.android.gms.maps.model.LatLngBounds
@@ -25,6 +26,7 @@ import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
 class GMapControllerImpl(
     private val map: GoogleMap,
+    private val mapView: android.view.View,
     private val context: Context
 ) : AppMapController {
     private var currentMapType: AppMapType = AppMapType.NORMAL
@@ -115,10 +117,6 @@ class GMapControllerImpl(
         else map.animateCamera(GCameraUpdateFactory.newLatLng(GLatLng(wgs.first, wgs.second)))
     }
 
-    override fun fitBounds(points: List<Pair<Double, Double>>, padding: Int) {
-        fitBounds(points, padding, padding, padding, padding)
-    }
-
     override fun fitBounds(
         points: List<Pair<Double, Double>>,
         paddingLeft: Int,
@@ -134,20 +132,26 @@ class GMapControllerImpl(
         }
         try {
             val bounds = builder.build()
-            try {
-                map.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
-                map.animateCamera(GCameraUpdateFactory.newLatLngBounds(bounds, 0))
-            } catch (t: Throwable) {
-                map.animateCamera(
-                    GCameraUpdateFactory.newLatLngBounds(
-                        bounds,
-                        maxOf(paddingLeft, paddingRight, paddingTop, paddingBottom)
-                    )
-                )
-            }
+            map.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
+            map.animateCamera(
+                GCameraUpdateFactory.newLatLngBounds(bounds, 0),
+                object : GoogleMap.CancelableCallback {
+                    override fun onFinish() = clearPaddingKeepingView()
+                    override fun onCancel() = clearPaddingKeepingView()
+                }
+            )
         } catch (e: Exception) {
+            map.setPadding(0, 0, 0, 0)
             e.printStackTrace()
         }
+    }
+
+    private fun clearPaddingKeepingView() {
+        val center = map.projection.fromScreenLocation(
+            android.graphics.Point(mapView.width / 2, mapView.height / 2)
+        )
+        map.setPadding(0, 0, 0, 0)
+        map.moveCamera(GCameraUpdateFactory.newLatLng(center))
     }
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Float?) {
@@ -206,44 +210,10 @@ class GMapControllerImpl(
 
     override fun setMapType(type: AppMapType) {
         currentMapType = type
-        when (type) {
-            AppMapType.NORMAL -> {
-                map.mapType = GoogleMap.MAP_TYPE_NORMAL
-                val cameraPosition = map.cameraPosition
-                val newCam = com.google.android.gms.maps.model.CameraPosition.builder()
-                    .target(cameraPosition.target)
-                    .zoom(cameraPosition.zoom)
-                    .tilt(0f)
-                    .bearing(cameraPosition.bearing)
-                    .build()
-                map.moveCamera(GCameraUpdateFactory.newCameraPosition(newCam))
-            }
-
-            AppMapType.SATELLITE -> {
-                map.mapType = GoogleMap.MAP_TYPE_HYBRID
-                val cameraPosition = map.cameraPosition
-                val newCam = com.google.android.gms.maps.model.CameraPosition.builder()
-                    .target(cameraPosition.target)
-                    .zoom(cameraPosition.zoom)
-                    .tilt(0f)
-                    .bearing(cameraPosition.bearing)
-                    .build()
-                map.moveCamera(GCameraUpdateFactory.newCameraPosition(newCam))
-            }
-
-            AppMapType.MAP_3D -> {
-                map.mapType = GoogleMap.MAP_TYPE_NORMAL
-                map.isBuildingsEnabled = true
-                val cameraPosition = map.cameraPosition
-                val newCam = com.google.android.gms.maps.model.CameraPosition.builder()
-                    .target(cameraPosition.target)
-                    .zoom(cameraPosition.zoom)
-                    .tilt(45f)
-                    .bearing(cameraPosition.bearing)
-                    .build()
-                map.moveCamera(GCameraUpdateFactory.newCameraPosition(newCam))
-            }
-        }
+        map.mapType = if (type == AppMapType.SATELLITE) GoogleMap.MAP_TYPE_HYBRID else GoogleMap.MAP_TYPE_NORMAL
+        val tilt = if (type == AppMapType.MAP_3D) 45f else 0f
+        val newCam = CameraPosition.builder(map.cameraPosition).tilt(tilt).build()
+        map.moveCamera(GCameraUpdateFactory.newCameraPosition(newCam))
     }
 }
 
@@ -267,7 +237,6 @@ fun GoogleMapViewContainer(
             when (event) {
                 Lifecycle.Event.ON_RESUME -> gmapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> gmapView.onPause()
-                Lifecycle.Event.ON_DESTROY -> gmapView.onDestroy()
                 else -> {}
             }
         }
@@ -284,7 +253,7 @@ fun GoogleMapViewContainer(
 
     MapAndroidView(gmapView, modifier) {
         getMapAsync { map ->
-            val controller = GMapControllerImpl(map, context)
+            val controller = GMapControllerImpl(map, this, context)
             onControllerCreated(controller)
             controller.setDarkMode(isDark, context)
             onMapReady(controller)

@@ -291,8 +291,6 @@ internal fun MainViewModel.setSatelliteCount(count: String) {
     _uiState.update { it.copy(satelliteCountInput = count) }
 }
 
-internal fun MainViewModel.isDomesticEnvironment(): Boolean = true
-
 internal fun MainViewModel.normalizeCellArrayForStorage(cellsArray: org.json.JSONArray): org.json.JSONArray {
     val formattedCells = org.json.JSONArray()
     for (i in 0 until cellsArray.length()) {

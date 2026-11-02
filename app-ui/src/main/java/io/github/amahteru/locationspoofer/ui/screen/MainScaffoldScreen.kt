@@ -34,7 +34,6 @@ import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.UpdateViewModel
 import io.github.amahteru.locationspoofer.viewmodel.getIgnoredVersion
 import io.github.amahteru.locationspoofer.viewmodel.handleSpoofingIntent
-import io.github.amahteru.locationspoofer.viewmodel.isDomesticEnvironment
 import io.github.amahteru.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
@@ -174,7 +173,6 @@ fun MainScaffoldScreen(
                     AppMapView(
                         modifier = Modifier.fillMaxSize(),
                         mapEngine = mapEngineOnScreen,
-                        isDomestic = viewModel.isDomesticEnvironment(),
                         onMapReady = { controller ->
                             mapController = controller
                             controller.disableUiControls()

@@ -93,10 +93,6 @@ class AMapControllerImpl(
         else map.animateCamera(CameraUpdateFactory.newLatLng(AMapLatLng(lat, lng)))
     }
 
-    override fun fitBounds(points: List<Pair<Double, Double>>, padding: Int) {
-        fitBounds(points, padding, padding, padding, padding)
-    }
-
     override fun fitBounds(
         points: List<Pair<Double, Double>>,
         paddingLeft: Int,
@@ -181,38 +177,17 @@ class AMapControllerImpl(
         when (type) {
             AppMapType.NORMAL -> {
                 map.mapType = if (isDarkMode) AMap.MAP_TYPE_NIGHT else AMap.MAP_TYPE_NORMAL
-                val cameraPosition = map.cameraPosition ?: return
-                val newCam = CameraPosition(
-                    cameraPosition.target,
-                    cameraPosition.zoom,
-                    0f,
-                    cameraPosition.bearing
-                )
-                map.moveCamera(CameraUpdateFactory.newCameraPosition(newCam))
+                map.moveCamera(CameraUpdateFactory.changeTilt(0f))
             }
 
             AppMapType.SATELLITE -> {
                 map.mapType = AMap.MAP_TYPE_SATELLITE
-                val cameraPosition = map.cameraPosition ?: return
-                val newCam = CameraPosition(
-                    cameraPosition.target,
-                    cameraPosition.zoom,
-                    0f,
-                    cameraPosition.bearing
-                )
-                map.moveCamera(CameraUpdateFactory.newCameraPosition(newCam))
+                map.moveCamera(CameraUpdateFactory.changeTilt(0f))
             }
 
             AppMapType.MAP_3D -> {
                 map.mapType = if (isDarkMode) AMap.MAP_TYPE_NIGHT else AMap.MAP_TYPE_NORMAL
-                val cameraPosition = map.cameraPosition ?: return
-                val newCam = CameraPosition(
-                    cameraPosition.target,
-                    cameraPosition.zoom,
-                    45f,
-                    cameraPosition.bearing
-                )
-                map.moveCamera(CameraUpdateFactory.newCameraPosition(newCam))
+                map.moveCamera(CameraUpdateFactory.changeTilt(45f))
             }
         }
     }
@@ -238,7 +213,6 @@ fun AMapViewContainer(
             when (event) {
                 Lifecycle.Event.ON_RESUME -> amapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> amapView.onPause()
-                Lifecycle.Event.ON_DESTROY -> amapView.onDestroy()
                 else -> {}
             }
         }
