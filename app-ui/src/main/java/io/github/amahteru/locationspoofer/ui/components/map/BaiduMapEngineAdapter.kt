@@ -205,6 +205,8 @@ class BaiduMapControllerImpl(
         get() = map.mapStatus?.target?.latitude
     override val cameraTargetLng: Double?
         get() = map.mapStatus?.target?.longitude
+    override val cameraZoom: Float?
+        get() = map.mapStatus?.zoom
 
     private var cameraFinishListener: ((Double, Double) -> Unit)? = null
     private var cameraMoveListener: ((Double, Double) -> Unit)? = null

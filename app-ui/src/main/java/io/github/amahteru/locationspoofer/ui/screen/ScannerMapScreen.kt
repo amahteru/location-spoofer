@@ -54,7 +54,7 @@ fun ScannerMapScreen(
 
     LaunchedEffect(Unit) {
         viewModel.fetchCurrentLocation(context) { lat, lng ->
-            mapController?.animateCamera(lat, lng, 16.5f)
+            mapController?.focusOn(lat, lng)
         }
     }
 

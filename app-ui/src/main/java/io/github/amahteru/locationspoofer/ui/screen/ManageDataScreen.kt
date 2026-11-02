@@ -27,6 +27,7 @@ import io.github.amahteru.locationspoofer.ui.screen.managedata.ModernEditDataDia
 import io.github.amahteru.locationspoofer.ui.screen.managedata.DataListItem
 import io.github.amahteru.locationspoofer.ui.screen.managedata.ManageDeleteConfirmDialog
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
+import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import io.github.amahteru.locationspoofer.viewmodel.FavoriteToggleResult
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
@@ -86,7 +87,7 @@ fun ManageDataScreen(
             val geometry = collectionRoutes.first().route.geometry()
             if (geometry.isNotEmpty()) controller.fitBounds(geometry.map { it.lat to it.lng }, 80)
         } else if (last != null) {
-            controller.moveCamera(last.lat, last.lng, 15f)
+            controller.moveCamera(last.lat, last.lng, STREET_ZOOM)
         }
     }
 
@@ -214,7 +215,7 @@ fun ManageDataScreen(
                                     mapController?.animateCamera(
                                         item.location.lat,
                                         item.location.lng,
-                                        17f
+                                        STREET_ZOOM
                                     )
                                 },
                                 onEdit = { editingItem = item },

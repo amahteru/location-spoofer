@@ -158,6 +158,7 @@ class GMapControllerImpl(
 
     override val cameraTargetLat: Double? get() = map.cameraPosition.target.latitude
     override val cameraTargetLng: Double? get() = map.cameraPosition.target.longitude
+    override val cameraZoom: Float? get() = map.cameraPosition.zoom
 
     private var cameraFinishListener: ((Double, Double) -> Unit)? = null
     private var cameraMoveListener: ((Double, Double) -> Unit)? = null

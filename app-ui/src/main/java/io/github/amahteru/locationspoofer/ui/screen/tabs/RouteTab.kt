@@ -32,6 +32,7 @@ import io.github.amahteru.locationspoofer.ui.components.MarkerType
 import io.github.amahteru.locationspoofer.ui.screen.PlaceSearchBar
 import io.github.amahteru.locationspoofer.ui.screen.tabs.route.*
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
+import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import io.github.amahteru.locationspoofer.viewmodel.prepareRouteSimulationOptions
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.setAltitude
@@ -285,7 +286,7 @@ fun RouteTab(
                 contentDescription = stringResource(R.string.current_location),
                 onClick = {
                     viewModel.fetchCurrentLocation(context) { lat, lng ->
-                        mapController?.animateCamera(lat, lng)
+                        mapController?.focusOn(lat, lng)
                     }
                 }
             )
@@ -337,7 +338,7 @@ fun RouteTab(
                 { barModifier ->
                     PlaceSearchBar(
                         mapEngine = uiState.mapEngine,
-                        onResultClick = { poi -> mapController?.animateCamera(poi.lat, poi.lng, 17f) },
+                        onResultClick = { poi -> mapController?.animateCamera(poi.lat, poi.lng, STREET_ZOOM) },
                         modifier = barModifier
                     )
                 }

@@ -19,6 +19,7 @@ import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.components.AppBottomSheet
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.EmptyState
+import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.deleteSavedRoute
 import io.github.amahteru.locationspoofer.viewmodel.loadSavedRoute
@@ -71,7 +72,7 @@ fun SavedRoutesDialog(
                                     mapController?.animateCamera(
                                         firstPoint.lat,
                                         firstPoint.lng,
-                                        17.5f
+                                        STREET_ZOOM
                                     )
                                 }
                             }

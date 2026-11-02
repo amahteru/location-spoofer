@@ -55,6 +55,7 @@ import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.screen.tabs.location.*
 import io.github.amahteru.locationspoofer.ui.components.MapControlButton
 import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
+import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import java.util.Locale
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
@@ -124,7 +125,7 @@ fun LocationTab(
                 contentDescription = stringResource(R.string.current_location),
                 onClick = {
                     viewModel.fetchCurrentLocation(context) { lat, lng ->
-                        mapController?.animateCamera(lat, lng)
+                        mapController?.focusOn(lat, lng)
                     }
                 }
             )
@@ -145,7 +146,7 @@ fun LocationTab(
             onStopSpoofing = { viewModel.stopSpoofing() },
             onSelectSavedLocation = { location ->
                 viewModel.loadSavedLocation(location)
-                mapController?.animateCamera(location.lat, location.lng, 17.5f)
+                mapController?.animateCamera(location.lat, location.lng, STREET_ZOOM)
             },
             onDeleteSavedLocation = { location ->
                 viewModel.removeSavedLocation(location)
@@ -159,7 +160,7 @@ fun LocationTab(
                     onResultClick = { poi ->
                         viewModel.updateLatitude(poi.lat.toString())
                         viewModel.updateLongitude(poi.lng.toString())
-                        mapController?.animateCamera(poi.lat, poi.lng, 17.5f)
+                        mapController?.animateCamera(poi.lat, poi.lng, STREET_ZOOM)
                     },
                     modifier = slotModifier.onGloballyPositioned {
                         panelSearchTop = it.boundsInRoot().top
@@ -185,7 +186,7 @@ fun LocationTab(
                 val lat = item.location.lat
                 val lng = item.location.lng
                 viewModel.selectCollectedLocation(item.location.id)
-                mapController?.animateCamera(lat, lng, 17.5f)
+                mapController?.animateCamera(lat, lng, STREET_ZOOM)
                 val label = when {
                     item.location.remark.isNotBlank() -> item.location.remark
                     item.location.placeName.isNotBlank() -> item.location.placeName
@@ -219,7 +220,7 @@ fun LocationTab(
             onDismiss = { onIntent(SpoofingIntent.SetSavedLocationsVisible(false)) },
             onSelect = { location ->
                 viewModel.loadSavedLocation(location)
-                mapController?.animateCamera(location.lat, location.lng, 17.5f)
+                mapController?.animateCamera(location.lat, location.lng, STREET_ZOOM)
                 onIntent(SpoofingIntent.SetSavedLocationsVisible(false))
             },
             onDelete = viewModel::removeSavedLocation
@@ -266,7 +267,7 @@ fun LocationTab(
                 viewModel.updateLongitude(lng)
                 lat.toDoubleOrNull()?.let { latVal ->
                     lng.toDoubleOrNull()?.let { lngVal ->
-                        mapController?.animateCamera(latVal, lngVal, 17.5f)
+                        mapController?.animateCamera(latVal, lngVal, STREET_ZOOM)
                     }
                 }
                 onIntent(SpoofingIntent.SetCustomCoordDialogVisible(false))

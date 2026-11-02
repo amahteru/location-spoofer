@@ -28,6 +28,8 @@ enum class MarkerType { GREEN, RED, ORANGE, DEFAULT }
 
 data class MapCamera(val lat: Double, val lng: Double, val zoom: Float)
 
+const val STREET_ZOOM = 17f
+
 interface AppMapController {
     fun clear()
     fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay
@@ -57,6 +59,10 @@ interface AppMapController {
     fun moveCamera(lat: Double, lng: Double, zoom: Float? = null)
     val cameraTargetLat: Double?
     val cameraTargetLng: Double?
+    val cameraZoom: Float?
+    fun focusOn(lat: Double, lng: Double) {
+        animateCamera(lat, lng, maxOf(cameraZoom ?: 0f, STREET_ZOOM))
+    }
     fun setOnCameraChangeListener(onFinish: (lat: Double, lng: Double) -> Unit)
     fun setOnCameraMoveListener(onMove: (lat: Double, lng: Double) -> Unit)
     fun disableUiControls()
