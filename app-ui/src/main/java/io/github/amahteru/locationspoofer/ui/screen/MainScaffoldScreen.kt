@@ -244,7 +244,7 @@ fun MainScaffoldScreen(
                             viewModel = viewModel,
                             uiState = uiState,
                             mapController = mapController,
-                            isActive = true,
+                            isActive = selectedTab == BottomTab.Route.ordinal,
                             bottomBarHeight = paddingValues.calculateBottomPadding(),
                             onNavigateToLocation = { selectedTab = BottomTab.Location.ordinal }
                         )

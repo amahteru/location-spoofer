@@ -103,12 +103,6 @@ fun RouteTab(
     var liveMarker by remember { mutableStateOf<AppMapMarker?>(null) }
     val routeOverlays = remember { mutableListOf<AppMapOverlay>() }
     var baseLayerVersion by remember { mutableIntStateOf(0) }
-    DisposableEffect(Unit) {
-        onDispose {
-            routeOverlays.forEach { it.remove() }
-            routeOverlays.clear()
-        }
-    }
     LaunchedEffect(mapController, manageDataList, isActive, collectionRoutes, uiState.selectedCollectionRouteId) {
         if (!isActive) return@LaunchedEffect
         val map = mapController ?: return@LaunchedEffect
