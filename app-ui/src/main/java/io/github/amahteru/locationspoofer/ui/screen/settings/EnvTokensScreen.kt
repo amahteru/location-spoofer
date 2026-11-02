@@ -77,7 +77,7 @@ fun EnvTokensScreen(
                 viewModel.setOpencellidApiToken(localOpencellidToken)
                 Toast.makeText(
                     context,
-                    resources.getString(R.string.restart_required_hint),
+                    resources.getString(R.string.save_success),
                     Toast.LENGTH_SHORT
                 ).show()
             },

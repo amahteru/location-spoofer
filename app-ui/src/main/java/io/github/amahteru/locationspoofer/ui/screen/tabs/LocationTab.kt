@@ -141,7 +141,7 @@ fun LocationTab(
                 contentDescription = stringResource(R.string.current_location),
                 onClick = {
                     viewModel.fetchCurrentLocation(context) { lat, lng ->
-                        mapController?.animateCamera(lat, lng, 16f)
+                        mapController?.animateCamera(lat, lng)
                     }
                 }
             )

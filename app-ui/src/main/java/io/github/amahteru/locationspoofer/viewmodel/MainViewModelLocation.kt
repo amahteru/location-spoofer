@@ -66,17 +66,6 @@ private fun MainViewModel.fallbackToNativeLocation(
                 android.location.LocationManager.GPS_PROVIDER
             }
 
-        val lastLoc = locationManager.getLastKnownLocation(provider)
-        if (lastLoc != null) {
-            applyNativeLocation(ctx, lastLoc, forceCallback, convertToGcj)
-        } else if (forceCallback != null) {
-            android.widget.Toast.makeText(
-                ctx,
-                ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.waiting_gps_signal),
-                android.widget.Toast.LENGTH_LONG
-            ).show()
-        }
-
         locationManager.getCurrentLocation(provider, null, ctx.mainExecutor) { location ->
             if (location == null) return@getCurrentLocation
             applyNativeLocation(ctx, location, forceCallback, convertToGcj)

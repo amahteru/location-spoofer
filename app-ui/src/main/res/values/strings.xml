@@ -51,7 +51,7 @@
     <string name="step_simulation_desc">Feeds step counter and accelerometer data to target apps while moving</string>
     <string name="keep_last_map_position_title">Keep last position</string>
     <string name="keep_last_map_position_desc">Open the map at the last selected position</string>
-    <string name="config_write_failed">Configuration could not be published. Check the module and framework connection; the latest settings will retry automatically</string>
+    <string name="config_write_failed">Couldn’t sync settings. Check that the module is enabled; will retry automatically</string>
     <string name="test_root_setup_title">Test root &amp; framework</string>
     <string name="test_root_setup_desc">Check root and the config channel</string>
     <string name="root_test_result_title">Diagnostic result</string>
@@ -61,7 +61,7 @@
     <string name="restart_hooked_apps_confirm_title">Restart apps?</string>
     <string name="restart_hooked_apps_confirm_message">This will force-stop the following apps (%1$d). Unsaved content in them may be lost.</string>
     <string name="restart_hooked_apps_confirm_button">Restart</string>
-    <string name="restart_hooked_apps_done">Apps restarted: %1$d. Please reopen them to verify.</string>
+    <string name="restart_hooked_apps_done">Restarted %1$d apps. Reopen them to verify</string>
     <string name="restart_hooked_apps_empty">No apps are currently in scope for this module.</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
     <string name="select_language">Language</string>
@@ -83,18 +83,17 @@
     <string name="google_key_required_hint">Set up your own Google Maps API key in Settings first</string>
     <string name="copy">Copy</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="restart_required_hint">Restart the app for API key changes to take full effect.</string>
+    <string name="restart_required_hint">Restart the app for API key changes to take effect</string>
     <string name="check_updates">Check for updates</string>
     <string name="check_updates_desc">Get updates from GitHub</string>
     <string name="download">Download</string>
     <string name="current_version">Current version</string>
-    <string name="waiting_gps_signal">No cached location. Waiting for GPS signal (may be slow or unavailable indoors)</string>
-    <string name="location_permission_denied">Precise location permission not granted. Can’t get location</string>
-    <string name="disable_continuous_scan_first">Stop collecting before starting location simulation</string>
+    <string name="location_permission_denied">Precise location permission not granted. Couldn’t get location</string>
+    <string name="disable_continuous_scan_first">Stop collecting before simulating</string>
     <string name="disable_continuous_scan_route_first">Stop collecting before starting route simulation</string>
-    <string name="stop_spoofing_before_scan">Stop location simulation before collecting</string>
+    <string name="stop_spoofing_before_scan">Stop simulation before collecting</string>
     <string name="export_success">Exported</string>
-    <string name="export_failed">Export failed. Please try again or choose another folder</string>
+    <string name="export_failed">Couldn’t export. Try again or choose another folder</string>
     <string name="import_merge_success">Imported and merged</string>
     <string name="confirm">Confirm</string>
     <string name="custom_coordinate_title">Custom coordinates</string>
@@ -265,16 +264,15 @@
     <string name="wigle_import">WiGLE import</string>
     <string name="opencellid_import">OpenCellID import</string>
     <string name="lat_lng_format_prefix">Coordinates:</string>
-    <string name="route_plan_failed_fallback_straight">Route planning failed, falling back to straight-line simulation</string>
-    <string name="route_request_exception">Route request error: %s</string>
-    <string name="amap_api_exception_format">AMap API error (code: %1$d): %2$s</string>
-    <string name="amap_quota_exhausted_fallback_format">AMap API call failed (quota may be exhausted), falling back to straight-line simulation
-Error details: %s</string>
+    <string name="route_plan_failed_fallback_straight">Route planning failed. Using straight-line simulation</string>
+    <string name="route_request_exception">Route request failed: %s. Using straight-line simulation</string>
+    <string name="amap_api_exception_format">AMap API error (%1$d): %2$s. Using straight-line simulation</string>
+    <string name="amap_quota_exhausted_fallback_format">AMap quota may be used up. Using straight-line simulation</string>
     <string name="open_battery_opt_failed">Couldn’t open battery optimization: %s</string>
     <string name="open_app_info_failed">Couldn’t open app info: %s</string>
-    <string name="amap_search_failed_quota">AMap search API call failed (quota may be exhausted). Check the console or change the API key.</string>
+    <string name="amap_search_failed_quota">AMap search failed. Check your API key or quota</string>
     <string name="amap_search_failed_code_format">AMap search failed (error code: %d)</string>
-    <string name="amap_search_exception_format">AMap search error (quota may be exhausted): %s</string>
+    <string name="amap_search_exception_format">AMap search failed: %s</string>
 
     <string name="no_saved_locations_card_hint">No favorites yet. Tap “Favorite” above to add one</string>
     <string name="saved_locations_card_title">Favorite locations</string>
@@ -362,7 +360,7 @@ Error details: %s</string>
     <string name="category_api_keys_warning">Personal credentials. Don’t include them when sharing with others</string>
     <string name="category_with_count">%1$s (%2$d)</string>
     <string name="category_empty">Nothing to include</string>
-    <string name="import_parse_failed">Could not read this file. Please pick a valid backup</string>
+    <string name="import_parse_failed">Couldn’t read this file. Pick a valid backup</string>
     <string name="add_to_favorites">Favorite</string>
     <string name="favorited_toast">Added “%1$s” to favorites</string>
     <string name="favorite_failed">Operation failed. The record may have been deleted</string>
@@ -371,7 +369,7 @@ Error details: %s</string>
     <string name="env_simulation_section">Environment simulation</string>
     <string name="enable_slight_jitter_desc">Adds natural GPS drift</string>
     <string name="refresh_data">Refresh</string>
-    <string name="collection_save_failed">Failed to save collected data. Collection stopped</string>
+    <string name="collection_save_failed">Couldn’t save collected data. Collection stopped</string>
     <string name="root_test_item_framework">Framework connected</string>
     <string name="root_test_item_remote_config">Framework configuration accessible</string>
     <string name="root_test_remote_config_detail">This checks access from the app side. Hook status shows whether system processes received it</string>
@@ -385,8 +383,8 @@ Error details: %s</string>
     <string name="collection_info_skip">Skip</string>
     <string name="collection_info_saving">Saving…</string>
     <string name="collection_stopping">Finishing collection…</string>
-    <string name="collection_no_saved_points">No points were saved. Check location and collection permissions, then try again.</string>
-    <string name="collection_info_save_failed">Could not save point details. Please try again.</string>
+    <string name="collection_no_saved_points">No points saved. Check location permission and try again</string>
+    <string name="collection_info_save_failed">Couldn’t save point details. Please try again</string>
 
     <string name="collection_point_mode">Point collection</string>
     <string name="collection_route_mode">Route collection</string>
@@ -510,4 +508,5 @@ Error details: %s</string>
     <string name="vendor_scheme_oneui">Samsung One UI</string>
     <string name="vendor_scheme_reboot_notice">Takes effect after a device reboot</string>
     <string name="vendor_scheme_title">Vendor adaptation</string>
+    <string name="google_search_failed_format">Google search failed: %s</string>
 </resources>

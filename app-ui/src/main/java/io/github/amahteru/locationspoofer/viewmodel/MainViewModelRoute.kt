@@ -226,7 +226,7 @@ private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state
                     if (errCode == 10003 || errCode == 10012 || errCode == 10013 || errCode == 1800 || errCode == 18000 ||
                         errMsg.contains("额度") || errMsg.contains("limit", ignoreCase = true)
                     ) {
-                        msg = context.getString(R.string.amap_quota_exhausted_fallback_format, errMsg)
+                        msg = context.getString(R.string.amap_quota_exhausted_fallback_format)
                     }
                 }
                 android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG)

@@ -250,11 +250,11 @@ private fun performPoiSearch(
                     }
                 }
                 .addOnFailureListener { exception ->
-                    Toast.makeText(context, "Google Search Error: ${exception.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.google_search_failed_format, exception.message ?: ""), Toast.LENGTH_LONG).show()
                     onResult(emptyList())
                 }
         } catch (e: Exception) {
-            Toast.makeText(context, "Google Search Catch Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.google_search_failed_format, e.message ?: ""), Toast.LENGTH_LONG).show()
             onResult(emptyList())
         }
     } else {

@@ -20,5 +20,5 @@
     <string name="fj_default_route_name">Joystick route %1$s</string>
     <string name="fj_save">Save</string>
     <string name="fj_discard">Discard</string>
-    <string name="fj_saved_toast">Route saved</string>
+    <string name="fj_saved_toast">Saved</string>
 </resources>
