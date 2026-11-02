@@ -55,7 +55,7 @@
     <string name="speed_fluctuation_desc">Speed varies within this range</string>
     <string name="realism_next_session_hint">Takes effect on the next start</string>
     <string name="step_simulation_title">Step and accelerometer simulation</string>
-    <string name="step_simulation_desc">Feeds step counter and accelerometer data to target apps while moving</string>
+    <string name="step_simulation_desc">Simulates steps and motion sensors while moving</string>
     <string name="keep_last_map_position_title">Keep last position</string>
     <string name="keep_last_map_position_desc">Open the map at the last selected position</string>
     <string name="config_write_failed">Couldn’t sync settings. Check that the module is enabled; will retry automatically</string>

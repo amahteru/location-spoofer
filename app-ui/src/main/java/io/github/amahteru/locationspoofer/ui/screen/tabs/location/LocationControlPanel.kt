@@ -130,7 +130,7 @@ fun LocationControlPanel(
                 )
 
                 AnimatedVisibility(
-                    visible = uiState.isSpoofingActive,
+                    visible = uiState.isSpoofingActive && panelState == LocationPanelState.COLLAPSED,
                     enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
                     exit = shrinkHorizontally(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
                 ) {

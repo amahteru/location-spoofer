@@ -59,7 +59,7 @@
     <string name="speed_fluctuation_desc">路线模拟时速度在此范围内缓慢起伏</string>
     <string name="realism_next_session_hint">修改将在下次开始模拟时生效</string>
     <string name="step_simulation_title">计步与加速度模拟</string>
-    <string name="step_simulation_desc">路线移动时为目标应用生成计步器与加速度计数据</string>
+    <string name="step_simulation_desc">移动时模拟步数与运动传感器</string>
     <string name="keep_last_map_position_title">停留在上次位置</string>
     <string name="keep_last_map_position_desc">打开时地图停在上次选定的位置</string>
     <string name="config_write_failed">配置同步失败，请检查模块是否启用，稍后自动重试</string>
