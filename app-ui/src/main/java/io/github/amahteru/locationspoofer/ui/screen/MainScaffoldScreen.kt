@@ -289,7 +289,13 @@ fun MainScaffoldScreen(
                 if (currentSubScreen != MainSubScreen.None) currentSubScreen else activeSubScreen
             AnimatedContent(
                 targetState = subScreenToRender,
-                transitionSpec = { motion.pageSlideTransition(if (targetState > initialState) 1 else -1) },
+                transitionSpec = {
+                    when (MainSubScreen.Licenses) {
+                        targetState -> motion.pageSlideTransition(1)
+                        initialState -> motion.pageSlideTransition(-1)
+                        else -> EnterTransition.None togetherWith ExitTransition.None
+                    }
+                },
                 label = "sub_screen_transition"
             ) { screen ->
                 Box(modifier = Modifier.fillMaxSize()) {
