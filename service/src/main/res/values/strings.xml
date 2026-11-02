@@ -10,7 +10,7 @@
     <string name="fj_preset_walking">Walk</string>
     <string name="fj_preset_running">Run</string>
     <string name="fj_preset_cycling">Bike</string>
-    <string name="fj_preset_driving">Drive</string>
+    <string name="fj_preset_driving">Driving</string>
     <string name="fj_preset_custom">Custom</string>
     <string name="fj_pause">Pause</string>
     <string name="fj_resume">Start</string>

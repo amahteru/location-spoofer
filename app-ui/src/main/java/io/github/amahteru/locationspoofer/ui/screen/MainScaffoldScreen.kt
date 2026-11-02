@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.components.MapCenterPin
 import androidx.annotation.RawRes
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.activity.compose.BackHandler
@@ -7,7 +8,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AddLocationAlt
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Route
@@ -39,7 +40,6 @@ import io.github.amahteru.locationspoofer.viewmodel.getIgnoredVersion
 import io.github.amahteru.locationspoofer.viewmodel.handleSpoofingIntent
 import io.github.amahteru.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
-import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 enum class BottomTab(val icon: ImageVector) {
     Location(Icons.Rounded.MyLocation),
@@ -218,14 +218,7 @@ fun MainScaffoldScreen(
                         enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultEffectsSpec(), initialScale = 0.8f),
                         exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastEffectsSpec(), targetScale = 0.8f)
                     ) {
-                        Icon(
-                            Icons.Rounded.AddLocationAlt,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .padding(bottom = AppSpacing.lg)
-                        )
+                        MapCenterPin(Icons.Rounded.LocationOn, MaterialTheme.colorScheme.primary)
                     }
                 }
 

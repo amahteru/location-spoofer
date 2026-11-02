@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
+import io.github.amahteru.locationspoofer.ui.components.MapCenterPin
 import androidx.core.graphics.toColorInt
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
@@ -212,27 +213,11 @@ fun RouteTab(
             .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
     ) {
         if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE)) {
-            Icon(
-                Icons.Rounded.AddLocationAlt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(36.dp)
-                    .padding(bottom = AppSpacing.lg)
-            )
+            MapCenterPin(Icons.Rounded.AddLocationAlt, MaterialTheme.colorScheme.primary, Modifier.align(Alignment.Center))
         }
 
         if (isRunning && isManual) {
-            Icon(
-                Icons.Rounded.PersonPin,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.warning,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(36.dp)
-                    .padding(bottom = AppSpacing.lg)
-            )
+            MapCenterPin(Icons.Rounded.PersonPin, MaterialTheme.colorScheme.warning, Modifier.align(Alignment.Center))
         }
 
         if (routePoints.isNotEmpty() && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING)) {

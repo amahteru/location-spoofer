@@ -69,7 +69,7 @@
     <string name="restart_hooked_apps_confirm_message">This will force-stop the following apps (%1$d). Unsaved content in them may be lost.</string>
     <string name="restart_hooked_apps_confirm_button">Restart</string>
     <string name="restart_hooked_apps_done">Restarted %1$d apps. Reopen them to verify</string>
-    <string name="restart_hooked_apps_empty">No apps are currently in scope for this module.</string>
+    <string name="restart_hooked_apps_empty">No apps are currently in scope for this module</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
     <string name="select_language">Language</string>
     <string name="walking">Walking</string>
@@ -103,10 +103,10 @@
     <string name="import_merge_success">Imported and merged</string>
     <string name="confirm">Confirm</string>
     <string name="custom_coordinate_title">Custom coordinates</string>
-    <string name="custom_coord_desc">Enter coordinates manually. The map moves to the new location.</string>
+    <string name="custom_coord_desc">Enter coordinates manually; the map moves to that location</string>
     <string name="env_map_scan">Collect local data</string>
     <string name="scanning_reference_points">Collecting… points: %1$d</string>
-    <string name="view_heatmap_start_scan">Collect cell, Wi-Fi and Bluetooth signals</string>
+    <string name="view_heatmap_start_scan">Collect Wi-Fi, cell and Bluetooth signals</string>
     <string name="env_data_sharing">Import &amp; export data</string>
     <string name="env_data_sharing_desc">Back up or merge local data as JSON</string>
     <string name="import_data">Import</string>
@@ -116,10 +116,10 @@
     <string name="title_manage_data">Manage collected data</string>
     <string name="manage_collected_data_desc">View, select or delete data</string>
     <string name="spoofing_options_title">Simulation options</string>
-    <string name="spoofing_options_desc">Choose which environment data to simulate. Unchecked items are blocked; coordinates are always simulated.</string>
-    <string name="mock_wifi_data">Simulate Wi-Fi data</string>
-    <string name="mock_cell_data">Simulate cell data</string>
-    <string name="mock_bluetooth_data">Simulate Bluetooth data</string>
+    <string name="spoofing_options_desc">Location is always simulated; nearby data is optional</string>
+    <string name="mock_wifi_data">Wi-Fi data</string>
+    <string name="mock_cell_data">Cell data</string>
+    <string name="mock_bluetooth_data">Bluetooth data</string>
     <string name="enable_slight_jitter">Slight jitter</string>
     <string name="restart_apps_on_spoof">Restart target apps</string>
     <string name="app_package_name">App package name</string>
@@ -171,7 +171,6 @@
     <string name="map_engine_baidu">Baidu Maps</string>
     <string name="map_engine_google">Google Maps</string>
     <string name="starting_ellipsis">Starting…</string>
-    <string name="new_version_available_badge">New version v%s available</string>
     <string name="no_search_results">No results</string>
     <string name="route_start_badge">Start</string>
     <string name="route_end_badge">End</string>
@@ -206,13 +205,13 @@
     <string name="software_update">Software update</string>
     <string name="software_update_desc">Check for the latest releases and improvements</string>
     <string name="check_beta_channel_title">Receive beta updates</string>
-    <string name="check_beta_channel_desc">Check for and receive the latest beta releases</string>
+    <string name="check_beta_channel_desc">Also check for pre-release test versions</string>
     <string name="prerelease_badge">Beta</string>
     <string name="changelog">Changelog</string>
     <string name="version_history">Version history</string>
     <string name="checking_latest_release">Checking for updates…</string>
     <string name="check_failed_network">Check failed. Please check your network connection</string>
-    <string name="new_version_found_format">New version v%s found</string>
+    <string name="new_version_found_format">New version v%s</string>
     <string name="already_latest_version">Already on the latest version</string>
     <string name="install_new_version">Install new version</string>
     <string name="downloading_progress">Downloading update (%d%%)</string>
@@ -230,7 +229,7 @@
     <string name="total_collected_data_count">Records collected: %d</string>
     <string name="manage_data_empty_desc">Data collected from the Features tab appears here</string>
     <string name="delete_data_title">Delete collected data</string>
-    <string name="delete_data_confirm_format">Delete “%s”? Its cell, Wi-Fi and Bluetooth data will also be removed and can’t be restored.</string>
+    <string name="delete_data_confirm_format">Delete “%s”? Its Wi-Fi, cell and Bluetooth data will also be removed and can’t be restored.</string>
     <string name="coord_record_title">Coordinate record</string>
     <string name="edit">Edit</string>
     <string name="set_place_name_hint">e.g. Office, Home</string>
@@ -254,7 +253,7 @@
     <string name="app_info_settings_title">Autostart &amp; permissions</string>
     <string name="app_info_settings_desc">Enable autostart and remove battery restrictions</string>
     <string name="env_datasource_tokens_title">Data source API keys</string>
-    <string name="env_datasource_tokens_desc">Used to look up nearby cell and Wi-Fi signals online</string>
+    <string name="env_datasource_tokens_desc">Used to look up nearby Wi-Fi and cell signals online</string>
     <string name="map_layers">Map layers</string>
     <string name="local_collected_datasource">Local collected data</string>
     <string name="layers_and_engine_title">Layers &amp; map engine</string>
@@ -310,7 +309,7 @@
     <string name="wifi_bssid_hint">e.g. AA:BB:CC:11:22:33</string>
     <string name="wifi_level_label">Signal strength (RSSI: %1$d dBm)</string>
     <string name="wifi_freq_label">Frequency</string>
-    <string name="wifi_capabilities_label">Capabilities</string>
+    <string name="wifi_capabilities_label">Security</string>
     <string name="wifi_is_connected_label">Set as connected Wi-Fi</string>
     <string name="designated_simulation_badge">Preferred</string>
     <string name="connected_wifi_badge">Connected</string>
@@ -419,7 +418,7 @@
     <string name="collection_route_summary">Samples: %1$d · Width each side: %2$d m</string>
     <string name="collection_route_details">Route information</string>
     <string name="collection_route_name">Route name</string>
-    <string name="collection_route_save_description">Save a name and notes for this route and its collected samples.</string>
+    <string name="collection_route_save_description">Save a name and notes for this route and its collected samples</string>
     <string name="collection_route_delete_title">Delete collected route</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
     <string name="local_collection_records_count">Points: %1$d · Routes: %2$d</string>

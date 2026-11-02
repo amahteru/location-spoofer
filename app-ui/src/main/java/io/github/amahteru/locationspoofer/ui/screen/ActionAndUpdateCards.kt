@@ -80,7 +80,7 @@ fun UpdateCheckCard(
     NavigationCard(
         icon = Icons.Rounded.SystemUpdateAlt,
         title = stringResource(R.string.check_updates),
-        summary = if (showNew) stringResource(R.string.new_version_available_badge, cleanNewVersion)
+        summary = if (showNew) stringResource(R.string.new_version_found_format, cleanNewVersion)
         else stringResource(R.string.check_updates_desc),
         onClick = onCheckClick,
         trailing = {

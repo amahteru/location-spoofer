@@ -10,7 +10,7 @@
     <string name="fj_preset_walking">步行</string>
     <string name="fj_preset_running">跑步</string>
     <string name="fj_preset_cycling">骑行</string>
-    <string name="fj_preset_driving">驾车</string>
+    <string name="fj_preset_driving">驾驶</string>
     <string name="fj_preset_custom">自定义</string>
     <string name="fj_pause">暂停</string>
     <string name="fj_resume">开始</string>
