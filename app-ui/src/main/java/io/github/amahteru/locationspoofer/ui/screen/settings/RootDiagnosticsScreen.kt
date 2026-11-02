@@ -20,21 +20,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
-import io.github.amahteru.locationspoofer.data.model.RootSolution
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.confirmRestartHookedApps
 import io.github.amahteru.locationspoofer.viewmodel.dismissRestartHookedAppsDialog
 import io.github.amahteru.locationspoofer.viewmodel.dismissRootSetupTestResult
 import io.github.amahteru.locationspoofer.viewmodel.requestRestartHookedApps
-import io.github.amahteru.locationspoofer.viewmodel.setRootSolution
 import io.github.amahteru.locationspoofer.viewmodel.testRootSetup
-import io.github.amahteru.locationspoofer.ui.components.AppCard
 import io.github.amahteru.locationspoofer.ui.components.AppTopBar
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RootDiagnosticsScreen(
     viewModel: MainViewModel,
@@ -50,29 +44,6 @@ fun RootDiagnosticsScreen(
         subtitle = stringResource(R.string.root_solution_desc),
         onBack = onClose
     ) {
-        AppCard(modifier = Modifier.fillMaxWidth()) {
-            val rootSolutions = listOf(
-                RootSolution.AUTO to stringResource(R.string.root_solution_auto),
-                RootSolution.MAGISK to stringResource(R.string.root_solution_magisk),
-                RootSolution.KERNELSU to stringResource(R.string.root_solution_kernelsu),
-                RootSolution.APATCH to stringResource(R.string.root_solution_apatch),
-                RootSolution.SUKISU_ULTRA to stringResource(R.string.root_solution_sukisu_ultra),
-                RootSolution.RESUKISU_ULTRA to stringResource(R.string.root_solution_resukisu_ultra)
-            )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-            ) {
-                rootSolutions.forEach { (solution, label) ->
-                    FilterChip(
-                        selected = uiState.rootSolution == solution,
-                        onClick = { viewModel.setRootSolution(solution) },
-                        label = { Text(text = label) }
-                    )
-                }
-            }
-        }
-
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
                 NavigationListItem(

@@ -68,10 +68,6 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("map_engine", "AUTO") ?: "AUTO"
         set(value) = prefs.edit { putString("map_engine", value) }
 
-    var rootSolution: String
-        get() = prefs.getString("root_solution", "AUTO") ?: "AUTO"
-        set(value) = prefs.edit { putString("root_solution", value) }
-
     var vendorOverride: String
         get() = prefs.getString("vendor_override", "auto") ?: "auto"
         set(value) = prefs.edit { putString("vendor_override", value) }

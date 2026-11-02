@@ -9,7 +9,6 @@ import io.github.amahteru.locationspoofer.utils.AltitudeModel
 import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.data.model.MapEngine
-import io.github.amahteru.locationspoofer.data.model.RootSolution
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import io.github.amahteru.locationspoofer.utils.XposedModuleStatus
 import kotlinx.coroutines.Dispatchers
@@ -165,11 +164,6 @@ internal fun MainViewModel.setMapType(type: AppMapType) {
 internal fun MainViewModel.setMapEngine(engine: MapEngine) {
     settingsRepository.setMapEngine(engine.name)
     _uiState.update { it.copy(mapEngine = engine) }
-}
-
-internal fun MainViewModel.setRootSolution(solution: RootSolution) {
-    settingsRepository.setRootSolution(solution.name)
-    _uiState.update { it.copy(rootSolution = solution) }
 }
 
 internal fun MainViewModel.setVendorScheme(scheme: VendorScheme) {

@@ -33,14 +33,8 @@
     <string name="close">Close</string>
     <string name="delete">Delete</string>
     <string name="search">Search</string>
-    <string name="root_solution_title">Root solution</string>
-    <string name="root_solution_desc">Recorded for troubleshooting; configuration is delivered by the framework</string>
-    <string name="root_solution_auto">Auto</string>
-    <string name="root_solution_magisk">Magisk</string>
-    <string name="root_solution_kernelsu">KernelSU</string>
-    <string name="root_solution_apatch">APatch</string>
-    <string name="root_solution_sukisu_ultra">SukiSU Ultra</string>
-    <string name="root_solution_resukisu_ultra">ReSukiSU Ultra</string>
+    <string name="root_solution_title">Root &amp; framework</string>
+    <string name="root_solution_desc">Test the connection and restart target apps</string>
     <string name="overlay_permission_required">Allow “Display over other apps”, then open the floating joystick again</string>
     <string name="motion_realism_title">Motion realism</string>
     <string name="motion_realism_desc">Make motion data look more human</string>

@@ -4,7 +4,6 @@ import android.content.Context
 import io.github.amahteru.locationspoofer.data.db.SavedRouteDao
 import io.github.amahteru.locationspoofer.data.db.SavedRouteEntity
 import io.github.amahteru.locationspoofer.data.model.RootSetupTestResult
-import io.github.amahteru.locationspoofer.data.model.RootSolution
 import io.github.amahteru.locationspoofer.data.model.RoutePoint
 import io.github.amahteru.locationspoofer.data.state.SpoofingState
 import io.github.amahteru.locationspoofer.utils.ConfigManager
@@ -22,21 +21,14 @@ class LocationRepository(
     private val savedRouteDao: SavedRouteDao,
     private val spoofingServiceController: SpoofingServiceController
 ) {
-    private fun currentRootSolution(): RootSolution =
-        try {
-            RootSolution.valueOf(settingsManager.rootSolution)
-        } catch (e: Exception) {
-            RootSolution.AUTO
-        }
+    suspend fun checkRootAccess(): Boolean = rootManager.checkRootAccess()
 
-    suspend fun checkRootAccess(): Boolean = rootManager.checkRootAccess(currentRootSolution())
-
-    suspend fun testRootSetup(): RootSetupTestResult = rootManager.testRootSetup(currentRootSolution())
+    suspend fun testRootSetup(): RootSetupTestResult = rootManager.testRootSetup()
 
     suspend fun forceStopApps(packages: List<String>) = rootManager.forceStopApps(packages)
 
     suspend fun recoverAfterBoot(context: Context): Boolean {
-        val hasRoot = rootManager.checkRootAccess(currentRootSolution())
+        val hasRoot = rootManager.checkRootAccess()
 
         val desired = configManager.desiredConfig()
         val active = desired?.optBoolean("active", false) ?: settingsManager.isSpoofingActive

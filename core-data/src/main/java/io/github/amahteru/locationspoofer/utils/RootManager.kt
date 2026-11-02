@@ -1,7 +1,6 @@
 package io.github.amahteru.locationspoofer.utils
 
 import io.github.amahteru.locationspoofer.data.model.RootSetupTestResult
-import io.github.amahteru.locationspoofer.data.model.RootSolution
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -9,9 +8,12 @@ class RootManager {
 
     companion object {
         private const val TAG = "LocationSpoofer"
+        private const val ROOT_IMPLEMENTATION_PROBE =
+            "if [ -d /data/adb/ap ]; then echo APatch; elif [ -d /data/adb/ksu ]; then echo KernelSU; " +
+                "elif [ -d /data/adb/magisk ]; then echo Magisk; else echo unknown; fi"
     }
 
-    suspend fun checkRootAccess(solution: RootSolution = RootSolution.AUTO): Boolean =
+    suspend fun checkRootAccess(): Boolean =
         withContext(Dispatchers.IO) {
             val hasRoot = executeCommand("id").contains("uid=0(root)")
             if (hasRoot) applyRootBackgroundExemptions()
@@ -31,7 +33,7 @@ class RootManager {
             executeCommand(cmds) != "ERROR"
         }
 
-    suspend fun testRootSetup(solution: RootSolution = RootSolution.AUTO): RootSetupTestResult =
+    suspend fun testRootSetup(): RootSetupTestResult =
         withContext(Dispatchers.IO) {
             val idOutput = executeCommand("id")
             val service = XposedModuleStatus.mService
@@ -53,7 +55,7 @@ class RootManager {
             RootSetupTestResult(
                 hasRoot = idOutput.contains("uid=0(root)"),
                 idOutput = idOutput,
-                solution = solution,
+                rootImplementation = executeCommand(ROOT_IMPLEMENTATION_PROBE).trim(),
                 frameworkConnected = service != null,
                 remoteConfigAccessible = accessible,
                 configPublished = published,

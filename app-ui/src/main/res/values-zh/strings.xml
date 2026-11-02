@@ -37,14 +37,8 @@
     <string name="close">关闭</string>
     <string name="delete">删除</string>
     <string name="search">搜索</string>
-    <string name="root_solution_title">Root 方案</string>
-    <string name="root_solution_desc">记录 Root 方案以便排查；配置通过框架传递</string>
-    <string name="root_solution_auto">自动检测</string>
-    <string name="root_solution_magisk">Magisk</string>
-    <string name="root_solution_kernelsu">KernelSU</string>
-    <string name="root_solution_apatch">APatch</string>
-    <string name="root_solution_sukisu_ultra">SukiSU Ultra</string>
-    <string name="root_solution_resukisu_ultra">ReSukiSU Ultra</string>
+    <string name="root_solution_title">Root 与框架</string>
+    <string name="root_solution_desc">测试连接与重启目标应用</string>
     <string name="overlay_permission_required">请允许「显示在其他应用上层」，然后再次打开悬浮摇杆</string>
     <string name="motion_realism_title">运动真实度</string>
     <string name="motion_realism_desc">让速度和海拔变化更接近真人</string>

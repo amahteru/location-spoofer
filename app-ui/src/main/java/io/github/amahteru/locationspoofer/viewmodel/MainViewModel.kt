@@ -9,7 +9,6 @@ import io.github.amahteru.locationspoofer.data.db.EnvironmentDao
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.data.model.MapEngine
-import io.github.amahteru.locationspoofer.data.model.RootSolution
 import io.github.amahteru.locationspoofer.data.motion.MotionController
 import io.github.amahteru.locationspoofer.data.repository.LocationRepository
 import io.github.amahteru.locationspoofer.data.repository.SettingsRepository
@@ -69,11 +68,6 @@ class MainViewModel(
                 MapEngine.valueOf(settingsRepository.getMapEngine())
             } catch (e: Exception) {
                 MapEngine.AUTO
-            },
-            rootSolution = try {
-                RootSolution.valueOf(settingsRepository.getRootSolution())
-            } catch (e: Exception) {
-                RootSolution.AUTO
             },
             vendorScheme = VendorScheme.fromId(settingsRepository.getVendorOverride()),
             debugDumpSystemServices = settingsRepository.debugDumpSystemServices,

@@ -43,7 +43,6 @@ data class AppState(
     val isPermissionSetupDone: Boolean = true,
     val currentLanguage: String = "",
     val hasRootAccess: Boolean = false,
-    val rootSolution: RootSolution = RootSolution.AUTO,
     val vendorScheme: VendorScheme = VendorScheme.AUTO,
     val debugDumpSystemServices: Boolean = false,
     val realismLevel: Int = MotionRealism.DEFAULT_LEVEL_ID,

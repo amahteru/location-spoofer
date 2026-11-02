@@ -3,7 +3,7 @@ package io.github.amahteru.locationspoofer.data.model
 data class RootSetupTestResult(
     val hasRoot: Boolean,
     val idOutput: String,
-    val solution: RootSolution,
+    val rootImplementation: String,
     val frameworkConnected: Boolean,
     val remoteConfigAccessible: Boolean,
     val configPublished: Boolean,

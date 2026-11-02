@@ -86,12 +86,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
         settingsManager.mapEngine = value
     }
 
-    fun getRootSolution(): String = settingsManager.rootSolution
-
-    fun setRootSolution(value: String) {
-        settingsManager.rootSolution = value
-    }
-
     fun getVendorOverride(): String = settingsManager.vendorOverride
 
     fun setVendorOverride(value: String) {

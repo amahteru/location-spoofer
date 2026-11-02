@@ -106,7 +106,7 @@ fun RootSetupTestResultDialog(
         dismissButton = {
             TextButton(onClick = {
                 val summary = buildString {
-                    appendLine("solution=${result.solution}")
+                    appendLine("rootImplementation=${result.rootImplementation}")
                     appendLine("hasRoot=${result.hasRoot}")
                     appendLine("idOutput=${result.idOutput}")
                     appendLine("frameworkConnected=${result.frameworkConnected}")
