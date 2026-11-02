@@ -15,6 +15,7 @@ import com.baidu.mapapi.model.LatLng
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
@@ -66,17 +67,24 @@ class BaiduMapControllerImpl(
         map.clear()
     }
 
-    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float) {
-        if (points.size < 2) return
+    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay {
+        if (points.size < 2) return object : AppMapOverlay {
+            override fun remove() {}
+        }
         val latLngList = points.map {
             LatLng(it.first, it.second)
         }
-        map.addOverlay(
+        val polyline = map.addOverlay(
             com.baidu.mapapi.map.PolylineOptions()
                 .color(colorInt)
                 .width(width)
                 .points(latLngList)
         )
+        return object : AppMapOverlay {
+            override fun remove() {
+                polyline?.remove()
+            }
+        }
     }
 
     override fun addCircle(
@@ -114,6 +122,10 @@ class BaiduMapControllerImpl(
         return object : AppMapMarker {
             override fun setPosition(lat: Double, lng: Double) {
                 marker?.position = LatLng(lat, lng)
+            }
+
+            override fun remove() {
+                marker?.remove()
             }
         }
     }

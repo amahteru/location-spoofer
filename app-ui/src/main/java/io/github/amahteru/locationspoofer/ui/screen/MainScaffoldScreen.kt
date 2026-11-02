@@ -245,7 +245,8 @@ fun MainScaffoldScreen(
                             uiState = uiState,
                             mapController = mapController,
                             isActive = true,
-                            bottomBarHeight = paddingValues.calculateBottomPadding()
+                            bottomBarHeight = paddingValues.calculateBottomPadding(),
+                            onNavigateToLocation = { selectedTab = BottomTab.Location.ordinal }
                         )
 
                         BottomTab.Features.ordinal -> io.github.amahteru.locationspoofer.ui.screen.tabs.FeaturesTab(

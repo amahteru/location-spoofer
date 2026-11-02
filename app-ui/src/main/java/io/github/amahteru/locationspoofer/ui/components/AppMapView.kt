@@ -16,7 +16,11 @@ import io.github.amahteru.locationspoofer.ui.components.map.BaiduMapViewContaine
 import io.github.amahteru.locationspoofer.ui.components.map.GoogleMapViewContainer
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 
-interface AppMapMarker {
+interface AppMapOverlay {
+    fun remove()
+}
+
+interface AppMapMarker : AppMapOverlay {
     fun setPosition(lat: Double, lng: Double)
 }
 
@@ -26,7 +30,7 @@ data class MapCamera(val lat: Double, val lng: Double, val zoom: Float)
 
 interface AppMapController {
     fun clear()
-    fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float)
+    fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay
     fun addCircle(
         lat: Double,
         lng: Double,

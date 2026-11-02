@@ -110,6 +110,7 @@ class MotionController(
     fun onStaticStarted(lat: Double, lng: Double) {
         clearRoute()
         joyIntensity = 0f
+        pendingWrite = null
         _state.update { it.copy(mode = Mode.STATIC, lat = lat, lng = lng, speedMs = 0.0, hasRoute = false, paused = false, returning = false) }
         tickJob?.cancel()
         tickJob = null

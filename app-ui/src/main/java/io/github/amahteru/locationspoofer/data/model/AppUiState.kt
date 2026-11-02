@@ -66,6 +66,7 @@ data class AppState(
     val routePoints: List<RoutePoint> = emptyList(),
     val routePlanStage: RoutePlanStage = RoutePlanStage.IDLE,
     val routeRunMode: RouteRunMode = RouteRunMode.LOOP,
+    val isRoutePaused: Boolean = false,
     val routeSimMode: SimMode = SimMode.WALKING,
     val customSpeedMs: Double = 3.0,
     val useRealRoute: Boolean = false,

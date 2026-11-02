@@ -21,6 +21,13 @@
     <string name="coordinate_hint">Tap the map above to pick in full screen</string>
     <string name="invalid_coordinates">Coordinates out of range</string>
     <string name="stop_simulation">Stop simulation</string>
+    <string name="route_pause">Pause</string>
+    <string name="route_resume">Resume</string>
+    <string name="route_paused">Paused</string>
+    <string name="route_end">End</string>
+    <string name="route_hold_here">Stay at current position</string>
+    <string name="route_replan_from_here">Re-plan from here</string>
+    <string name="route_stop_restore_real">Stop and restore real location</string>
     <string name="fixed_simulation">Simulate here</string>
     <string name="no_saved_locations">No favorite locations</string>
     <string name="close">Close</string>
@@ -154,6 +161,7 @@
     <string name="no_search_results">No results</string>
     <string name="route_start_badge">Start</string>
     <string name="route_end_badge">End</string>
+    <string name="route_current_badge">Me</string>
     <string name="planning_route_trajectory">Planning route…</string>
     <string name="bookmark_current_route">Favorite this route</string>
     <string name="selected_waypoints_count">Waypoints selected: %d</string>
@@ -164,7 +172,8 @@
     <string name="reselect">Reselect</string>
     <string name="bookmark">Favorite</string>
     <string name="joystick_controlling_active">Joystick active</string>
-    <string name="cruising_speed_format">Cruising (%s m/s)</string>
+    <string name="route_cruising">Cruising</string>
+    <string name="route_speed_format">%s m/s</string>
     <string name="route_sim_settings">Route simulation settings</string>
     <string name="run_mode">Run mode</string>
     <string name="loop_auto_cruise">Auto loop</string>
@@ -175,8 +184,8 @@
     <string name="custom_speed">Custom speed</string>
     <string name="pace_format">Pace: %s</string>
     <string name="stop_at_destination_title">Stop at destination</string>
-    <string name="stop_at_destination_desc_on">Stop and stay at the destination on arrival</string>
-    <string name="stop_at_destination_desc_off">Loop on arrival (forward on closed routes, back on open routes)</string>
+    <string name="stop_at_destination_desc_on">Stay at the destination</string>
+    <string name="stop_at_destination_desc_off">Loop along the route</string>
     <string name="real_road_matching">Snap to roads</string>
     <string name="real_road_matching_desc">Follow real city roads automatically</string>
     <string name="start_route_simulation">Start route simulation</string>
@@ -253,7 +262,7 @@
     <string name="altitude_variation">Variation</string>
     <string name="altitude_variation_off">Fixed</string>
     <string name="altitude_variation_value">±%1$d m</string>
-    <string name="altitude_variation_desc" formatted="false">Rises and falls gently like terrain: the same spot always has the same altitude and slopes stay under 8%, so larger ranges change more gradually</string>
+    <string name="altitude_variation_desc" formatted="false">Follows terrain gently, slopes under 8%</string>
     <string name="satellite_count">Satellite count</string>
     <string name="tag_bluetooth">Bluetooth</string>
     <string name="tag_cell">Cell</string>

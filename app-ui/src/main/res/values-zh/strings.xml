@@ -25,6 +25,13 @@
     <string name="coordinate_hint">点击上方地图进入全屏选点</string>
     <string name="invalid_coordinates">经纬度数值超出合法范围</string>
     <string name="stop_simulation">停止模拟</string>
+    <string name="route_pause">暂停</string>
+    <string name="route_resume">继续</string>
+    <string name="route_paused">已暂停</string>
+    <string name="route_end">结束</string>
+    <string name="route_hold_here">定在当前位置</string>
+    <string name="route_replan_from_here">从当前位置重新规划</string>
+    <string name="route_stop_restore_real">停止并恢复真实定位</string>
     <string name="fixed_simulation">定点模拟</string>
     <string name="no_saved_locations">暂无收藏的地点</string>
     <string name="close">关闭</string>
@@ -153,6 +160,7 @@
     <string name="no_search_results">未找到搜索结果</string>
     <string name="route_start_badge">起</string>
     <string name="route_end_badge">终</string>
+    <string name="route_current_badge">我</string>
     <string name="planning_route_trajectory">正在规划路线轨迹…</string>
     <string name="bookmark_current_route">收藏当前路线</string>
     <string name="selected_waypoints_count">已选 %d 个路点</string>
@@ -163,7 +171,8 @@
     <string name="reselect">重选</string>
     <string name="bookmark">收藏</string>
     <string name="joystick_controlling_active">摇杆操控中</string>
-    <string name="cruising_speed_format">巡航中（%s m/s）</string>
+    <string name="route_cruising">巡航中</string>
+    <string name="route_speed_format">%s m/s</string>
     <string name="route_sim_settings">路线模拟设置</string>
     <string name="run_mode">运行模式</string>
     <string name="loop_auto_cruise">循环自动巡航</string>
@@ -174,8 +183,8 @@
     <string name="custom_speed">自定义速度</string>
     <string name="pace_format">配速：%s</string>
     <string name="stop_at_destination_title">到达终点后停下</string>
-    <string name="stop_at_destination_desc_on">到达终点后停止模拟并停留在终点</string>
-    <string name="stop_at_destination_desc_off">到达终点后自动循环巡航（闭环正向，开放折返）</string>
+    <string name="stop_at_destination_desc_on">停在终点不再移动</string>
+    <string name="stop_at_destination_desc_off">沿路线循环巡航</string>
     <string name="real_road_matching">真实道路匹配</string>
     <string name="real_road_matching_desc">自动计算并贴合城市真实行车道路</string>
     <string name="start_route_simulation">开始路线模拟</string>
@@ -252,7 +261,7 @@
     <string name="altitude_variation">变化范围</string>
     <string name="altitude_variation_off">固定</string>
     <string name="altitude_variation_value">±%1$d 米</string>
-    <string name="altitude_variation_desc" formatted="false">按地形平缓起伏，同一地点海拔一致，坡度不超过 8%；范围越大起伏越舒缓</string>
+    <string name="altitude_variation_desc" formatted="false">按地形平缓起伏，坡度不超过 8%</string>
     <string name="satellite_count">卫星数</string>
     <string name="tag_bluetooth">蓝牙</string>
     <string name="tag_cell">基站</string>

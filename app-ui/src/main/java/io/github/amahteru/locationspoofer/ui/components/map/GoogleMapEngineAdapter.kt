@@ -23,6 +23,7 @@ import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.MarkerType
 
@@ -55,12 +56,17 @@ class GMapControllerImpl(
         map.clear()
     }
 
-    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float) {
-        map.addPolyline(
+    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay {
+        val polyline = map.addPolyline(
             GPolylineOptions().color(colorInt).width(width).apply {
                 points.forEach { add(GLatLng(it.first, it.second)) }
             }
         )
+        return object : AppMapOverlay {
+            override fun remove() {
+                polyline.remove()
+            }
+        }
     }
 
     override fun addCircle(
@@ -98,6 +104,10 @@ class GMapControllerImpl(
         return object : AppMapMarker {
             override fun setPosition(lat: Double, lng: Double) {
                 marker?.position = GLatLng(lat, lng)
+            }
+
+            override fun remove() {
+                marker?.remove()
             }
         }
     }

@@ -7,9 +7,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
@@ -32,6 +37,10 @@ fun RouteBottomPanel(
     onSaveRoute: () -> Unit,
     onStartPlanning: () -> Unit,
     onStopRoute: () -> Unit,
+    onPauseRoute: () -> Unit,
+    onResumeRoute: () -> Unit,
+    onHoldPosition: () -> Unit,
+    onReplanRoute: () -> Unit,
     searchBar: (@Composable (Modifier) -> Unit)? = null
 ) {
     Box(
@@ -166,56 +175,126 @@ fun RouteBottomPanel(
                         }
 
                         RoutePlanStage.RUNNING -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = AppSpacing.sm)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Navigation,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(Modifier.width(AppSpacing.sm))
-                                    Text(
-                                        text = if (uiState.routeRunMode == RouteRunMode.MANUAL) {
-                                        stringResource(R.string.joystick_controlling_active)
-                                    } else {
-                                        val speedMs = if (uiState.routeSimMode == SimMode.CUSTOM) uiState.customSpeedMs else uiState.routeSimMode.speedMs
-                                        stringResource(R.string.cruising_speed_format, String.format(Locale.US, "%.1f", speedMs))
-                                    },
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-
-                                Button(
-                                    onClick = onStopRoute,
-                                    modifier = Modifier.height(AppSpacing.actionButtonHeight),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error,
-                                        contentColor = MaterialTheme.colorScheme.onError
-                                    ),
-                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.StopCircle,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        stringResource(R.string.stop_simulation)
-                                    )
-                                }
-                            }
+                            RouteRunningControls(
+                                uiState = uiState,
+                                onPauseRoute = onPauseRoute,
+                                onResumeRoute = onResumeRoute,
+                                onHoldPosition = onHoldPosition,
+                                onReplanRoute = onReplanRoute,
+                                onStopRoute = onStopRoute
+                            )
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RouteRunningControls(
+    uiState: AppState,
+    onPauseRoute: () -> Unit,
+    onResumeRoute: () -> Unit,
+    onHoldPosition: () -> Unit,
+    onReplanRoute: () -> Unit,
+    onStopRoute: () -> Unit
+) {
+    var showEndMenu by remember { mutableStateOf(false) }
+    val paused = uiState.isRoutePaused
+    val isManual = uiState.routeRunMode == RouteRunMode.MANUAL
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                if (paused && !isManual) Icons.Rounded.PersonPinCircle else Icons.Rounded.Navigation,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.width(AppSpacing.lg))
+            Column {
+                Text(
+                    text = stringResource(
+                        when {
+                            isManual -> R.string.joystick_controlling_active
+                            paused -> R.string.route_paused
+                            else -> R.string.route_cruising
+                        }
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!isManual) {
+                    val speedMs = if (uiState.routeSimMode == SimMode.CUSTOM) uiState.customSpeedMs else uiState.routeSimMode.speedMs
+                    Text(
+                        text = stringResource(R.string.route_speed_format, String.format(Locale.US, "%.1f", speedMs)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+
+        FilledTonalIconButton(
+            onClick = if (paused) onResumeRoute else onPauseRoute,
+            modifier = Modifier.size(AppSpacing.actionButtonHeight)
+        ) {
+            Icon(
+                if (paused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
+                contentDescription = stringResource(if (paused) R.string.route_resume else R.string.route_pause)
+            )
+        }
+
+        Box {
+            OutlinedButton(
+                onClick = { showEndMenu = true },
+                modifier = Modifier.height(AppSpacing.actionButtonHeight)
+            ) {
+                Text(stringResource(R.string.route_end))
+            }
+            DropdownMenu(
+                expanded = showEndMenu,
+                onDismissRequest = { showEndMenu = false },
+                shape = MaterialTheme.shapes.large
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.route_hold_here)) },
+                    leadingIcon = { Icon(Icons.Rounded.PinDrop, null) },
+                    onClick = {
+                        showEndMenu = false
+                        onHoldPosition()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.route_replan_from_here)) },
+                    leadingIcon = { Icon(Icons.Rounded.AltRoute, null) },
+                    onClick = {
+                        showEndMenu = false
+                        onReplanRoute()
+                    }
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = AppSpacing.xs))
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.route_stop_restore_real)) },
+                    leadingIcon = { Icon(Icons.Rounded.StopCircle, null) },
+                    colors = MenuDefaults.itemColors(
+                        textColor = MaterialTheme.colorScheme.error,
+                        leadingIconColor = MaterialTheme.colorScheme.error
+                    ),
+                    onClick = {
+                        showEndMenu = false
+                        onStopRoute()
+                    }
+                )
             }
         }
     }

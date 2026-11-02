@@ -82,6 +82,7 @@ internal fun MainViewModel.joystickMaxSpeedMs(): Float =
     getEffectiveSpeedMs().takeIf { it > 0.0 }?.toFloat() ?: SimMode.WALKING.speedMs.toFloat()
 
 internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging: Boolean = false) {
+    if (motionController.state.value.hasRoute) return
     _uiState.update {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
@@ -291,21 +292,66 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
 }
 
 internal fun MainViewModel.stopRoutePlanning() {
-    settingsRepository.isSpoofingActive = false
-    locationSyncJob?.cancel()
-    locationSyncJob = null
-    motionController.onStopped()
+    stopSpoofing()
+    resetRouteState()
+}
+
+private fun MainViewModel.resetRouteState() {
     environmentUpdateJob?.cancel()
+    _uiState.update {
+        it.copy(
+            routePlanStage = RoutePlanStage.IDLE,
+            routePoints = emptyList(),
+            routeRunMode = RouteRunMode.LOOP
+        )
+    }
+}
+
+internal fun MainViewModel.pauseRoute() {
+    motionController.pause()
+}
+
+internal fun MainViewModel.resumeRoute() {
+    motionController.resume()
+}
+
+internal fun MainViewModel.holdRouteAtCurrentPosition() {
+    switchRouteToStatic(RoutePlanStage.IDLE, keepStartPoint = false)
+}
+
+internal fun MainViewModel.replanRouteFromCurrentPosition() {
+    switchRouteToStatic(RoutePlanStage.SELECTING, keepStartPoint = true)
+}
+
+private fun MainViewModel.switchRouteToStatic(nextStage: RoutePlanStage, keepStartPoint: Boolean) {
+    val lat = _uiState.value.latitudeInput.toDoubleOrNull() ?: return
+    val lng = _uiState.value.longitudeInput.toDoubleOrNull() ?: return
+    motionController.onStaticStarted(lat, lng)
+    settingsRepository.lastSpoofedLat = lat.toString()
+    settingsRepository.lastSpoofedLng = lng.toString()
+    _uiState.update {
+        it.copy(
+            routePlanStage = nextStage,
+            routePoints = if (keepStartPoint) listOf(RoutePoint(lat, lng)) else emptyList(),
+            routeRunMode = RouteRunMode.LOOP,
+            selectedCollectionRouteId = null
+        )
+    }
     viewModelScope.launch {
-        locationRepository.stopSpoofing(context)
-        _uiState.update {
-            it.copy(
-                isSpoofingActive = false,
-                routePlanStage = RoutePlanStage.IDLE,
-                routePoints = emptyList(),
-                routeRunMode = RouteRunMode.LOOP
-            )
-        }
+        val state = _uiState.value
+        locationRepository.updateConfig(
+            lat = lat,
+            lng = lng,
+            simMode = "STILL",
+            simBearing = 0f,
+            startTime = SpoofingState.startTimestamp,
+            routePoints = emptyList(),
+            isRouteMode = false,
+            mockWifi = state.mockWifi && state.canMockWifi,
+            mockCell = state.mockCell,
+            mockBluetooth = state.mockBluetooth && state.canMockBluetooth,
+            enableJitter = state.enableJitter
+        )
     }
 }
 
@@ -444,7 +490,16 @@ internal fun MainViewModel.loadSavedRoute(route: io.github.amahteru.locationspoo
 
 internal fun MainViewModel.observeMotionController() {
     viewModelScope.launch {
+        var hadRoute = false
         motionController.state.collect { st ->
+            val routeEnded = hadRoute && !st.hasRoute
+            hadRoute = st.hasRoute
+            if (routeEnded && _uiState.value.routePlanStage == RoutePlanStage.RUNNING) {
+                resetRouteState()
+            }
+            if (st.paused != _uiState.value.isRoutePaused) {
+                _uiState.update { it.copy(isRoutePaused = st.paused) }
+            }
             if (!st.active) return@collect
             if (st.mode == MotionController.Mode.ROUTE || st.mode == MotionController.Mode.MANUAL) {
                 updatePosition(st.lat, st.lng, st.bearing)

@@ -24,6 +24,7 @@ import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.*
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
+import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapControlButton
 import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
 import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
@@ -50,6 +51,10 @@ import io.github.amahteru.locationspoofer.viewmodel.setStopAtDestination
 import io.github.amahteru.locationspoofer.viewmodel.setUseRealRoute
 import io.github.amahteru.locationspoofer.viewmodel.startRoutePlanning
 import io.github.amahteru.locationspoofer.viewmodel.stopRoutePlanning
+import io.github.amahteru.locationspoofer.viewmodel.pauseRoute
+import io.github.amahteru.locationspoofer.viewmodel.resumeRoute
+import io.github.amahteru.locationspoofer.viewmodel.holdRouteAtCurrentPosition
+import io.github.amahteru.locationspoofer.viewmodel.replanRouteFromCurrentPosition
 import io.github.amahteru.locationspoofer.viewmodel.toggleEnableJitter
 import io.github.amahteru.locationspoofer.viewmodel.toggleMockBluetooth
 import io.github.amahteru.locationspoofer.viewmodel.toggleMockCell
@@ -67,6 +72,7 @@ fun RouteTab(
     mapController: AppMapController?,
     isActive: Boolean = true,
     bottomBarHeight: Dp = 90.dp,
+    onNavigateToLocation: () -> Unit,
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
     val motion = AppMotion
@@ -95,19 +101,36 @@ fun RouteTab(
 
     val manageDataList = manageDataViewModel.uiState.collectAsState().value.dataList
     var liveMarker by remember { mutableStateOf<AppMapMarker?>(null) }
-    LaunchedEffect(routePoints, mapController, manageDataList, isActive, collectionRoutes, uiState.selectedCollectionRouteId) {
+    val routeOverlays = remember { mutableListOf<AppMapOverlay>() }
+    var baseLayerVersion by remember { mutableIntStateOf(0) }
+    DisposableEffect(Unit) {
+        onDispose {
+            routeOverlays.forEach { it.remove() }
+            routeOverlays.clear()
+        }
+    }
+    LaunchedEffect(mapController, manageDataList, isActive, collectionRoutes, uiState.selectedCollectionRouteId) {
         if (!isActive) return@LaunchedEffect
         val map = mapController ?: return@LaunchedEffect
         map.clear()
+        routeOverlays.clear()
+        liveMarker = null
         collectionRoutes.firstOrNull { it.route.id == uiState.selectedCollectionRouteId }?.let {
             io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.draw(map, it.route)
         }
-        liveMarker = null
         val locations = manageDataList.map { it.location }
         MapCoverageHelper.drawCoverage(map, locations)
+        baseLayerVersion++
+    }
+
+    LaunchedEffect(routePoints, baseLayerVersion, uiState.isSpoofingActive, uiState.routePlanStage, uiState.useRealRoute) {
+        if (!isActive) return@LaunchedEffect
+        val map = mapController ?: return@LaunchedEffect
+        val added = mutableListOf<AppMapOverlay>()
+        var newLiveMarker: AppMapMarker? = null
 
         if (routePoints.size >= 2) {
-            map.addPolyline(
+            added += map.addPolyline(
                 routePoints.map { Pair(it.lat, it.lng) },
                 "#FF388BFD".toColorInt(),
                 8f
@@ -129,7 +152,7 @@ fun RouteTab(
                 MarkerType.RED -> endBadge
                 else -> "${idx + 1}"
             }
-            map.addMarker(
+            added += map.addMarker(
                 p.lat,
                 p.lng,
                 if (type == MarkerType.RED && uiState.useRealRoute && uiState.routePlanStage == RoutePlanStage.RUNNING) endBadge else label,
@@ -141,13 +164,19 @@ fun RouteTab(
             val currentLat = uiState.latitudeInput.toDoubleOrNull()
             val currentLng = uiState.longitudeInput.toDoubleOrNull()
             if (currentLat != null && currentLng != null) {
-                liveMarker = map.addMarker(
+                newLiveMarker = map.addMarker(
                     currentLat, currentLng,
-                    context.getString(R.string.current_location),
+                    context.getString(R.string.route_current_badge),
                     MarkerType.ORANGE
                 )
+                added += newLiveMarker
             }
         }
+
+        routeOverlays.forEach { it.remove() }
+        routeOverlays.clear()
+        routeOverlays += added
+        liveMarker = newLiveMarker
     }
 
     val lat = uiState.latitudeInput.toDoubleOrNull()
@@ -157,15 +186,7 @@ fun RouteTab(
             if (uiState.routePlanStage != RoutePlanStage.RUNNING) {
                 mapController?.animateCamera(lat, lng)
             }
-            if (liveMarker != null) {
-                liveMarker?.setPosition(lat, lng)
-            } else {
-                liveMarker = mapController?.addMarker(
-                    lat, lng,
-                    context.getString(R.string.current_location),
-                    MarkerType.ORANGE
-                )
-            }
+            liveMarker?.setPosition(lat, lng)
         }
     }
 
@@ -311,6 +332,13 @@ fun RouteTab(
             onStopRoute = {
                 viewModel.stopRoutePlanning()
             },
+            onPauseRoute = { viewModel.pauseRoute() },
+            onResumeRoute = { viewModel.resumeRoute() },
+            onHoldPosition = {
+                viewModel.holdRouteAtCurrentPosition()
+                onNavigateToLocation()
+            },
+            onReplanRoute = { viewModel.replanRouteFromCurrentPosition() },
             searchBar = if (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) {
                 { barModifier ->
                     PlaceSearchBar(
