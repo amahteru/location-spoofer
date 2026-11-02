@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
-import io.github.amahteru.locationspoofer.ui.components.ToneIcon
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItem
@@ -228,7 +227,7 @@ private fun NavigationRowCard(
     Card(modifier = Modifier.fillMaxWidth()) {
         ListItem(
             modifier = Modifier.clickable(onClick = onClick),
-            leadingContent = { ToneIcon(icon) },
+            leadingContent = { Icon(icon, contentDescription = null) },
             headlineContent = { Text(title) },
             supportingContent = chip?.let { { StatusLabel(text = it, tone = chipTone, modifier = Modifier.padding(top = AppSpacing.xs)) } },
             trailingContent = { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null) },

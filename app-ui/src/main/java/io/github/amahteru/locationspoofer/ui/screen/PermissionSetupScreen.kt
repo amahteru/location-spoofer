@@ -45,8 +45,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
-import io.github.amahteru.locationspoofer.ui.components.ToneIcon
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.completePermissionSetup
@@ -54,42 +52,41 @@ import io.github.amahteru.locationspoofer.viewmodel.recheckRootAccess
 
 private enum class AppPermission(
     val icon: ImageVector,
-    val tone: LabelTone,
     val titleRes: Int,
     val descRes: Int,
     val runtime: List<String> = emptyList()
 ) {
     LOCATION(
-        Icons.Rounded.LocationOn, LabelTone.Primary,
+        Icons.Rounded.LocationOn,
         R.string.perm_location_title, R.string.perm_location_desc,
         listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
     ),
     NOTIFICATION(
-        Icons.Rounded.Notifications, LabelTone.Primary,
+        Icons.Rounded.Notifications,
         R.string.perm_notification_title, R.string.perm_notification_desc,
         listOf(Manifest.permission.POST_NOTIFICATIONS)
     ),
     NEARBY(
-        Icons.Rounded.Bluetooth, LabelTone.Tertiary,
+        Icons.Rounded.Bluetooth,
         R.string.perm_nearby_title, R.string.perm_nearby_desc,
         listOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     ),
     PHONE(
-        Icons.Rounded.Phone, LabelTone.Tertiary,
+        Icons.Rounded.Phone,
         R.string.perm_phone_title, R.string.perm_phone_desc,
         listOf(Manifest.permission.READ_PHONE_STATE)
     ),
     BACKGROUND_LOCATION(
-        Icons.Rounded.MyLocation, LabelTone.Tertiary,
+        Icons.Rounded.MyLocation,
         R.string.perm_background_location_title, R.string.perm_background_location_desc,
         listOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
     ),
     OVERLAY(
-        Icons.Rounded.Gamepad, LabelTone.Secondary,
+        Icons.Rounded.Gamepad,
         R.string.perm_overlay_title, R.string.perm_overlay_desc
     ),
     BATTERY(
-        Icons.Rounded.BatteryChargingFull, LabelTone.Tertiary,
+        Icons.Rounded.BatteryChargingFull,
         R.string.ignore_battery_optimizations_title, R.string.perm_battery_desc
     );
 
@@ -279,7 +276,7 @@ private fun EnvironmentGroup(
 ) {
     GroupCard(title = stringResource(R.string.permission_group_environment)) {
         ListItem(
-            leadingContent = { ToneIcon(Icons.Rounded.Tag, LabelTone.Primary) },
+            leadingContent = { Icon(Icons.Rounded.Tag, contentDescription = null) },
             headlineContent = { Text(stringResource(R.string.env_root_title)) },
             supportingContent = { Text(stringResource(R.string.env_root_desc)) },
             trailingContent = {
@@ -294,7 +291,7 @@ private fun EnvironmentGroup(
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
         )
         ListItem(
-            leadingContent = { ToneIcon(Icons.Rounded.Extension, LabelTone.Primary) },
+            leadingContent = { Icon(Icons.Rounded.Extension, contentDescription = null) },
             headlineContent = { Text(stringResource(R.string.env_lsposed_title)) },
             supportingContent = { Text(stringResource(R.string.env_lsposed_desc)) },
             trailingContent = {
@@ -367,7 +364,7 @@ private fun PermissionItem(
     onRequest: () -> Unit
 ) {
     ListItem(
-        leadingContent = { ToneIcon(permission.icon, permission.tone) },
+        leadingContent = { Icon(permission.icon, contentDescription = null) },
         headlineContent = { Text(stringResource(permission.titleRes)) },
         supportingContent = {
             Text(stringResource(if (enabled) permission.descRes else R.string.perm_background_location_requires))

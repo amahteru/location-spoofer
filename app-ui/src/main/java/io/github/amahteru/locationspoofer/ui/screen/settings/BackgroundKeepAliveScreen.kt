@@ -3,7 +3,6 @@ package io.github.amahteru.locationspoofer.ui.screen.settings
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.core.net.toUri
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.rounded.AppSettingsAlt
 import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
@@ -15,10 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -55,7 +52,6 @@ fun BackgroundKeepAliveScreen(
                     icon = Icons.Rounded.BatteryChargingFull,
                     title = stringResource(R.string.ignore_battery_optimizations_title),
                     summary = stringResource(R.string.ignore_battery_optimizations_desc),
-                    tone = LabelTone.Tertiary,
                     onClick = {
                         try {
                             val intent =
@@ -80,7 +76,6 @@ fun BackgroundKeepAliveScreen(
                     icon = Icons.Rounded.AppSettingsAlt,
                     title = stringResource(R.string.app_info_settings_title),
                     summary = stringResource(R.string.app_info_settings_desc),
-                    tone = LabelTone.Primary,
                     onClick = {
                     try {
                         val intent =

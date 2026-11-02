@@ -1,7 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
 import io.github.amahteru.locationspoofer.ui.components.NavigationCard
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -83,7 +82,6 @@ fun UpdateCheckCard(
         title = stringResource(R.string.check_updates),
         summary = if (showNew) stringResource(R.string.new_version_available_badge, cleanNewVersion)
         else stringResource(R.string.check_updates_desc),
-        tone = LabelTone.Primary,
         onClick = onCheckClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {

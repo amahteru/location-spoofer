@@ -18,7 +18,6 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.style.LibraryActionBadges
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
 import io.github.amahteru.locationspoofer.ui.components.SectionTitle
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
@@ -54,7 +53,6 @@ fun LicensesScreen(@RawRes librariesRes: Int, onClose: () -> Unit) {
                             icon = Icons.Rounded.Gavel,
                             title = stringResource(R.string.licenses_project_title),
                             summary = stringResource(R.string.licenses_project_desc),
-                            tone = LabelTone.Primary,
                             onClick = { uriHandler.openUri("https://github.com/amahteru/location-spoofer/blob/main/LICENSE") },
                             trailing = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = null) }
                         )

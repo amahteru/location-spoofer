@@ -2,7 +2,6 @@ package io.github.amahteru.locationspoofer.ui.screen.settings
 
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
@@ -80,7 +79,6 @@ fun RootDiagnosticsScreen(
                     icon = Icons.Rounded.VerifiedUser,
                     title = stringResource(R.string.test_root_setup_title),
                     summary = stringResource(R.string.test_root_setup_desc),
-                    tone = LabelTone.Primary,
                     onClick = { if (!uiState.isTestingRootSetup) viewModel.testRootSetup() },
                     trailing = { ActionProgressSlot(uiState.isTestingRootSetup) }
                 )
@@ -88,7 +86,6 @@ fun RootDiagnosticsScreen(
                     icon = Icons.Rounded.RestartAlt,
                     title = stringResource(R.string.restart_hooked_apps_title),
                     summary = stringResource(R.string.restart_hooked_apps_desc),
-                    tone = LabelTone.Warning,
                     onClick = { if (!uiState.isRestartingHookedApps) viewModel.requestRestartHookedApps() },
                     trailing = { ActionProgressSlot(uiState.isRestartingHookedApps) }
                 )

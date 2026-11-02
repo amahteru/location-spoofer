@@ -2,8 +2,6 @@ package io.github.amahteru.locationspoofer.ui.screen.settings
 
 import io.github.amahteru.locationspoofer.ui.components.listItemBleed
 import io.github.amahteru.locationspoofer.ui.components.SwitchListItem
-import io.github.amahteru.locationspoofer.ui.components.ToneIcon
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -68,9 +66,9 @@ fun MotionRealismScreen(
 }
 
 @Composable
-private fun CardHeader(icon: ImageVector, tone: LabelTone, title: String, desc: String) {
+private fun CardHeader(icon: ImageVector, title: String, desc: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        ToneIcon(icon, tone)
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(AppSpacing.lg))
         Column {
             Text(
@@ -92,7 +90,6 @@ private fun RealismLevelCard(uiState: AppState, onSelect: (Int) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.Rounded.Shuffle,
-            LabelTone.Primary,
             stringResource(R.string.realism_level_title),
             stringResource(R.string.realism_level_desc)
         )
@@ -121,7 +118,6 @@ private fun SpeedFluctuationCard(uiState: AppState, onChange: (Int) -> Unit) {
     AppCard(modifier = Modifier.fillMaxWidth(), insideMargin = PaddingValues(AppSpacing.lg)) {
         CardHeader(
             Icons.Rounded.Speed,
-            LabelTone.Tertiary,
             stringResource(R.string.speed_fluctuation_title),
             stringResource(R.string.speed_fluctuation_desc)
         )

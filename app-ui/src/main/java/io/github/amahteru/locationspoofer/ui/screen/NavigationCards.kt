@@ -15,7 +15,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.NavigationCard
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 import androidx.compose.material.icons.rounded.Shield
@@ -48,7 +47,6 @@ fun SystemHookAppsConfigCard(uiState: AppState, onClick: () -> Unit) {
         icon = Icons.Rounded.Shield,
         title = stringResource(R.string.system_hook_apps_title),
         summary = statusDesc,
-        tone = LabelTone.Tertiary,
         onClick = onClick
     )
 }
@@ -67,7 +65,6 @@ fun ScannerMapCard(
         icon = Icons.Rounded.Map,
         title = stringResource(R.string.env_map_scan),
         summary = statusText,
-        tone = LabelTone.Primary,
         onClick = onClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -87,7 +84,6 @@ fun ManageDataCard(onClick: () -> Unit) {
         icon = Icons.Rounded.FolderShared,
         title = stringResource(R.string.title_manage_data),
         summary = stringResource(R.string.manage_collected_data_desc),
-        tone = LabelTone.Tertiary,
         onClick = onClick
     )
 }
@@ -96,7 +92,7 @@ fun ManageDataCard(onClick: () -> Unit) {
 fun ImportExportDataCard(onImportClick: () -> Unit, onExportClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         ListItem(
-            leadingContent = { io.github.amahteru.locationspoofer.ui.components.ToneIcon(Icons.Rounded.ImportExport, LabelTone.Primary) },
+            leadingContent = { Icon(Icons.Rounded.ImportExport, contentDescription = null) },
             headlineContent = { Text(stringResource(R.string.env_data_sharing)) },
             supportingContent = { Text(stringResource(R.string.env_data_sharing_desc)) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent)

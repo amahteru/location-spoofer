@@ -19,7 +19,7 @@ import io.github.amahteru.locationspoofer.ui.R
 fun CollectionRouteListItem(item: CompleteCollectionRoute, onClick: () -> Unit, onEdit: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         ListItem(
-            leadingContent = { ToneIcon(Icons.Outlined.Route, LabelTone.Primary) },
+            leadingContent = { Icon(Icons.Outlined.Route, contentDescription = null) },
             headlineContent = { Text(item.route.name.ifBlank { stringResource(R.string.collection_route_unnamed) }) },
             supportingContent = {
                 Column {

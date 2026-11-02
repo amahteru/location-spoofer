@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
@@ -85,7 +84,6 @@ fun AboutScreen(onOpenLicenses: () -> Unit, onClose: () -> Unit) {
                     icon = ImageVector.vectorResource(R.drawable.ic_github),
                     title = stringResource(R.string.brand_github),
                     summary = stringResource(R.string.about_github_desc),
-                    tone = LabelTone.Primary,
                     onClick = { uriHandler.openUri("https://github.com/amahteru/location-spoofer") },
                     trailing = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = null) }
                 )
@@ -93,7 +91,6 @@ fun AboutScreen(onOpenLicenses: () -> Unit, onClose: () -> Unit) {
                     icon = Icons.Rounded.Gavel,
                     title = stringResource(R.string.licenses_title),
                     summary = stringResource(R.string.about_licenses_desc),
-                    tone = LabelTone.Tertiary,
                     onClick = onOpenLicenses
                 )
             }

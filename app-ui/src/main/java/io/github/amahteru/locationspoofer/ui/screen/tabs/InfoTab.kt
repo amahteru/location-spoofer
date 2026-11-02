@@ -2,7 +2,6 @@ package io.github.amahteru.locationspoofer.ui.screen.tabs
 
 import io.github.amahteru.locationspoofer.ui.components.NavigationListItem
 import io.github.amahteru.locationspoofer.ui.components.AppRootTopBar
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import androidx.compose.material3.Card
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -125,6 +124,7 @@ fun InfoTab(
         add(SettingsEntry(Icons.Rounded.Shield, stringResource(R.string.root_solution_title), onNavigateToRootDiagnostics))
         add(SettingsEntry(Icons.Rounded.BatteryChargingFull, stringResource(R.string.background_keep_alive_title), onNavigateToBackgroundKeepAlive))
         add(SettingsEntry(Icons.Rounded.VpnKey, stringResource(R.string.env_datasource_tokens_title), onNavigateToEnvTokens))
+        add(SettingsEntry(Icons.Rounded.Info, stringResource(R.string.about_title), onNavigateToAbout))
     }
 
     Column(
@@ -155,28 +155,15 @@ fun InfoTab(
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(vertical = AppSpacing.sm)) {
-                        entries.forEachIndexed { index, entry ->
+                        entries.forEach { entry ->
                             NavigationListItem(
                                 icon = entry.icon,
                                 title = entry.title,
                                 summary = entry.summary,
-                                tone = toneAt(index + 1),
                                 onClick = entry.onClick
                             )
                         }
                     }
-                }
-            }
-
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    NavigationListItem(
-                        icon = Icons.Rounded.Info,
-                        title = stringResource(R.string.about_title),
-                        summary = stringResource(R.string.about_version_format, currentVersion),
-                        tone = toneAt(entries.size + 1),
-                        onClick = onNavigateToAbout
-                    )
                 }
             }
         }
@@ -189,5 +176,3 @@ private class SettingsEntry(
     val onClick: () -> Unit,
     val summary: String? = null
 )
-
-private fun toneAt(position: Int) = if (position % 2 == 0) LabelTone.Primary else LabelTone.Tertiary
