@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
-import io.github.amahteru.locationspoofer.ui.components.MapCenterPin
 import androidx.core.graphics.toColorInt
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import android.annotation.SuppressLint
@@ -64,7 +63,6 @@ import io.github.amahteru.locationspoofer.viewmodel.toggleMockCell
 import io.github.amahteru.locationspoofer.viewmodel.toggleMockWifi
 import io.github.amahteru.locationspoofer.viewmodel.undoLastRoutePoint
 import org.koin.androidx.compose.koinViewModel
-import io.github.amahteru.locationspoofer.ui.theme.warning
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -90,8 +88,6 @@ fun RouteTab(
     var tabBottom by remember { mutableFloatStateOf(0f) }
 
     val stage = uiState.routePlanStage
-    val isRunning = stage == RoutePlanStage.RUNNING
-    val isManual = uiState.routeRunMode == RouteRunMode.MANUAL
     val routePoints = uiState.routePoints
 
     val density = LocalDensity.current
@@ -210,21 +206,24 @@ fun RouteTab(
             .fillMaxSize()
             .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
     ) {
-        if ((stage == RoutePlanStage.SELECTING || stage == RoutePlanStage.IDLE)) {
-            MapCenterPin(Icons.Rounded.AddLocationAlt, MaterialTheme.colorScheme.primary, Modifier.align(Alignment.Center))
-        }
-
-        if (isRunning && isManual) {
-            MapCenterPin(Icons.Rounded.PersonPin, MaterialTheme.colorScheme.warning, Modifier.align(Alignment.Center))
-        }
-
-        if (routePoints.isNotEmpty() && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING)) {
+        AnimatedContent(
+            targetState = routePoints.size.takeIf { it > 0 && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = AppSpacing.md),
+            contentKey = { it != null },
+            contentAlignment = Alignment.Center,
+            transitionSpec = {
+                (fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec(), initialScale = 0.8f)) togetherWith
+                    (fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec(), targetScale = 0.8f)) using
+                    SizeTransform(clip = false)
+            },
+            label = "waypoint_count"
+        ) { count ->
+            if (count == null) return@AnimatedContent
             Surface(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .statusBarsPadding()
-                    .padding(top = AppSpacing.md)
-                    .animateContentSize(motion.defaultSpatialSpec()),
+                modifier = Modifier.animateContentSize(motion.defaultSpatialSpec()),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 shadowElevation = 3.dp
@@ -235,7 +234,7 @@ fun RouteTab(
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                 ) {
                     Text(
-                        stringResource(R.string.selected_waypoints_count, routePoints.size),
+                        stringResource(R.string.selected_waypoints_count, count),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -317,15 +316,13 @@ fun RouteTab(
                 onNavigateToLocation()
             },
             onReplanRoute = { viewModel.replanRouteFromCurrentPosition() },
-            searchBar = if (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) {
-                { barModifier ->
-                    PlaceSearchBar(
-                        mapEngine = uiState.mapEngine,
-                        onResultClick = { poi -> mapController?.animateCamera(poi.lat, poi.lng, STREET_ZOOM) },
-                        modifier = barModifier
-                    )
-                }
-            } else null
+            searchBar = { barModifier ->
+                PlaceSearchBar(
+                    mapEngine = uiState.mapEngine,
+                    onResultClick = { poi -> mapController?.animateCamera(poi.lat, poi.lng, STREET_ZOOM) },
+                    modifier = barModifier
+                )
+            }
         )
     }
 

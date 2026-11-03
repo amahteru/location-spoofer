@@ -1,7 +1,14 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs.route
 
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -41,149 +48,152 @@ fun RouteBottomPanel(
     onResumeRoute: () -> Unit,
     onHoldPosition: () -> Unit,
     onReplanRoute: () -> Unit,
-    searchBar: (@Composable (Modifier) -> Unit)? = null
+    searchBar: @Composable (Modifier) -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = AppMotion.defaultSpatialSpec()
-            )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+    Column(modifier = modifier.fillMaxWidth()) {
+        AnimatedVisibility(
+            visible = stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING,
+            enter = fadeIn(AppMotion.defaultEffectsSpec()) + expandVertically(AppMotion.defaultSpatialSpec()),
+            exit = fadeOut(AppMotion.fastEffectsSpec()) + shrinkVertically(AppMotion.fastSpatialSpec())
         ) {
-            if (searchBar != null) {
-                searchBar(Modifier.fillMaxWidth())
-            }
+            searchBar(Modifier.fillMaxWidth().padding(bottom = AppSpacing.md))
+        }
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                shadowElevation = 3.dp
-            ) {
-                Box(modifier = Modifier.padding(AppSpacing.lg)) {
-                    when (stage) {
-                        RoutePlanStage.IDLE, RoutePlanStage.SELECTING -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shadowElevation = 3.dp
+        ) {
+            AnimatedContent(
+                targetState = stage,
+                modifier = Modifier.padding(AppSpacing.lg),
+                contentKey = { if (it == RoutePlanStage.IDLE) RoutePlanStage.SELECTING else it },
+                contentAlignment = Alignment.BottomCenter,
+                transitionSpec = {
+                    fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) using
+                        SizeTransform { _, _ -> AppMotion.defaultSpatialSpec() }
+                },
+                label = "route_panel_stage"
+            ) { panelStage ->
+                when (panelStage) {
+                    RoutePlanStage.IDLE, RoutePlanStage.SELECTING -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = onConfirmPoint,
+                                modifier = Modifier
+                                    .weight(1.2f)
+                                    .height(AppSpacing.actionButtonHeight)
                             ) {
-                                Button(
-                                    onClick = onConfirmPoint,
-                                    modifier = Modifier
-                                        .weight(1.2f)
-                                        .height(AppSpacing.actionButtonHeight)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.AddLocation,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        if (routePoints.isEmpty()) stringResource(R.string.add_start_point) else stringResource(R.string.add_nth_point, routePoints.size + 1)
-                                    )
-                                }
+                                Icon(
+                                    Icons.Rounded.AddLocation,
+                                    null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    if (routePoints.isEmpty()) stringResource(R.string.add_start_point) else stringResource(R.string.add_nth_point, routePoints.size + 1)
+                                )
+                            }
 
-                                FilledTonalButton(
-                                    onClick = onFinishSelecting,
-                                    enabled = routePoints.size >= 2,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(AppSpacing.actionButtonHeight)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.CheckCircle,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        stringResource(R.string.finish_selecting)
-                                    )
-                                }
+                            FilledTonalButton(
+                                onClick = onFinishSelecting,
+                                enabled = routePoints.size >= 2,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(AppSpacing.actionButtonHeight)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.CheckCircle,
+                                    null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    stringResource(R.string.finish_selecting)
+                                )
                             }
                         }
+                    }
 
-                        RoutePlanStage.READY -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically
+                    RoutePlanStage.READY -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(
+                                onClick = onRestartSelecting,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(AppSpacing.actionButtonHeight),
+                                contentPadding = PaddingValues(horizontal = AppSpacing.xs)
                             ) {
-                                OutlinedButton(
-                                    onClick = onRestartSelecting,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(AppSpacing.actionButtonHeight),
-                                    contentPadding = PaddingValues(horizontal = AppSpacing.xs)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.Refresh,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        stringResource(R.string.reselect),
-                                        maxLines = 1
-                                    )
-                                }
+                                Icon(
+                                    Icons.Rounded.Refresh,
+                                    null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    stringResource(R.string.reselect),
+                                    maxLines = 1
+                                )
+                            }
 
-                                OutlinedButton(
-                                    onClick = onSaveRoute,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(AppSpacing.actionButtonHeight),
-                                    contentPadding = PaddingValues(horizontal = AppSpacing.xs)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.StarBorder,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        stringResource(R.string.bookmark),
-                                        maxLines = 1
-                                    )
-                                }
+                            OutlinedButton(
+                                onClick = onSaveRoute,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(AppSpacing.actionButtonHeight),
+                                contentPadding = PaddingValues(horizontal = AppSpacing.xs)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.StarBorder,
+                                    null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    stringResource(R.string.bookmark),
+                                    maxLines = 1
+                                )
+                            }
 
-                                Button(
-                                    onClick = onStartPlanning,
-                                    modifier = Modifier
-                                        .weight(1.35f)
-                                        .height(AppSpacing.actionButtonHeight),
-                                    contentPadding = PaddingValues(horizontal = AppSpacing.sm)
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.PlayArrow,
-                                        null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                    Text(
-                                        stringResource(R.string.start_simulation),
-                                        maxLines = 1
-                                    )
-                                }
+                            Button(
+                                onClick = onStartPlanning,
+                                modifier = Modifier
+                                    .weight(1.35f)
+                                    .height(AppSpacing.actionButtonHeight),
+                                contentPadding = PaddingValues(horizontal = AppSpacing.sm)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.PlayArrow,
+                                    null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(
+                                    stringResource(R.string.start_simulation),
+                                    maxLines = 1
+                                )
                             }
                         }
+                    }
 
-                        RoutePlanStage.RUNNING -> {
-                            RouteRunningControls(
-                                uiState = uiState,
-                                onPauseRoute = onPauseRoute,
-                                onResumeRoute = onResumeRoute,
-                                onHoldPosition = onHoldPosition,
-                                onReplanRoute = onReplanRoute,
-                                onStopRoute = onStopRoute
-                            )
-                        }
+                    RoutePlanStage.RUNNING -> {
+                        RouteRunningControls(
+                            uiState = uiState,
+                            onPauseRoute = onPauseRoute,
+                            onResumeRoute = onResumeRoute,
+                            onHoldPosition = onHoldPosition,
+                            onReplanRoute = onReplanRoute,
+                            onStopRoute = onStopRoute
+                        )
                     }
                 }
             }

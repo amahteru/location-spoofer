@@ -8,6 +8,14 @@ import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.ui.graphics.TransformOrigin
+import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -115,6 +123,7 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
             gravity = Gravity.TOP or Gravity.START
             x = (16 * density).toInt()
             y = (160 * density).toInt()
+            windowAnimations = android.R.style.Animation_Dialog
         }
 
         composeView = ComposeView(this).apply {
@@ -173,9 +182,9 @@ class FloatingJoystickService : Service(), LifecycleOwner, ViewModelStoreOwner, 
     override fun onDestroy() {
         isShowing = false
         motionController.joystick(0.0, 0f)
-        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         composeView?.let { windowManager.removeView(it) }
         composeView = null
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         super.onDestroy()
     }
 
@@ -263,46 +272,55 @@ private fun FloatingJoystickOverlay(
         }
     }
 
-    if (collapsed) {
-        CollapsedBubble(state, palette, dragModifier) { collapsed = false }
-        return
-    }
+    AnimatedContent(
+        targetState = collapsed,
+        transitionSpec = {
+            (fadeIn(AppMotion.defaultEffectsSpec()) + scaleIn(AppMotion.defaultSpatialSpec(), initialScale = 0.8f, transformOrigin = TransformOrigin(0f, 0f))) togetherWith
+                (fadeOut(AppMotion.fastEffectsSpec()) + scaleOut(AppMotion.fastSpatialSpec(), targetScale = 0.8f, transformOrigin = TransformOrigin(0f, 0f))) using null
+        },
+        label = "joystick_collapse"
+    ) { isCollapsed ->
+        if (isCollapsed) {
+            CollapsedBubble(state, palette, dragModifier) { collapsed = false }
+            return@AnimatedContent
+        }
 
-    Column(
-        modifier = Modifier
-            .padding(AppSpacing.md)
-            .width(208.dp)
-            .shadow(6.dp, MaterialTheme.shapes.extraLarge)
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(palette.card)
-            .border(1.dp, palette.border.copy(alpha = 0.6f), MaterialTheme.shapes.extraLarge)
-            .padding(start = AppSpacing.md, end = AppSpacing.md, bottom = AppSpacing.md),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-    ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(18.dp)
-                .then(dragModifier),
-            contentAlignment = Alignment.Center
+                .padding(AppSpacing.md)
+                .width(208.dp)
+                .shadow(6.dp, MaterialTheme.shapes.extraLarge)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(palette.card)
+                .border(1.dp, palette.border.copy(alpha = 0.6f), MaterialTheme.shapes.extraLarge)
+                .padding(start = AppSpacing.md, end = AppSpacing.md, bottom = AppSpacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 32.dp, height = 4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(palette.textSecondary.copy(alpha = 0.4f))
-            )
-        }
+                    .fillMaxWidth()
+                    .height(18.dp)
+                    .then(dragModifier),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(palette.textSecondary.copy(alpha = 0.4f))
+                )
+            }
 
-        if (state.hasPendingRecording) {
-            SaveRecordingForm(palette, onSaveRecording, onDiscardRecording)
-            return@Column
-        }
+            if (state.hasPendingRecording) {
+                SaveRecordingForm(palette, onSaveRecording, onDiscardRecording)
+                return@Column
+            }
 
-        Joystick(enabled = state.joystickEnabled, palette = palette, onJoystick = onJoystick)
-        SpeedSegments(state, palette, onPreset)
-        ActionTabs(state, palette, onPause, onResume, onStartRecording, onStopRecording, onCollapse = { collapsed = true })
+            Joystick(enabled = state.joystickEnabled, palette = palette, onJoystick = onJoystick)
+            SpeedSegments(state, palette, onPreset)
+            ActionTabs(state, palette, onPause, onResume, onStartRecording, onStopRecording, onCollapse = { collapsed = true })
+        }
     }
 }
 

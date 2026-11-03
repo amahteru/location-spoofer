@@ -9,7 +9,9 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.PersonPin
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Route
@@ -29,6 +31,9 @@ import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
+import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
+import io.github.amahteru.locationspoofer.data.model.RouteRunMode
+import io.github.amahteru.locationspoofer.ui.theme.warning
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
 import io.github.amahteru.locationspoofer.ui.components.SubPageOverlay
@@ -234,14 +239,24 @@ fun MainScaffoldScreen(
                         }
                     )
 
-                    AnimatedVisibility(
-                        visible = selectedTab == 0,
-                        modifier = Modifier.align(Alignment.Center),
-                        enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultEffectsSpec(), initialScale = 0.8f),
-                        exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastEffectsSpec(), targetScale = 0.8f)
-                    ) {
-                        MapCenterPin(Icons.Rounded.LocationOn, MaterialTheme.colorScheme.primary)
-                    }
+                    val routeStage = uiState.routePlanStage
+                    MapCenterPin(
+                        visible = selectedTab == BottomTab.Location.ordinal,
+                        icon = Icons.Rounded.LocationOn,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    MapCenterPin(
+                        visible = selectedTab == BottomTab.Route.ordinal &&
+                            (routeStage == RoutePlanStage.IDLE || routeStage == RoutePlanStage.SELECTING),
+                        icon = Icons.Rounded.AddLocationAlt,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    MapCenterPin(
+                        visible = selectedTab == BottomTab.Route.ordinal &&
+                            routeStage == RoutePlanStage.RUNNING && uiState.routeRunMode == RouteRunMode.MANUAL,
+                        icon = Icons.Rounded.PersonPin,
+                        tint = MaterialTheme.colorScheme.warning
+                    )
                 }
 
                 AnimatedContent(
