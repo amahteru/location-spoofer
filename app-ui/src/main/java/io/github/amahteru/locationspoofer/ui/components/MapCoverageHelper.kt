@@ -1,22 +1,17 @@
 package io.github.amahteru.locationspoofer.ui.components
 
-import android.graphics.Color.argb
 import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import kotlin.math.cos
-import io.github.amahteru.locationspoofer.ui.theme.success
-import androidx.compose.material3.MaterialTheme
 
 object MapCoverageHelper {
     fun drawCoverage(
         controller: AppMapController,
         locations: List<LocationRecord>,
+        palette: MapPalette,
         centerLat: Double? = null,
         centerLng: Double? = null
     ) {
         if (locations.isEmpty()) return
-
-        val fillColor = argb(50, 46, 204, 113)
-        val strokeColor = argb(100, 46, 204, 113)
 
         val targetList = if (locations.size > 180) {
             downsampleLocations(
@@ -31,7 +26,7 @@ object MapCoverageHelper {
         }
 
         targetList.forEach { loc ->
-            controller.addCircle(loc.lat, loc.lng, 50.0, fillColor, strokeColor, 2f)
+            controller.addCircle(loc.lat, loc.lng, 50.0, palette.coverageFill, palette.coverageStroke, 1f)
         }
     }
 

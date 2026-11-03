@@ -1,6 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.components.map
 
 import android.content.Context
+import android.graphics.Point
 import android.os.Bundle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -16,12 +17,17 @@ import com.amap.api.maps.model.CameraPosition
 import com.amap.api.maps.model.LatLng as AMapLatLng
 import com.amap.api.maps.model.MarkerOptions as AMapMarkerOptions
 import com.amap.api.maps.model.PolylineOptions as AMapPolylineOptions
+import com.amap.api.maps.model.Marker
+import com.amap.api.maps.model.animation.AlphaAnimation
+import com.amap.api.maps.model.animation.Animation
+import com.amap.api.maps.model.animation.AnimationSet
+import com.amap.api.maps.model.animation.ScaleAnimation
 import io.github.amahteru.locationspoofer.data.model.AppMapType
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
 import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
-import io.github.amahteru.locationspoofer.ui.components.MarkerType
+import io.github.amahteru.locationspoofer.ui.components.MapMarkerStyle
 
 class AMapControllerImpl(
     private val map: AMap,
@@ -39,11 +45,17 @@ class AMapControllerImpl(
         map.clear()
     }
 
-    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay {
+    private val density = context.resources.displayMetrics.density
+
+    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, widthDp: Float): AppMapOverlay {
         val polyline = map.addPolyline(
-            AMapPolylineOptions().color(colorInt).width(width).apply {
-                points.forEach { add(AMapLatLng(it.first, it.second)) }
-            }
+            AMapPolylineOptions()
+                .width(widthDp * density * MapMarkerIcons.lineTextureScale)
+                .setUseTexture(true)
+                .lineCapType(AMapPolylineOptions.LineCapType.LineCapRound)
+                .lineJoinType(AMapPolylineOptions.LineJoinType.LineJoinRound)
+                .setCustomTexture(BitmapDescriptorFactory.fromBitmap(MapMarkerIcons.line(colorInt)))
+                .apply { points.forEach { add(AMapLatLng(it.first, it.second)) } }
         )
         return object : AppMapOverlay {
             override fun remove() {
@@ -58,7 +70,7 @@ class AMapControllerImpl(
         radius: Double,
         fillColorInt: Int,
         strokeColorInt: Int,
-        strokeWidth: Float
+        strokeWidthDp: Float
     ) {
         map.addCircle(
             com.amap.api.maps.model.CircleOptions()
@@ -66,33 +78,54 @@ class AMapControllerImpl(
                 .radius(radius)
                 .fillColor(fillColorInt)
                 .strokeColor(strokeColorInt)
-                .strokeWidth(strokeWidth)
+                .strokeWidth(strokeWidthDp * density)
         )
     }
 
-    override fun addMarker(
-        lat: Double,
-        lng: Double,
-        title: String,
-        type: MarkerType
-    ): AppMapMarker {
-        val bitmap = GaodeMarkerHelper.getMarkerBitmap(context, title, type)
+    override fun addMarker(lat: Double, lng: Double, style: MapMarkerStyle, animate: Boolean): AppMapMarker {
         val marker = map.addMarker(
             AMapMarkerOptions()
                 .position(AMapLatLng(lat, lng))
-                .title(title)
-                .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                .anchor(0.5f, 0.9f)
+                .icon(BitmapDescriptorFactory.fromBitmap(MapMarkerIcons.marker(context, style)))
+                .anchor(0.5f, MapMarkerIcons.ANCHOR_Y)
+                .zIndex(style.zIndex.toFloat())
         )
+        if (animate) marker.play(MarkerTransition.Enter)
         return object : AppMapMarker {
+            var current = style
+
             override fun setPosition(lat: Double, lng: Double) {
-                marker?.position = AMapLatLng(lat, lng)
+                marker.position = AMapLatLng(lat, lng)
+            }
+
+            override fun setStyle(style: MapMarkerStyle) {
+                if (style == current) return
+                current = style
+                marker.setIcon(BitmapDescriptorFactory.fromBitmap(MapMarkerIcons.marker(context, style)))
             }
 
             override fun remove() {
-                marker?.remove()
+                marker.play(MarkerTransition.Exit) { marker.remove() }
             }
         }
+    }
+
+    private fun Marker.play(transition: MarkerTransition, onEnd: () -> Unit = {}) {
+        setAnimation(AnimationSet(true).apply {
+            listOf(
+                ScaleAnimation(transition.scaleFrom, transition.scaleTo, transition.scaleFrom, transition.scaleTo),
+                AlphaAnimation(transition.alphaFrom, transition.alphaTo)
+            ).forEach {
+                it.setDuration(transition.durationMs)
+                it.setInterpolator(transition.interpolator())
+                addAnimation(it)
+            }
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart() {}
+                override fun onAnimationEnd() = onEnd()
+            })
+        })
+        startAnimation()
     }
 
     override fun animateCamera(lat: Double, lng: Double, zoom: Float?) {
@@ -140,6 +173,8 @@ class AMapControllerImpl(
         }
     }
 
+    override fun screenLocation(lat: Double, lng: Double): Point? = map.projection?.toScreenLocation(AMapLatLng(lat, lng))
+
     override fun moveCamera(lat: Double, lng: Double, zoom: Float?) {
         if (zoom != null) map.moveCamera(
             CameraUpdateFactory.newLatLngZoom(
@@ -160,6 +195,7 @@ class AMapControllerImpl(
     private var isTouching = false
 
     init {
+        map.setOnMarkerClickListener { true }
         map.setOnMapTouchListener { event ->
             isTouching = event.actionMasked != android.view.MotionEvent.ACTION_UP &&
                 event.actionMasked != android.view.MotionEvent.ACTION_CANCEL

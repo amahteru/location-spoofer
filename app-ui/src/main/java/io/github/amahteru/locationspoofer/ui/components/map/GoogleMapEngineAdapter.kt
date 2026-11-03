@@ -1,6 +1,12 @@
 package io.github.amahteru.locationspoofer.ui.components.map
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Point
+import androidx.core.animation.doOnEnd
+import com.google.android.gms.maps.model.JointType
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.RoundCap
 import android.os.Bundle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,7 +31,7 @@ import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
 import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
-import io.github.amahteru.locationspoofer.ui.components.MarkerType
+import io.github.amahteru.locationspoofer.ui.components.MapMarkerStyle
 
 class GMapControllerImpl(
     private val map: GoogleMap,
@@ -52,13 +58,19 @@ class GMapControllerImpl(
         setMapType(currentMapType)
     }
 
+    private val markerAnimators = mutableSetOf<ValueAnimator>()
+
     override fun clear() {
+        markerAnimators.forEach { it.removeAllListeners(); it.removeAllUpdateListeners(); it.cancel() }
+        markerAnimators.clear()
         map.clear()
     }
 
-    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay {
+    private val density = context.resources.displayMetrics.density
+
+    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, widthDp: Float): AppMapOverlay {
         val polyline = map.addPolyline(
-            GPolylineOptions().color(colorInt).width(width).apply {
+            GPolylineOptions().color(colorInt).width(widthDp * density).startCap(RoundCap()).endCap(RoundCap()).jointType(JointType.ROUND).apply {
                 points.forEach { add(GLatLng(it.first, it.second)) }
             }
         )
@@ -75,7 +87,7 @@ class GMapControllerImpl(
         radius: Double,
         fillColorInt: Int,
         strokeColorInt: Int,
-        strokeWidth: Float
+        strokeWidthDp: Float
     ) {
         map.addCircle(
             CircleOptions()
@@ -83,32 +95,52 @@ class GMapControllerImpl(
                 .radius(radius)
                 .fillColor(fillColorInt)
                 .strokeColor(strokeColorInt)
-                .strokeWidth(strokeWidth)
+                .strokeWidth(strokeWidthDp * density)
         )
     }
 
-    override fun addMarker(
-        lat: Double,
-        lng: Double,
-        title: String,
-        type: MarkerType
-    ): AppMapMarker {
-        val bitmap = GaodeMarkerHelper.getMarkerBitmap(context, title, type)
+    override fun addMarker(lat: Double, lng: Double, style: MapMarkerStyle, animate: Boolean): AppMapMarker {
         val marker = map.addMarker(
             GMarkerOptions()
                 .position(GLatLng(lat, lng))
-                .title(title)
-                .icon(GBitmapDescriptorFactory.fromBitmap(bitmap))
-                .anchor(0.5f, 0.9f)
-        )
+                .icon(icon(style))
+                .anchor(0.5f, MapMarkerIcons.ANCHOR_Y)
+                .zIndex(style.zIndex.toFloat())
+        )!!
+        if (animate) marker.play(MarkerTransition.Enter)
         return object : AppMapMarker {
+            var current = style
+
             override fun setPosition(lat: Double, lng: Double) {
-                marker?.position = GLatLng(lat, lng)
+                marker.position = GLatLng(lat, lng)
+            }
+
+            override fun setStyle(style: MapMarkerStyle) {
+                if (style == current) return
+                current = style
+                marker.setIcon(icon(style))
             }
 
             override fun remove() {
-                marker?.remove()
+                marker.play(MarkerTransition.Exit) { marker.remove() }
             }
+        }
+    }
+
+    private fun icon(style: MapMarkerStyle) = GBitmapDescriptorFactory.fromBitmap(MapMarkerIcons.marker(context, style))
+
+    private fun Marker.play(transition: MarkerTransition, onEnd: () -> Unit = {}) {
+        alpha = transition.alphaFrom
+        ValueAnimator.ofFloat(transition.alphaFrom, transition.alphaTo).apply {
+            duration = transition.durationMs
+            interpolator = transition.interpolator()
+            addUpdateListener { alpha = it.animatedValue as Float }
+            doOnEnd {
+                markerAnimators -= this
+                onEnd()
+            }
+            markerAnimators += this
+            start()
         }
     }
 
@@ -151,6 +183,8 @@ class GMapControllerImpl(
         map.moveCamera(GCameraUpdateFactory.newLatLng(center))
     }
 
+    override fun screenLocation(lat: Double, lng: Double): Point? = map.projection.toScreenLocation(GLatLng(lat, lng))
+
     override fun moveCamera(lat: Double, lng: Double, zoom: Float?) {
         if (zoom != null) map.moveCamera(GCameraUpdateFactory.newLatLngZoom(GLatLng(lat, lng), zoom))
         else map.moveCamera(GCameraUpdateFactory.newLatLng(GLatLng(lat, lng)))
@@ -166,6 +200,7 @@ class GMapControllerImpl(
     private var isGesture = false
 
     init {
+        map.setOnMarkerClickListener { true }
         map.setOnCameraMoveStartedListener { reason ->
             isGesture = reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE
         }

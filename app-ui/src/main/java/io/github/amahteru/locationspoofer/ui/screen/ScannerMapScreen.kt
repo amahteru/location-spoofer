@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.encodeToString
 import io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper
+import io.github.amahteru.locationspoofer.ui.components.rememberMapPalette
 import io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
@@ -62,20 +63,21 @@ fun ScannerMapScreen(
         mapController?.setMapType(uiState.mapType)
     }
 
-    LaunchedEffect(mapController, locations, collectionRoutes, uiState.collectionRoutePoints) {
+    val palette = rememberMapPalette()
+    LaunchedEffect(mapController, locations, collectionRoutes, uiState.collectionRoutePoints, palette) {
         val controller = mapController ?: return@LaunchedEffect
         val currentLat = uiState.latitudeInput.toDoubleOrNull() ?: 39.9042
         val currentLng = uiState.longitudeInput.toDoubleOrNull() ?: 116.4074
         controller.clear()
 
-        MapCoverageHelper.drawCoverage(controller, locations, currentLat, currentLng)
+        MapCoverageHelper.drawCoverage(controller, locations, palette, currentLat, currentLng)
 
-        collectionRoutes.take(10).forEach { CollectionRouteMapHelper.draw(controller, it.route, 12) }
+        collectionRoutes.take(10).forEach { CollectionRouteMapHelper.draw(controller, it.route, palette, 12) }
         if (uiState.collectionRoutePoints.size >= 2) {
             CollectionRouteMapHelper.draw(controller, CollectionRouteRecord(
-                pointsJson = kotlinx.serialization.json.Json.encodeToString(uiState.collectionRoutePoints)), 60)
+                pointsJson = kotlinx.serialization.json.Json.encodeToString(uiState.collectionRoutePoints)), palette, 60)
         } else uiState.collectionRoutePoints.firstOrNull()?.let {
-            controller.addMarker(it.lat, it.lng, "", io.github.amahteru.locationspoofer.ui.components.MarkerType.GREEN)
+            controller.addMarker(it.lat, it.lng, palette.start)
         }
     }
 

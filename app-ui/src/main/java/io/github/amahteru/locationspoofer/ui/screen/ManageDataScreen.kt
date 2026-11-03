@@ -27,6 +27,7 @@ import io.github.amahteru.locationspoofer.ui.screen.managedata.ModernEditDataDia
 import io.github.amahteru.locationspoofer.ui.screen.managedata.DataListItem
 import io.github.amahteru.locationspoofer.ui.screen.managedata.ManageDeleteConfirmDialog
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
+import io.github.amahteru.locationspoofer.ui.components.rememberMapPalette
 import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import io.github.amahteru.locationspoofer.viewmodel.FavoriteToggleResult
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
@@ -74,14 +75,15 @@ fun ManageDataScreen(
         mapController?.setMapType(uiState.mapType)
     }
 
-    LaunchedEffect(mapController, dataList, collectionRoutes) {
+    val palette = rememberMapPalette()
+    LaunchedEffect(mapController, dataList, collectionRoutes, palette) {
         val controller = mapController ?: return@LaunchedEffect
         controller.clear()
         val locations = dataList.map { it.location }
         val last = locations.lastOrNull()
-        MapCoverageHelper.drawCoverage(controller, locations, last?.lat, last?.lng)
+        MapCoverageHelper.drawCoverage(controller, locations, palette, last?.lat, last?.lng)
         collectionRoutes.take(20).forEach { route ->
-            io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.draw(controller, route.route, maxOf(8, 160 / maxOf(1, collectionRoutes.size)))
+            io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.draw(controller, route.route, palette, maxOf(8, 160 / maxOf(1, collectionRoutes.size)))
         }
         if (collectionRoutes.isNotEmpty()) {
             val geometry = collectionRoutes.first().route.geometry()
@@ -197,7 +199,7 @@ fun ManageDataScreen(
                                 route,
                                 onClick = {
                                     viewModel.selectCollectedRoute(route.route.id)
-                                    mapController?.let { io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, 120) }
+                                    mapController?.let { io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, palette, 120) }
                                 },
                                 onEdit = { editingRoute = route.route },
                                 onDelete = { deletingRoute = route.route }

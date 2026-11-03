@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.components.AppBottomSheet
@@ -53,20 +52,7 @@ fun SavedRoutesDialog(
                         modifier = Modifier.clickable {
                             viewModel.loadSavedRoute(route)
                             if (route.points.size >= 2) {
-                                val padLeft = with(density) { 36.dp.roundToPx() }
-                                val padTop = with(density) { 80.dp.roundToPx() }
-                                val padRight = with(density) { 36.dp.roundToPx() }
-                                val effectiveBottomDp =
-                                    if (bottomActionHeightDp > 0.dp) bottomActionHeightDp + bottomBarHeight + 24.dp else bottomBarHeight + 160.dp
-                                val padBottom =
-                                    with(density) { effectiveBottomDp.roundToPx() }
-                                mapController?.fitBounds(
-                                    points = route.points.map { Pair(it.lat, it.lng) },
-                                    paddingLeft = padLeft,
-                                    paddingTop = padTop,
-                                    paddingRight = padRight,
-                                    paddingBottom = padBottom
-                                )
+                                mapController?.fitRoute(route.points, density, bottomActionHeightDp, bottomBarHeight)
                             } else {
                                 route.points.firstOrNull()?.let { firstPoint ->
                                     mapController?.animateCamera(

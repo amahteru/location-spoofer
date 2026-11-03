@@ -22,9 +22,10 @@ interface AppMapOverlay {
 
 interface AppMapMarker : AppMapOverlay {
     fun setPosition(lat: Double, lng: Double)
+    fun setStyle(style: MapMarkerStyle)
 }
 
-enum class MarkerType { GREEN, RED, ORANGE, DEFAULT }
+data class MapMarkerStyle(val label: String, val color: Int, val onColor: Int, val zIndex: Int = 1)
 
 data class MapCamera(val lat: Double, val lng: Double, val zoom: Float)
 
@@ -32,17 +33,17 @@ const val STREET_ZOOM = 17f
 
 interface AppMapController {
     fun clear()
-    fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay
+    fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, widthDp: Float): AppMapOverlay
     fun addCircle(
         lat: Double,
         lng: Double,
         radius: Double,
         fillColorInt: Int,
         strokeColorInt: Int,
-        strokeWidth: Float
+        strokeWidthDp: Float
     )
 
-    fun addMarker(lat: Double, lng: Double, title: String, type: MarkerType): AppMapMarker
+    fun addMarker(lat: Double, lng: Double, style: MapMarkerStyle, animate: Boolean = false): AppMapMarker
     fun animateCamera(lat: Double, lng: Double, zoom: Float? = null)
     fun fitBounds(points: List<Pair<Double, Double>>, padding: Int) {
         fitBounds(points, padding, padding, padding, padding)
@@ -57,6 +58,7 @@ interface AppMapController {
     )
 
     fun moveCamera(lat: Double, lng: Double, zoom: Float? = null)
+    fun screenLocation(lat: Double, lng: Double): android.graphics.Point?
     val cameraTargetLat: Double?
     val cameraTargetLng: Double?
     val cameraZoom: Float?

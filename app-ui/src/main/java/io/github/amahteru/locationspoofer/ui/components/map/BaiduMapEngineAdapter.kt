@@ -1,6 +1,14 @@
 package io.github.amahteru.locationspoofer.ui.components.map
 
 import android.content.Context
+import android.graphics.Point
+import kotlin.math.abs
+import kotlin.math.log2
+import kotlin.math.pow
+import com.baidu.mapapi.animation.AlphaAnimation
+import com.baidu.mapapi.animation.Animation
+import com.baidu.mapapi.animation.AnimationSet
+import com.baidu.mapapi.animation.ScaleAnimation
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -9,6 +17,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.baidu.mapapi.map.BaiduMap
 import com.baidu.mapapi.map.BaiduMapOptions
 import com.baidu.mapapi.map.MapStatus
+import com.baidu.mapapi.map.Marker
 import com.baidu.mapapi.map.Stroke
 import com.baidu.mapapi.map.TextureMapView
 import com.baidu.mapapi.model.LatLng
@@ -17,7 +26,7 @@ import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
 import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapCamera
-import io.github.amahteru.locationspoofer.ui.components.MarkerType
+import io.github.amahteru.locationspoofer.ui.components.MapMarkerStyle
 
 class BaiduMapControllerImpl(
     private val map: BaiduMap,
@@ -67,18 +76,19 @@ class BaiduMapControllerImpl(
         map.clear()
     }
 
-    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, width: Float): AppMapOverlay {
+    private val density = context.resources.displayMetrics.density
+
+    override fun addPolyline(points: List<Pair<Double, Double>>, colorInt: Int, widthDp: Float): AppMapOverlay {
         if (points.size < 2) return object : AppMapOverlay {
             override fun remove() {}
         }
-        val latLngList = points.map {
-            LatLng(it.first, it.second)
-        }
         val polyline = map.addOverlay(
             com.baidu.mapapi.map.PolylineOptions()
-                .color(colorInt)
-                .width(width)
-                .points(latLngList)
+                .width(widthDp * density / TEXTURED_LINE_SCALE)
+                .lineCapType(com.baidu.mapapi.map.PolylineOptions.LineCapType.LineCapRound)
+                .lineJoinType(com.baidu.mapapi.map.PolylineOptions.LineJoinType.LineJoinRound)
+                .customTexture(com.baidu.mapapi.map.BitmapDescriptorFactory.fromBitmap(MapMarkerIcons.line(colorInt)))
+                .points(points.map { LatLng(it.first, it.second) })
         )
         return object : AppMapOverlay {
             override fun remove() {
@@ -93,41 +103,63 @@ class BaiduMapControllerImpl(
         radius: Double,
         fillColorInt: Int,
         strokeColorInt: Int,
-        strokeWidth: Float
+        strokeWidthDp: Float
     ) {
         map.addOverlay(
             com.baidu.mapapi.map.CircleOptions()
                 .center(LatLng(lat, lng))
                 .radius(radius.toInt())
                 .fillColor(fillColorInt)
-                .stroke(Stroke(strokeWidth, strokeColorInt))
+                .stroke(Stroke(strokeWidthDp * density, strokeColorInt))
         )
     }
 
-    override fun addMarker(
-        lat: Double,
-        lng: Double,
-        title: String,
-        type: MarkerType
-    ): AppMapMarker {
-        val bitmap = GaodeMarkerHelper.getMarkerBitmap(context, title, type)
-        val descriptor = com.baidu.mapapi.map.BitmapDescriptorFactory.fromBitmap(bitmap)
+    override fun addMarker(lat: Double, lng: Double, style: MapMarkerStyle, animate: Boolean): AppMapMarker {
         val marker = map.addOverlay(
             com.baidu.mapapi.map.MarkerOptions()
                 .position(LatLng(lat, lng))
-                .title(title)
-                .icon(descriptor)
-                .anchor(0.5f, 0.9f)
-        ) as? com.baidu.mapapi.map.Marker
+                .icon(icon(style))
+                .anchor(0.5f, MapMarkerIcons.ANCHOR_Y)
+                .zIndex(style.zIndex)
+        ) as Marker
+        if (animate) marker.play(MarkerTransition.Enter)
         return object : AppMapMarker {
+            var current = style
+
             override fun setPosition(lat: Double, lng: Double) {
-                marker?.position = LatLng(lat, lng)
+                marker.position = LatLng(lat, lng)
+            }
+
+            override fun setStyle(style: MapMarkerStyle) {
+                if (style == current) return
+                current = style
+                marker.setIcon(icon(style))
             }
 
             override fun remove() {
-                marker?.remove()
+                marker.play(MarkerTransition.Exit) { marker.remove() }
             }
         }
+    }
+
+    private fun icon(style: MapMarkerStyle) =
+        com.baidu.mapapi.map.BitmapDescriptorFactory.fromBitmap(MapMarkerIcons.marker(context, style))
+
+    private fun Marker.play(transition: MarkerTransition, onEnd: () -> Unit = {}) {
+        setAnimation(AnimationSet().apply {
+            listOf(ScaleAnimation(transition.scaleFrom, transition.scaleTo), AlphaAnimation(transition.alphaFrom, transition.alphaTo)).forEach {
+                it.setDuration(transition.durationMs)
+                it.setInterpolator(transition.interpolator())
+                addAnimation(it)
+            }
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart() {}
+                override fun onAnimationEnd() = onEnd()
+                override fun onAnimationCancel() {}
+                override fun onAnimationRepeat() {}
+            })
+        })
+        startAnimation()
     }
 
     override fun animateCamera(lat: Double, lng: Double, zoom: Float?) {
@@ -147,49 +179,29 @@ class BaiduMapControllerImpl(
         paddingRight: Int,
         paddingBottom: Int
     ) {
-        if (points.isEmpty()) return
-        try {
-            var minLat = 90.0
-            var maxLat = -90.0
-            var minLng = 180.0
-            var maxLng = -180.0
-            points.forEach {
-                if (it.first < minLat) minLat = it.first
-                if (it.first > maxLat) maxLat = it.first
-                if (it.second < minLng) minLng = it.second
-                if (it.second > maxLng) maxLng = it.second
-            }
-            val verticalDiff = maxLat - minLat
-            val centerLat =
-                (minLat + maxLat) / 2 - (if (paddingBottom > paddingTop) verticalDiff * 0.15 else 0.0)
-            val centerLng = (minLng + maxLng) / 2
-
-            val results = FloatArray(1)
-            android.location.Location.distanceBetween(minLat, minLng, maxLat, maxLng, results)
-            val distance = results[0]
-
-            val zoom = when {
-                distance < 80 -> 18.5f
-                distance < 250 -> 17.5f
-                distance < 600 -> 16.5f
-                distance < 1500 -> 15.5f
-                distance < 3500 -> 14.5f
-                distance < 8000 -> 13.5f
-                distance < 18000 -> 12.5f
-                distance < 45000 -> 11.5f
-                distance < 100000 -> 10.5f
-                distance < 250000 -> 9.5f
-                else -> 8.5f
-            }
-
-            val update = com.baidu.mapapi.map.MapStatusUpdateFactory.newLatLngZoom(
-                LatLng(centerLat, centerLng), zoom
+        val projection = map.projection ?: return
+        if (points.isEmpty() || mapView.width == 0) return
+        val northEast = projection.toScreenLocation(LatLng(points.maxOf { it.first }, points.maxOf { it.second }))
+        val southWest = projection.toScreenLocation(LatLng(points.minOf { it.first }, points.minOf { it.second }))
+        val width = mapView.width - paddingLeft - paddingRight
+        val height = mapView.height - paddingTop - paddingBottom
+        val fit = minOf(width / maxOf(1f, abs(northEast.x - southWest.x).toFloat()), height / maxOf(1f, abs(northEast.y - southWest.y).toFloat()))
+        val zoom = (map.mapStatus.zoom + log2(fit)).coerceAtMost(map.maxZoomLevel)
+        val scale = 2f.pow(map.mapStatus.zoom - zoom)
+        val offsetX = mapView.width / 2f - (paddingLeft + width / 2f)
+        val offsetY = mapView.height / 2f - (paddingTop + height / 2f)
+        val target = projection.fromScreenLocation(
+            Point(
+                ((northEast.x + southWest.x) / 2f + offsetX * scale).toInt(),
+                ((northEast.y + southWest.y) / 2f + offsetY * scale).toInt()
             )
-            map.animateMapStatus(update)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        )
+        map.animateMapStatus(
+            com.baidu.mapapi.map.MapStatusUpdateFactory.newMapStatus(MapStatus.Builder().target(target).zoom(zoom).build())
+        )
     }
+
+    override fun screenLocation(lat: Double, lng: Double): Point? = map.projection?.toScreenLocation(LatLng(lat, lng))
 
     override fun moveCamera(lat: Double, lng: Double, zoom: Float?) {
         val update = if (zoom != null) com.baidu.mapapi.map.MapStatusUpdateFactory.newLatLngZoom(
@@ -309,3 +321,5 @@ fun BaiduMapViewContainer(
         map.setOnFirstFrameDrawListener { post { onMapReady(controller) } }
     }
 }
+
+private const val TEXTURED_LINE_SCALE = 1.5f

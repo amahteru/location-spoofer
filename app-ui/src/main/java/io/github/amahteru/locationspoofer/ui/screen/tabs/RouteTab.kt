@@ -1,8 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
-import androidx.core.graphics.toColorInt
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
-import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,12 +21,15 @@ import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.*
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
-import io.github.amahteru.locationspoofer.ui.components.AppMapMarker
 import io.github.amahteru.locationspoofer.ui.components.AppMapOverlay
 import io.github.amahteru.locationspoofer.ui.components.MapControlButton
 import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
 import io.github.amahteru.locationspoofer.ui.components.MapTypeDialog
-import io.github.amahteru.locationspoofer.ui.components.MarkerType
+import io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper
+import io.github.amahteru.locationspoofer.ui.components.MAP_LINE_WIDTH_DP
+import io.github.amahteru.locationspoofer.ui.components.MapMarkerLayer
+import io.github.amahteru.locationspoofer.ui.components.MapMarkerSpec
+import io.github.amahteru.locationspoofer.ui.components.rememberMapPalette
 import io.github.amahteru.locationspoofer.ui.screen.PlaceSearchBar
 import io.github.amahteru.locationspoofer.ui.screen.tabs.route.*
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
@@ -65,7 +66,6 @@ import io.github.amahteru.locationspoofer.viewmodel.undoLastRoutePoint
 import org.koin.androidx.compose.koinViewModel
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun RouteTab(
     viewModel: MainViewModel,
@@ -86,6 +86,7 @@ fun RouteTab(
     var bottomActionHeightPx by remember { mutableIntStateOf(0) }
     var panelTop by remember { mutableFloatStateOf(0f) }
     var tabBottom by remember { mutableFloatStateOf(0f) }
+    var tabRight by remember { mutableFloatStateOf(0f) }
 
     val stage = uiState.routePlanStage
     val routePoints = uiState.routePoints
@@ -99,112 +100,83 @@ fun RouteTab(
     }
 
     val manageDataList = manageDataViewModel.uiState.collectAsState().value.dataList
-    var liveMarker by remember { mutableStateOf<AppMapMarker?>(null) }
-    val routeOverlays = remember { mutableListOf<AppMapOverlay>() }
+    val palette = rememberMapPalette()
+    val markerLayer = remember { MapMarkerLayer() }
+    var routeLine by remember { mutableStateOf<AppMapOverlay?>(null) }
     var baseLayerVersion by remember { mutableIntStateOf(0) }
-    LaunchedEffect(mapController, manageDataList, isActive, collectionRoutes, uiState.selectedCollectionRouteId) {
+    LaunchedEffect(mapController, manageDataList, isActive, collectionRoutes, uiState.selectedCollectionRouteId, palette) {
         if (!isActive) return@LaunchedEffect
         val map = mapController ?: return@LaunchedEffect
         map.clear()
-        routeOverlays.clear()
-        liveMarker = null
+        markerLayer.reset()
+        routeLine = null
         collectionRoutes.firstOrNull { it.route.id == uiState.selectedCollectionRouteId }?.let {
-            io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.draw(map, it.route)
+            CollectionRouteMapHelper.draw(map, it.route, palette)
         }
-        val locations = manageDataList.map { it.location }
-        MapCoverageHelper.drawCoverage(map, locations)
+        MapCoverageHelper.drawCoverage(map, manageDataList.map { it.location }, palette)
         baseLayerVersion++
     }
 
-    LaunchedEffect(routePoints, baseLayerVersion, uiState.isSpoofingActive, uiState.routePlanStage, uiState.useRealRoute) {
+    LaunchedEffect(routePoints, baseLayerVersion) {
         if (!isActive) return@LaunchedEffect
         val map = mapController ?: return@LaunchedEffect
-        val added = mutableListOf<AppMapOverlay>()
-        var newLiveMarker: AppMapMarker? = null
-
-        if (routePoints.size >= 2) {
-            added += map.addPolyline(
-                routePoints.map { Pair(it.lat, it.lng) },
-                "#FF388BFD".toColorInt(),
-                8f
-            )
-        }
-        routePoints.forEachIndexed { idx, p ->
-            val type = when {
-                idx == 0 -> MarkerType.GREEN
-                idx == routePoints.lastIndex && routePoints.size > 1 -> MarkerType.RED
-                else -> MarkerType.DEFAULT
-            }
-            if (uiState.useRealRoute && uiState.routePlanStage == RoutePlanStage.RUNNING && type == MarkerType.DEFAULT) {
-                return@forEachIndexed
-            }
-            val startBadge = context.getString(R.string.route_start_badge)
-            val endBadge = context.getString(R.string.route_end_badge)
-            val label = when (type) {
-                MarkerType.GREEN -> startBadge
-                MarkerType.RED -> endBadge
-                else -> "${idx + 1}"
-            }
-            added += map.addMarker(
-                p.lat,
-                p.lng,
-                if (type == MarkerType.RED && uiState.useRealRoute && uiState.routePlanStage == RoutePlanStage.RUNNING) endBadge else label,
-                type
-            )
-        }
-
-        if (uiState.isSpoofingActive) {
-            val currentLat = uiState.latitudeInput.toDoubleOrNull()
-            val currentLng = uiState.longitudeInput.toDoubleOrNull()
-            if (currentLat != null && currentLng != null) {
-                newLiveMarker = map.addMarker(
-                    currentLat, currentLng,
-                    context.getString(R.string.route_current_badge),
-                    MarkerType.ORANGE
-                )
-                added += newLiveMarker
-            }
-        }
-
-        routeOverlays.forEach { it.remove() }
-        routeOverlays.clear()
-        routeOverlays += added
-        liveMarker = newLiveMarker
+        routeLine?.remove()
+        routeLine = if (routePoints.size >= 2) map.addPolyline(routePoints.map { it.lat to it.lng }, palette.route, MAP_LINE_WIDTH_DP) else null
     }
 
     val lat = uiState.latitudeInput.toDoubleOrNull()
     val lng = uiState.longitudeInput.toDoubleOrNull()
-    LaunchedEffect(lat, lng, uiState.isSpoofingActive) {
-        if (uiState.isSpoofingActive && lat != null && lng != null) {
-            liveMarker?.setPosition(lat, lng)
-        }
+    LaunchedEffect(routePoints, baseLayerVersion, stage, uiState.useRealRoute, uiState.isSpoofingActive, lat, lng) {
+        if (!isActive) return@LaunchedEffect
+        val map = mapController ?: return@LaunchedEffect
+        val hideWaypoints = uiState.useRealRoute && stage == RoutePlanStage.RUNNING
+        markerLayer.update(map, buildMap {
+            routePoints.forEachIndexed { index, point ->
+                val style = when {
+                    index == 0 -> palette.start
+                    index == routePoints.lastIndex -> palette.end
+                    hideWaypoints -> return@forEachIndexed
+                    else -> palette.waypoint(index + 1)
+                }
+                put(index, MapMarkerSpec(point.lat, point.lng, style))
+            }
+            if (uiState.isSpoofingActive && lat != null && lng != null) put(CURRENT_MARKER, MapMarkerSpec(lat, lng, palette.current))
+        })
     }
 
     LaunchedEffect(uiState.routePlanStage, routePoints, isActive, mapController, uiState.selectedCollectionRouteId) {
         if (!isActive) return@LaunchedEffect
         if ((uiState.routePlanStage == RoutePlanStage.RUNNING ||
                 (uiState.routePlanStage == RoutePlanStage.READY && uiState.selectedCollectionRouteId != null)) && routePoints.size >= 2) {
-            val padLeft = with(density) { 36.dp.roundToPx() }
-            val padTop = with(density) { 80.dp.roundToPx() }
-            val padRight = with(density) { 36.dp.roundToPx() }
-            val effectiveBottomDp =
-                if (bottomActionHeightDp > 0.dp) bottomActionHeightDp + bottomBarHeight + 24.dp else bottomBarHeight + 160.dp
-            val padBottom =
-                with(density) { effectiveBottomDp.roundToPx() }
-            mapController?.fitBounds(
-                points = routePoints.map { Pair(it.lat, it.lng) },
-                paddingLeft = padLeft,
-                paddingTop = padTop,
-                paddingRight = padRight,
-                paddingBottom = padBottom
-            )
+            mapController?.fitRoute(routePoints, density, bottomActionHeightDp, bottomBarHeight)
+        }
+    }
+
+    var followArmed by remember(stage) { mutableStateOf(false) }
+    LaunchedEffect(lat, lng) {
+        if (!isActive || stage != RoutePlanStage.RUNNING || !uiState.isSpoofingActive || lat == null || lng == null) return@LaunchedEffect
+        val map = mapController ?: return@LaunchedEffect
+        val point = map.screenLocation(lat, lng) ?: return@LaunchedEffect
+        val inside = with(density) {
+            point.x in RouteCameraLeft.roundToPx()..(tabRight - RouteCameraRight.toPx()).toInt() &&
+                point.y in RouteCameraTop.roundToPx()..panelTop.toInt()
+        }
+        when {
+            uiState.routeRunMode == RouteRunMode.MANUAL -> map.moveCamera(lat, lng)
+            inside -> followArmed = true
+            followArmed -> map.animateCamera(lat, lng)
         }
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned { tabBottom = it.boundsInRoot().bottom }
+            .onGloballyPositioned { coordinates ->
+                coordinates.boundsInRoot().let {
+                    tabBottom = it.bottom
+                    tabRight = it.right
+                }
+            }
     ) {
         AnimatedContent(
             targetState = routePoints.size.takeIf { it > 0 && (stage == RoutePlanStage.IDLE || stage == RoutePlanStage.SELECTING) },
@@ -408,3 +380,5 @@ fun RouteTab(
         )
     }
 }
+
+private const val CURRENT_MARKER = "current"
