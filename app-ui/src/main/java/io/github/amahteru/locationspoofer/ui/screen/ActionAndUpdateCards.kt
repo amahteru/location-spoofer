@@ -55,13 +55,11 @@ fun ActionButtons(
                     color = LocalContentColor.current,
                     strokeWidth = 2.dp
                 )
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.starting_ellipsis))
             } else {
                 Icon(Icons.Rounded.MyLocation, null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.fixed_simulation))
             }
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.fixed_simulation))
         }
     }
 }

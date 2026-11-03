@@ -163,7 +163,6 @@
     <string name="map_engine_amap">高德地图</string>
     <string name="map_engine_baidu">百度地图</string>
     <string name="map_engine_google">谷歌地图</string>
-    <string name="starting_ellipsis">启动中…</string>
     <string name="no_search_results">未找到搜索结果</string>
     <string name="route_start_badge">起</string>
     <string name="route_end_badge">终</string>

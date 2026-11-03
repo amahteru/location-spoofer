@@ -164,7 +164,6 @@
     <string name="map_engine_amap">AMap</string>
     <string name="map_engine_baidu">Baidu Maps</string>
     <string name="map_engine_google">Google Maps</string>
-    <string name="starting_ellipsis">Starting…</string>
     <string name="no_search_results">No results</string>
     <string name="route_start_badge">Start</string>
     <string name="route_end_badge">End</string>

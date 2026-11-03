@@ -2,6 +2,8 @@ package io.github.amahteru.locationspoofer.ui.screen.tabs.location
 
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -130,29 +132,27 @@ fun LocationControlPanel(
                 )
 
                 AnimatedVisibility(
-                    visible = uiState.isSpoofingActive && panelState == LocationPanelState.COLLAPSED,
+                    visible = panelState == LocationPanelState.COLLAPSED,
                     enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
                     exit = shrinkHorizontally(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
                 ) {
-                    ExtendedFloatingActionButton(
-                        onClick = onStopSpoofing,
-                        icon = { Icon(Icons.Rounded.StopCircle, contentDescription = null) },
-                        text = { Text(stringResource(R.string.stop_simulation)) },
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(start = AppSpacing.sm)
+                    val spoofing = uiState.isSpoofingActive
+                    val containerColor by animateColorAsState(
+                        if (spoofing) MaterialTheme.colorScheme.errorContainer else FloatingActionButtonDefaults.containerColor,
+                        motion.defaultEffectsSpec()
                     )
-                }
-
-                AnimatedVisibility(
-                    visible = !uiState.isSpoofingActive && panelState == LocationPanelState.COLLAPSED,
-                    enter = expandHorizontally(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
-                    exit = shrinkHorizontally(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec())
-                ) {
+                    val contentColor by animateColorAsState(
+                        if (spoofing) MaterialTheme.colorScheme.onErrorContainer else contentColorFor(FloatingActionButtonDefaults.containerColor),
+                        motion.defaultEffectsSpec()
+                    )
                     ExtendedFloatingActionButton(
-                        onClick = { if (!uiState.isSavingConfig) onStartFixedSpoofing() },
+                        onClick = {
+                            if (spoofing) onStopSpoofing() else if (!uiState.isSavingConfig) onStartFixedSpoofing()
+                        },
                         icon = {
-                            if (uiState.isSavingConfig) {
+                            if (spoofing) {
+                                Icon(Icons.Rounded.StopCircle, contentDescription = null)
+                            } else if (uiState.isSavingConfig) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                     color = LocalContentColor.current,
@@ -163,9 +163,13 @@ fun LocationControlPanel(
                             }
                         },
                         text = {
-                            Text(stringResource(if (uiState.isSavingConfig) R.string.starting_ellipsis else R.string.fixed_simulation))
+                            Text(stringResource(if (spoofing) R.string.stop_simulation else R.string.fixed_simulation))
                         },
-                        modifier = Modifier.padding(start = AppSpacing.sm)
+                        containerColor = containerColor,
+                        contentColor = contentColor,
+                        modifier = Modifier
+                            .padding(start = AppSpacing.sm)
+                            .animateContentSize(motion.defaultSpatialSpec())
                     )
                 }
             }
