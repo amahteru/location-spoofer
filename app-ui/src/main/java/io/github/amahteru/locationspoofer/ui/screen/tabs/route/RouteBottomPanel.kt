@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.AltRoute
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -286,7 +287,7 @@ private fun RouteRunningControls(
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.route_replan_from_here)) },
-                    leadingIcon = { Icon(Icons.Rounded.AltRoute, null) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Rounded.AltRoute, null) },
                     onClick = {
                         showEndMenu = false
                         onReplanRoute()

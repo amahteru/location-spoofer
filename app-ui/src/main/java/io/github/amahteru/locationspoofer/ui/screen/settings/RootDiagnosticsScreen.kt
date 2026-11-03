@@ -79,7 +79,7 @@ fun RootDiagnosticsScreen(
             onDismiss = { viewModel.dismissRestartHookedAppsDialog() },
             onConfirm = {
                 viewModel.confirmRestartHookedApps { count ->
-                    AppSnackbar.show(resources.getString(R.string.restart_hooked_apps_done, count))
+                    AppSnackbar.show(resources.getQuantityString(R.plurals.restart_hooked_apps_done, count, count))
                 }
             }
         )

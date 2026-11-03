@@ -36,7 +36,6 @@
     <string name="no_saved_locations">暂无收藏的地点</string>
     <string name="close">关闭</string>
     <string name="delete">删除</string>
-    <string name="search">搜索</string>
     <string name="root_solution_title">Root 与框架</string>
     <string name="root_solution_desc">测试连接与重启目标应用</string>
     <string name="overlay_permission_required">请允许「显示在其他应用上层」，然后再次打开悬浮摇杆</string>
@@ -66,7 +65,9 @@
     <string name="restart_hooked_apps_confirm_title">确认重启应用</string>
     <string name="restart_hooked_apps_confirm_message">这会强制关闭以下 %1$d 个应用，其中未保存的内容可能丢失</string>
     <string name="restart_hooked_apps_confirm_button">确认重启</string>
-    <string name="restart_hooked_apps_done">已重启 %1$d 个应用，请重新打开验证</string>
+    <plurals name="restart_hooked_apps_done">
+        <item quantity="other">已重启 %1$d 个应用，请重新打开验证</item>
+    </plurals>
     <string name="restart_hooked_apps_empty">当前没有为本模块勾选作用域的应用</string>
     <string name="copy_diagnostic_info">复制诊断信息</string>
     <string name="select_language">选择语言</string>
@@ -444,7 +445,6 @@
     <string name="env_restart">重启</string>
     <string name="perm_background_location_requires">需先允许位置信息</string>
     <string name="perm_battery_desc">防止后台被系统冻结</string>
-    <string name="perm_location_approximate">需改为精确位置</string>
     <string name="adaptation_progress_full">完整适配进度</string>
     <string name="adaptation_progress_title">适配进度</string>
     <string name="coloros_virtual_location_desc">系统定位关闭时允许选定应用接收模拟位置，仅用于 ColorOS 16，默认关闭</string>

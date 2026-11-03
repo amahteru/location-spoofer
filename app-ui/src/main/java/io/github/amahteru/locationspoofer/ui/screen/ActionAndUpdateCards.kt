@@ -23,7 +23,6 @@ import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 fun ActionButtons(
     viewModel: MainViewModel,
     uiState: AppState,
-    onOpenMap: () -> Unit,
     onStartFixedSpoofing: () -> Unit
 ) {
     val spoofing = uiState.isSpoofingActive

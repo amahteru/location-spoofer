@@ -32,7 +32,6 @@
     <string name="no_saved_locations">No favorite locations</string>
     <string name="close">Close</string>
     <string name="delete">Delete</string>
-    <string name="search">Search</string>
     <string name="root_solution_title">Root &amp; framework</string>
     <string name="root_solution_desc">Test the connection and restart target apps</string>
     <string name="overlay_permission_required">Allow “Display over other apps”, then open the floating joystick again</string>
@@ -62,7 +61,10 @@
     <string name="restart_hooked_apps_confirm_title">Restart apps?</string>
     <string name="restart_hooked_apps_confirm_message">This will force-stop the following apps (%1$d). Unsaved content in them may be lost.</string>
     <string name="restart_hooked_apps_confirm_button">Restart</string>
-    <string name="restart_hooked_apps_done">Restarted %1$d apps. Reopen them to verify</string>
+    <plurals name="restart_hooked_apps_done">
+        <item quantity="one">Restarted %1$d app. Reopen it to verify</item>
+        <item quantity="other">Restarted %1$d apps. Reopen them to verify</item>
+    </plurals>
     <string name="restart_hooked_apps_empty">No apps are currently in scope for this module</string>
     <string name="copy_diagnostic_info">Copy diagnostic info</string>
     <string name="select_language">Language</string>
@@ -444,7 +446,6 @@
     <string name="env_restart">Restart</string>
     <string name="perm_background_location_requires">Allow Location first</string>
     <string name="perm_battery_desc">Avoid background freezing</string>
-    <string name="perm_location_approximate">Precise location needed</string>
     <string name="adaptation_progress_full">Full adaptation progress</string>
     <string name="adaptation_progress_title">Adaptation progress</string>
     <string name="coloros_virtual_location_desc">Allow selected apps to receive simulated locations while system location is off. ColorOS 16 only; disabled by default.</string>

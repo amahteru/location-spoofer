@@ -199,7 +199,6 @@ fun LocationControlPanel(
                     ActionButtons(
                         viewModel = viewModel,
                         uiState = uiState,
-                        onOpenMap = {},
                         onStartFixedSpoofing = onStartFixedSpoofing
                     )
                 }
