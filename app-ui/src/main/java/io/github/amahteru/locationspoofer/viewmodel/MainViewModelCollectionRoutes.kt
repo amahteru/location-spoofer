@@ -68,12 +68,11 @@ internal fun MainViewModel.skipCollectionRouteInfo() {
 
 internal fun MainViewModel.selectCollectedRoute(id: Long) {
     val route = collectionRoutes.value.firstOrNull { it.route.id == id } ?: return
-    val point = route.route.geometry().firstOrNull() ?: return
+    val points = route.route.geometry().takeIf { it.isNotEmpty() } ?: return
     pinnedLocationRecordId = null
     _uiState.update {
         it.copy(selectedCollectionRouteId = id, pinnedCollectedLocationId = null, pinnedLocationName = null,
-            latitudeInput = point.lat.toString(), longitudeInput = point.lng.toString(),
-            routePoints = route.route.geometry().map { p -> RoutePoint(p.lat, p.lng) },
+            routePoints = points.map { p -> RoutePoint(p.lat, p.lng) },
             routePlanStage = io.github.amahteru.locationspoofer.data.model.RoutePlanStage.READY,
             useRealRoute = false)
     }
@@ -99,6 +98,7 @@ internal suspend fun MainViewModel.environmentRecordsAt(lat: Double, lng: Double
 
 internal fun MainViewModel.prepareRouteSimulationOptions(onReady: () -> Unit) {
     val point = _uiState.value.routePoints.firstOrNull() ?: return
+    routeOptionsBackup = _uiState.value
     viewModelScope.launch {
         _uiState.update { it.copy(latitudeInput = point.lat.toString(), longitudeInput = point.lng.toString()) }
         evaluateMockCapabilitiesSuspend(point.lat, point.lng)
@@ -112,4 +112,22 @@ internal fun MainViewModel.prepareRouteSimulationOptions(onReady: () -> Unit) {
         settingsRepository.mockBluetooth = _uiState.value.mockBluetooth
         onReady()
     }
+}
+
+internal fun MainViewModel.cancelRouteSimulationOptions() {
+    val backup = routeOptionsBackup ?: return
+    routeOptionsBackup = null
+    settingsRepository.mockWifi = backup.mockWifi
+    settingsRepository.mockCell = backup.mockCell
+    settingsRepository.mockBluetooth = backup.mockBluetooth
+    _uiState.update {
+        it.copy(
+            latitudeInput = backup.latitudeInput,
+            longitudeInput = backup.longitudeInput,
+            mockWifi = backup.mockWifi,
+            mockCell = backup.mockCell,
+            mockBluetooth = backup.mockBluetooth
+        )
+    }
+    evaluateMockCapabilities()
 }

@@ -117,5 +117,5 @@ class MainViewModel(
     internal var lastDbQueryLat: Double = 0.0
     internal var lastDbQueryLng: Double = 0.0
 
-    internal var restoredSpoofPoint: io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng? = null
+    internal var routeOptionsBackup: AppState? = null
 }

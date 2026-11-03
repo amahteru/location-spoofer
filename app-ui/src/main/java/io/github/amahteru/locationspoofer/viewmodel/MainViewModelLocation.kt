@@ -31,7 +31,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
         })
         client.setLocationListener { loc ->
             if (loc != null && loc.errorCode == 0) {
-                if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty() || forceCallback != null) {
+                if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty()) {
                     _uiState.update {
                         it.copy(
                             latitudeInput = String.format(java.util.Locale.US, "%.6f", loc.latitude),
@@ -39,8 +39,8 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
                             showCoordinateError = false
                         )
                     }
-                    forceCallback?.invoke(loc.latitude, loc.longitude)
                 }
+                forceCallback?.invoke(loc.latitude, loc.longitude)
             } else {
                 fallbackToNativeLocation(ctx, forceCallback, true)
             }
@@ -99,7 +99,7 @@ private fun MainViewModel.applyNativeLocation(
         finalLng = gcj.longitude
     }
 
-    if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty() || forceCallback != null) {
+    if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty()) {
         _uiState.update {
             it.copy(
                 latitudeInput = String.format(java.util.Locale.US, "%.6f", finalLat),
@@ -107,8 +107,8 @@ private fun MainViewModel.applyNativeLocation(
                 showCoordinateError = false
             )
         }
-        forceCallback?.invoke(finalLat, finalLng)
     }
+    forceCallback?.invoke(finalLat, finalLng)
 }
 
 internal suspend fun MainViewModel.fetchRealLocationSilent(ctx: Context): Pair<Double, Double>? {

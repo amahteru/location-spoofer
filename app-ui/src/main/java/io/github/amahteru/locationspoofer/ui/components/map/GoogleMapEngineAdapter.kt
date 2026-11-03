@@ -163,8 +163,14 @@ class GMapControllerImpl(
     private var cameraFinishListener: ((Double, Double) -> Unit)? = null
     private var cameraMoveListener: ((Double, Double) -> Unit)? = null
 
+    private var isGesture = false
+
     init {
+        map.setOnCameraMoveStartedListener { reason ->
+            isGesture = reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE
+        }
         map.setOnCameraMoveListener {
+            if (!isGesture) return@setOnCameraMoveListener
             val target = map.cameraPosition.target
             cameraMoveListener?.invoke(target.latitude, target.longitude)
         }

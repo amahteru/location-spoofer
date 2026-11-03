@@ -229,10 +229,8 @@ class BaiduMapControllerImpl(
             }
 
             override fun onMapStatusChangeFinish(p0: com.baidu.mapapi.map.MapStatus?) {
-                if (lastReason == BaiduMap.OnMapStatusChangeListener.REASON_GESTURE) {
-                    p0?.target?.let {
-                        cameraFinishListener?.invoke(it.latitude, it.longitude)
-                    }
+                p0?.target?.let {
+                    cameraFinishListener?.invoke(it.latitude, it.longitude)
                 }
             }
         })

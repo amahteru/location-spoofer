@@ -139,6 +139,9 @@ fun MainScaffoldScreen(
         if (selectedTab == 0) {
             mapController?.clear()
             mapController?.setMapType(uiState.mapType)
+            val lat = uiState.latitudeInput.toDoubleOrNull()
+            val lng = uiState.longitudeInput.toDoubleOrNull()
+            if (lat != null && lng != null) mapController?.animateCamera(lat, lng)
         }
     }
 

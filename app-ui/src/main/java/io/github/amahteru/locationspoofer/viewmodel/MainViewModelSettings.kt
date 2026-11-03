@@ -44,12 +44,6 @@ internal fun MainViewModel.initialize() {
             settingsRepository.keepLastMapPosition -> settingsRepository.getLastMapPosition()
             else -> null
         }
-        restoredSpoofPoint = if (settingsRepository.isSpoofingActive) {
-            val lat = restoredPosition?.first?.toDoubleOrNull()
-            val lng = restoredPosition?.second?.toDoubleOrNull()
-            if (lat != null && lng != null) io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng) else null
-        } else null
-
         _uiState.update {
             it.copy(
                 isInitializing = false,

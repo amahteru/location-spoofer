@@ -157,9 +157,16 @@ class AMapControllerImpl(
     private var cameraFinishListener: ((Double, Double) -> Unit)? = null
     private var cameraMoveListener: ((Double, Double) -> Unit)? = null
 
+    private var isTouching = false
+
     init {
+        map.setOnMapTouchListener { event ->
+            isTouching = event.actionMasked != android.view.MotionEvent.ACTION_UP &&
+                event.actionMasked != android.view.MotionEvent.ACTION_CANCEL
+        }
         map.setOnCameraChangeListener(object : AMap.OnCameraChangeListener {
             override fun onCameraChange(p0: CameraPosition?) {
+                if (!isTouching) return
                 p0?.target?.let { cameraMoveListener?.invoke(it.latitude, it.longitude) }
             }
 

@@ -40,6 +40,7 @@ import io.github.amahteru.locationspoofer.viewmodel.setAltitude
 import io.github.amahteru.locationspoofer.viewmodel.setAltitudeVariation
 import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
 import io.github.amahteru.locationspoofer.viewmodel.addRoutePoint
+import io.github.amahteru.locationspoofer.viewmodel.cancelRouteSimulationOptions
 import io.github.amahteru.locationspoofer.viewmodel.fetchCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.finishSelectingPoints
 import io.github.amahteru.locationspoofer.viewmodel.restartSelectingPoints
@@ -177,11 +178,8 @@ fun RouteTab(
 
     val lat = uiState.latitudeInput.toDoubleOrNull()
     val lng = uiState.longitudeInput.toDoubleOrNull()
-    LaunchedEffect(lat, lng, uiState.isSpoofingActive, uiState.routePlanStage) {
+    LaunchedEffect(lat, lng, uiState.isSpoofingActive) {
         if (uiState.isSpoofingActive && lat != null && lng != null) {
-            if (uiState.routePlanStage != RoutePlanStage.RUNNING) {
-                mapController?.animateCamera(lat, lng)
-            }
             liveMarker?.setPosition(lat, lng)
         }
     }
@@ -336,6 +334,7 @@ fun RouteTab(
             uiState = uiState,
             onDismiss = {
                 showConfigDialog = false
+                viewModel.cancelRouteSimulationOptions()
             },
             onStartRoute = {
                 showConfigDialog = false

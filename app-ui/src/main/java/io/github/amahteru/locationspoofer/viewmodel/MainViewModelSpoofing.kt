@@ -32,7 +32,6 @@ internal fun MainViewModel.startSpoofing() {
     settingsRepository.isSpoofingActive = true
     settingsRepository.lastSpoofedLat = lat.toString()
     settingsRepository.lastSpoofedLng = lng.toString()
-    restoredSpoofPoint = null
 
     viewModelScope.launch {
         _uiState.update { it.copy(isSavingConfig = true) }

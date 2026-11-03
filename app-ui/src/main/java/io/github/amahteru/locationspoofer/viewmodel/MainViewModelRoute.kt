@@ -93,10 +93,10 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
     }
     evaluateMockCapabilities()
     val state = _uiState.value
-    restoredSpoofPoint?.let { restored ->
-        if (io.github.amahteru.locationspoofer.utils.GeoMath.distance(restored, io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
-        restoredSpoofPoint = null
-    }
+    val spoofedLat = settingsRepository.lastSpoofedLat.toDoubleOrNull()
+    val spoofedLng = settingsRepository.lastSpoofedLng.toDoubleOrNull()
+    if (spoofedLat != null && spoofedLng != null &&
+        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(spoofedLat, spoofedLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
     if (state.isSpoofingActive) {
         settingsRepository.lastSpoofedLat = lat.toString()
         settingsRepository.lastSpoofedLng = lng.toString()
