@@ -65,6 +65,8 @@ fun LocationTab(
     uiState: AppState,
     mapController: AppMapController?,
     tabBarHeight: Dp = 90.dp,
+    panelState: LocationPanelState,
+    onPanelStateChange: (LocationPanelState) -> Unit,
     manageDataViewModel: ManageDataViewModel = koinViewModel(),
     onCollectionRouteSelected: () -> Unit = {}
 ) {
@@ -73,18 +75,6 @@ fun LocationTab(
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
     val onIntent = { intent: SpoofingIntent -> viewModel.handleSpoofingIntent(intent) }
     var showLocalDataDialog by remember { mutableStateOf(false) }
-
-    var panelState by remember {
-        mutableStateOf(
-            if (uiState.isSpoofingActive) LocationPanelState.COLLAPSED else LocationPanelState.DEFAULT
-        )
-    }
-
-    LaunchedEffect(uiState.isSpoofingActive) {
-        if (uiState.isSpoofingActive) {
-            panelState = LocationPanelState.COLLAPSED
-        }
-    }
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -135,7 +125,7 @@ fun LocationTab(
             modifier = Modifier.align(Alignment.BottomCenter),
             uiState = uiState,
             panelState = panelState,
-            onPanelStateChange = { panelState = it },
+            onPanelStateChange = onPanelStateChange,
             viewModel = viewModel,
             tabBarHeight = tabBarHeight,
             onSaveClick = { onIntent(SpoofingIntent.SetSaveDialogVisible(true)) },

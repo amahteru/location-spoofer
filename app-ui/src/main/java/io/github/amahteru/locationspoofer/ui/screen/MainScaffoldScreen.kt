@@ -3,6 +3,7 @@ package io.github.amahteru.locationspoofer.ui.screen
 import io.github.amahteru.locationspoofer.ui.components.MapCenterPin
 import androidx.annotation.RawRes
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
+import io.github.amahteru.locationspoofer.ui.screen.tabs.location.LocationPanelState
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -139,10 +140,28 @@ fun MainScaffoldScreen(
         if (selectedTab == 0) {
             mapController?.clear()
             mapController?.setMapType(uiState.mapType)
+        }
+    }
+
+    LaunchedEffect(selectedTab) {
+        val map = mapController ?: return@LaunchedEffect
+        if (selectedTab != BottomTab.Location.ordinal) return@LaunchedEffect
+        if (uiState.isSpoofingActive) {
             val lat = uiState.latitudeInput.toDoubleOrNull()
             val lng = uiState.longitudeInput.toDoubleOrNull()
-            if (lat != null && lng != null) mapController?.animateCamera(lat, lng)
+            if (lat != null && lng != null) map.animateCamera(lat, lng)
+        } else {
+            val lat = map.cameraTargetLat
+            val lng = map.cameraTargetLng
+            if (lat != null && lng != null) viewModel.handleSpoofingIntent(SpoofingIntent.ConfirmMapPoint(lat, lng))
         }
+    }
+
+    var locationPanelState by remember {
+        mutableStateOf(if (uiState.isSpoofingActive) LocationPanelState.COLLAPSED else LocationPanelState.DEFAULT)
+    }
+    LaunchedEffect(uiState.isSpoofingActive) {
+        if (uiState.isSpoofingActive) locationPanelState = LocationPanelState.COLLAPSED
     }
 
     val motion = AppMotion
@@ -238,7 +257,9 @@ fun MainScaffoldScreen(
                             uiState = uiState,
                             mapController = mapController,
                             onCollectionRouteSelected = { selectedTab = BottomTab.Route.ordinal },
-                            tabBarHeight = paddingValues.calculateBottomPadding()
+                            tabBarHeight = paddingValues.calculateBottomPadding(),
+                            panelState = locationPanelState,
+                            onPanelStateChange = { locationPanelState = it }
                         )
 
                         BottomTab.Route.ordinal -> io.github.amahteru.locationspoofer.ui.screen.tabs.RouteTab(

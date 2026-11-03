@@ -84,6 +84,10 @@ internal fun MainViewModel.joystickMaxSpeedMs(): Float =
 
 internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging: Boolean = false) {
     if (motionController.state.value.hasRoute) return
+    val spoofedLat = settingsRepository.lastSpoofedLat.toDoubleOrNull()
+    val spoofedLng = settingsRepository.lastSpoofedLng.toDoubleOrNull()
+    if (_uiState.value.isSpoofingActive && spoofedLat != null && spoofedLng != null &&
+        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(spoofedLat, spoofedLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
     _uiState.update {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
@@ -93,10 +97,6 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
     }
     evaluateMockCapabilities()
     val state = _uiState.value
-    val spoofedLat = settingsRepository.lastSpoofedLat.toDoubleOrNull()
-    val spoofedLng = settingsRepository.lastSpoofedLng.toDoubleOrNull()
-    if (spoofedLat != null && spoofedLng != null &&
-        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(spoofedLat, spoofedLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
     if (state.isSpoofingActive) {
         settingsRepository.lastSpoofedLat = lat.toString()
         settingsRepository.lastSpoofedLng = lng.toString()
