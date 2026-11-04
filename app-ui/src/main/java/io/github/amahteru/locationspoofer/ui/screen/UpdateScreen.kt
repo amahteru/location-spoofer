@@ -5,192 +5,154 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.AnimatedContent
-import io.github.amahteru.locationspoofer.ui.components.SwitchListItem
-import io.github.amahteru.locationspoofer.ui.components.StatusLabel
-import io.github.amahteru.locationspoofer.ui.components.LabelTone
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
+import io.github.amahteru.locationspoofer.ui.components.ModernSettingsInput
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.VpnKey
+import io.github.amahteru.locationspoofer.ui.components.NavigationCard
+import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.Icons
 import android.app.DownloadManager
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.data.model.GithubRelease
-import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
+import io.github.amahteru.locationspoofer.viewmodel.LatestBuild
 import io.github.amahteru.locationspoofer.viewmodel.UpdateUiState
 import io.github.amahteru.locationspoofer.viewmodel.UpdateViewModel
-import io.github.amahteru.locationspoofer.viewmodel.setCheckBetaUpdates
-import io.github.amahteru.locationspoofer.viewmodel.setIgnoredVersion
 import io.github.amahteru.locationspoofer.ui.components.AppCard
 import io.github.amahteru.locationspoofer.ui.theme.success
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateScreen(
     updateViewModel: UpdateViewModel,
-    viewModel: MainViewModel,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val uiState by updateViewModel.uiState.collectAsState()
-    val appState by viewModel.uiState.collectAsState()
-    val currentVersion = BuildConfig.VERSION_NAME
-    val listState = rememberLazyListState()
+    var showTokenDialog by remember { mutableStateOf(false) }
 
     BackHandler(onBack = onBack)
 
     LaunchedEffect(Unit) {
-        if (uiState.releases.isEmpty()) {
-            updateViewModel.fetchReleases()
+        if (uiState.latestBuild == null) {
+            updateViewModel.fetchLatestBuild()
         }
     }
 
-    val filteredReleases = remember(uiState.releases, appState.checkBetaUpdates) {
-        if (appState.checkBetaUpdates) {
-            uiState.releases
-        } else {
-            uiState.releases.filter { !it.isPrerelease }
-        }
-    }
+    val latestBuild = uiState.latestBuild
 
-    val missed = remember(filteredReleases, currentVersion) {
-        filteredReleases.filter { isNewerVersion(it.versionName, currentVersion) }
-    }
-
-    val hasNewVersion = missed.isNotEmpty()
-    val latestRelease = filteredReleases.firstOrNull()
-
-    val displayList = remember(filteredReleases, missed) {
-        if (missed.size > 1) {
-            val latest = missed.first()
-            val grouped = parseAndCategorizeReleaseNotes(missed)
-            val mergedBody = generateMergedMarkdown(context, grouped)
-            val mergedRelease = latest.copy(body = mergedBody)
-            val historical = filteredReleases.filter { it !in missed }
-            listOf(mergedRelease) + historical
-        } else {
-            filteredReleases
-        }
-    }
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(R.string.software_update)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding() + 24.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.software_update_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = AppSpacing.xs)
-                )
+    SubPageScaffold(
+        title = stringResource(R.string.software_update),
+        subtitle = stringResource(R.string.software_update_desc),
+        onBack = onBack
+    ) {
+        CurrentVersionHeroCard(
+            uiState = uiState,
+            latestBuild = latestBuild,
+            onCheckAgain = { updateViewModel.fetchLatestBuild() },
+            onUpdate = { updateViewModel.startUpdate() },
+            onInstall = { updateViewModel.installApk() },
+            onCancelDownload = { updateViewModel.cancelDownload() },
+            onIgnore = { sha ->
+                updateViewModel.ignoreBuild(sha)
+                onBack()
             }
+        )
 
-            item {
-                CurrentVersionHeroCard(
-                    uiState = uiState,
-                    hasNewVersion = hasNewVersion,
-                    currentVersion = currentVersion,
-                    latestRelease = latestRelease,
-                    onCheckAgain = { updateViewModel.fetchReleases() },
-                    onDownload = { url, version -> updateViewModel.startDownload(url, version) },
-                    onInstall = { updateViewModel.installApk() },
-                    onCancelDownload = { updateViewModel.cancelDownload() },
-                    onIgnore = { version ->
-                        viewModel.setIgnoredVersion(version)
-                        onBack()
-                    }
-                )
-            }
-
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    SwitchListItem(
-                        title = stringResource(R.string.check_beta_channel_title),
-                        summary = stringResource(R.string.check_beta_channel_desc),
-                        checked = appState.checkBetaUpdates,
-                        onCheckedChange = { viewModel.setCheckBetaUpdates(it) }
-                    )
-                }
-            }
-
-            if (displayList.isNotEmpty()) {
-                item {
+        NavigationCard(
+            icon = Icons.Rounded.VpnKey,
+            title = stringResource(R.string.github_token_title),
+            summary = stringResource(R.string.github_token_desc),
+            onClick = { showTokenDialog = true },
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (hasNewVersion) stringResource(R.string.changelog) else stringResource(R.string.version_history),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = AppSpacing.xs, top = AppSpacing.sm)
+                        text = stringResource(
+                            if (uiState.hasGithubToken) R.string.github_token_set else R.string.github_token_unset
+                        ),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-
-                items(displayList) { release ->
-                    val cleanRelease = release.versionName.trim().lowercase().removePrefix("v")
-                    val cleanCurrent = currentVersion.trim().lowercase().removePrefix("v")
-                    val isCurrent = cleanRelease == cleanCurrent
-                    val isMerged = missed.size > 1 && release == displayList.first()
-
-                    ReleaseItemCard(
-                        release = release,
-                        isCurrentVersion = isCurrent,
-                        isMergedRelease = isMerged,
-                        mergedCount = missed.size,
-                        uiState = uiState,
-                        onDownload = { url, version -> updateViewModel.startDownload(url, version) }
-                    )
+                    Spacer(Modifier.width(AppSpacing.sm))
+                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
                 }
             }
-        }
+        )
     }
+
+    if (showTokenDialog) {
+        GithubTokenDialog(
+            initialToken = updateViewModel.githubToken,
+            onDismiss = { showTokenDialog = false },
+            onSave = { token ->
+                updateViewModel.saveGithubToken(token)
+                showTokenDialog = false
+                AppSnackbar.show(resources.getString(R.string.save_success))
+            }
+        )
+    }
+}
+
+@Composable
+private fun GithubTokenDialog(
+    initialToken: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var token by remember { mutableStateOf(initialToken) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Rounded.VpnKey, contentDescription = null) },
+        title = { Text(stringResource(R.string.github_token_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+                Text(stringResource(R.string.github_token_dialog_desc))
+                ModernSettingsInput(
+                    label = stringResource(R.string.github_token_title),
+                    value = token,
+                    onValueChange = { token = it },
+                    placeholder = stringResource(R.string.github_token_hint),
+                    visualTransformation = PasswordVisualTransformation()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(token) },
+                enabled = token.trim() != initialToken
+            ) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
 
 @Composable
 private fun CurrentVersionHeroCard(
     uiState: UpdateUiState,
-    hasNewVersion: Boolean,
-    currentVersion: String,
-    latestRelease: GithubRelease?,
+    latestBuild: LatestBuild?,
     onCheckAgain: () -> Unit,
-    onDownload: (String, String) -> Unit,
+    onUpdate: () -> Unit,
     onInstall: () -> Unit,
     onCancelDownload: () -> Unit,
     onIgnore: (String) -> Unit
@@ -216,28 +178,26 @@ private fun CurrentVersionHeroCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(AppSpacing.sm))
-
-                val cleanCurrentVersion = currentVersion.trim().removePrefix("v").removePrefix("V")
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-                ) {
-                    StatusLabel(text = "v$cleanCurrentVersion", tone = LabelTone.Neutral)
-                }
+                Text(
+                    text = stringResource(R.string.current_version_format, BuildConfig.VERSION_NAME),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            val releaseStatus = when {
+            val buildStatus = when {
                 uiState.isLoading -> 0
                 uiState.error != null -> 1
-                hasNewVersion && latestRelease != null -> 2
+                latestBuild?.isUncomparable == true -> 4
+                latestBuild?.hasUpdate == true -> 2
                 else -> 3
             }
             AnimatedContent(
-                targetState = releaseStatus,
+                targetState = buildStatus,
                 transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
-                label = "release_status"
+                label = "build_status"
             ) { status ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -269,24 +229,31 @@ private fun CurrentVersionHeroCard(
                             )
                         }
                         2 -> {
-                            val release = latestRelease ?: return@Row
-                            val cleanLatestVersion =
-                                release.versionName.trim().removePrefix("v").removePrefix("V")
+                            val build = latestBuild ?: return@Row
                             Icon(
                                 Icons.Rounded.NewReleases,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = stringResource(R.string.new_version_found_format, cleanLatestVersion),
+                                text = stringResource(R.string.new_version_found_format, build.shortSha),
                                 style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            if (release.isPrerelease) {
-                                Spacer(Modifier.width(AppSpacing.xs))
-                                StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
-                            }
+                        }
+                        4 -> {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.HelpOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.build_compare_unknown),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         else -> {
                             Icon(
@@ -336,46 +303,20 @@ private fun CurrentVersionHeroCard(
                         )
                     }
                 }
-            } else if (hasNewVersion && latestRelease != null) {
+            } else if (latestBuild != null && (latestBuild.hasUpdate || latestBuild.isUncomparable)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm, Alignment.End)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
-                    ) {
-                        val latestDownloadUrl = latestRelease.downloadUrl
-                        val latestDownloadUrl32Bit = latestRelease.downloadUrl32Bit
-                        if (latestDownloadUrl != null) {
-                            Button(
-                                onClick = {
-                                    onDownload(latestDownloadUrl, latestRelease.versionName)
-                                }
-                            ) {
-                                Text(
-                                    text = if (latestDownloadUrl32Bit != null) stringResource(R.string.update_now_64) else stringResource(R.string.update_now)
-                                )
-                            }
-                        }
-
-                        if (latestDownloadUrl32Bit != null) {
-                            OutlinedButton(
-                                onClick = {
-                                    onDownload(
-                                        latestDownloadUrl32Bit,
-                                        "${latestRelease.versionName}_32bit"
-                                    )
-                                }
-                            ) {
-                                Text(stringResource(R.string.download_32_compat))
-                            }
-                        }
+                    TextButton(onClick = { onIgnore(latestBuild.sha) }) {
+                        Text(stringResource(R.string.ignore))
                     }
-
-                    TextButton(onClick = { onIgnore(latestRelease.versionName) }) {
-                        Text(stringResource(R.string.ignore_this_version))
+                    Button(
+                        onClick = onUpdate,
+                        enabled = !uiState.isResolvingDownload
+                    ) {
+                        Text(stringResource(R.string.download))
                     }
                 }
             } else {
@@ -383,110 +324,6 @@ private fun CurrentVersionHeroCard(
                     onClick = onCheckAgain
                 ) {
                     Text(stringResource(R.string.recheck))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReleaseItemCard(
-    release: GithubRelease,
-    isCurrentVersion: Boolean,
-    isMergedRelease: Boolean,
-    mergedCount: Int,
-    uiState: UpdateUiState,
-    onDownload: (String, String) -> Unit
-) {
-    AppCard(
-        modifier = Modifier.fillMaxWidth(),
-        insideMargin = PaddingValues(AppSpacing.lg)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val cleanReleaseVersion =
-                        release.versionName.trim().removePrefix("v").removePrefix("V")
-                    Text(
-                        text = "v$cleanReleaseVersion",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    if (isCurrentVersion) {
-                        Spacer(Modifier.width(AppSpacing.sm))
-                        StatusLabel(text = stringResource(R.string.current_version), tone = LabelTone.Success)
-                    }
-
-                    if (isMergedRelease) {
-                        Spacer(Modifier.width(AppSpacing.sm))
-                        StatusLabel(text = stringResource(R.string.merged_count_badge, mergedCount))
-                    }
-
-                    if (release.isPrerelease) {
-                        Spacer(Modifier.width(AppSpacing.sm))
-                        StatusLabel(text = stringResource(R.string.prerelease_badge), tone = LabelTone.Warning)
-                    }
-                }
-
-                if (release.publishedAt.isNotBlank()) {
-                    Text(
-                        text = release.publishedAt.take(10),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            RenderMarkdownContent(markdown = release.body)
-
-            if (!isCurrentVersion && (release.downloadUrl != null || release.downloadUrl32Bit != null)) {
-                Spacer(Modifier.height(AppSpacing.xs))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-                    ) {
-                        val releaseDownloadUrl = release.downloadUrl
-                        val releaseDownloadUrl32Bit = release.downloadUrl32Bit
-                        if (releaseDownloadUrl != null) {
-                            Button(
-                                onClick = {
-                                    onDownload(releaseDownloadUrl, release.versionName)
-                                }
-                            ) {
-                                Text(
-                                    text = if (releaseDownloadUrl32Bit != null) stringResource(R.string.download_64) else stringResource(R.string.download)
-                                )
-                            }
-                        }
-
-                        if (releaseDownloadUrl32Bit != null) {
-                            OutlinedButton(
-                                onClick = {
-                                    onDownload(
-                                        releaseDownloadUrl32Bit,
-                                        "${release.versionName}_32bit"
-                                    )
-                                }
-                            ) {
-                                Text(stringResource(R.string.download_32))
-                            }
-                        }
-                    }
                 }
             }
         }

@@ -220,9 +220,9 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
             settingsManager.satelliteCount = value
         }
 
-    var checkBetaUpdates: Boolean
-        get() = settingsManager.checkBetaUpdates
+    var githubToken: String
+        get() = settingsManager.githubToken
         set(value) {
-            settingsManager.checkBetaUpdates = value
+            settingsManager.githubToken = value
         }
 }

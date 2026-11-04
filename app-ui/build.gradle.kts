@@ -13,11 +13,8 @@ android {
     defaultConfig {
         minSdk = 33
 
-        buildConfigField(
-            "String",
-            "VERSION_NAME",
-            "\"${providers.gradleProperty("APP_VERSION_NAME").get()}\""
-        )
+        buildConfigField("String", "VERSION_NAME", "\"${rootProject.extra["appVersionName"]}\"")
+        buildConfigField("String", "COMMIT_SHA", "\"${rootProject.extra["appCommitSha"]}\"")
 
         vectorDrawables {
             useSupportLibrary = true

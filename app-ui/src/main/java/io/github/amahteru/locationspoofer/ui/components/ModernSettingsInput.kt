@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
@@ -17,7 +18,8 @@ fun ModernSettingsInput(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     OutlinedTextField(
         value = value,
@@ -25,6 +27,7 @@ fun ModernSettingsInput(
         label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         placeholder = { Text(placeholder) },
         singleLine = true,
+        visualTransformation = visualTransformation,
         trailingIcon = if (value.isNotEmpty()) {
             {
                 IconButton(onClick = { onValueChange("") }) {

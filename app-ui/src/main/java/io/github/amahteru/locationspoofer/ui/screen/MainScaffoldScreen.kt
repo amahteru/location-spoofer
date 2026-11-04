@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
@@ -39,9 +38,7 @@ import io.github.amahteru.locationspoofer.ui.components.AppMapView
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.UpdateViewModel
-import io.github.amahteru.locationspoofer.viewmodel.getIgnoredVersion
 import io.github.amahteru.locationspoofer.viewmodel.handleSpoofingIntent
-import io.github.amahteru.locationspoofer.viewmodel.setIgnoredVersion
 import org.koin.androidx.compose.koinViewModel
 
 enum class BottomTab(val icon: ImageVector) {
@@ -96,28 +93,16 @@ fun MainScaffoldScreen(
     val updateUiState by updateViewModel.uiState.collectAsState()
     var hasAutoCheckedUpdates by remember { mutableStateOf(false) }
     var showStartupUpdateDialog by remember { mutableStateOf(false) }
-    val targetReleases = remember(updateUiState.releases, uiState.checkBetaUpdates) {
-        if (uiState.checkBetaUpdates) updateUiState.releases else updateUiState.releases.filter { !it.isPrerelease }
-    }
-    val latestRelease = targetReleases.firstOrNull()
+    val latestBuild = updateUiState.latestBuild
 
     LaunchedEffect(Unit) {
-        updateViewModel.fetchReleases()
+        updateViewModel.fetchLatestBuild()
     }
 
-    LaunchedEffect(targetReleases, updateUiState.isLoading) {
-        if (!hasAutoCheckedUpdates && !updateUiState.isLoading && targetReleases.isNotEmpty()) {
-            if (latestRelease != null) {
-                val latestVersion = latestRelease.versionName
-                val currentVersion = BuildConfig.VERSION_NAME
-                val ignoredVersion = viewModel.getIgnoredVersion()
-                if (isNewerVersion(
-                        latestVersion,
-                        currentVersion
-                    ) && latestVersion != ignoredVersion
-                ) {
-                    showStartupUpdateDialog = true
-                }
+    LaunchedEffect(latestBuild, updateUiState.isLoading) {
+        if (!hasAutoCheckedUpdates && !updateUiState.isLoading && latestBuild != null) {
+            if (latestBuild.hasUpdate && latestBuild.sha != updateViewModel.getIgnoredSha()) {
+                showStartupUpdateDialog = true
             }
             hasAutoCheckedUpdates = true
         }
@@ -337,7 +322,6 @@ fun MainScaffoldScreen(
 
                         MainSubScreen.Update -> UpdateScreen(
                             updateViewModel = updateViewModel,
-                            viewModel = viewModel,
                             onBack = { currentSubScreen = MainSubScreen.None }
                         )
 
@@ -418,16 +402,16 @@ fun MainScaffoldScreen(
                 .padding(bottom = if (currentSubScreen == MainSubScreen.None) 80.dp else 0.dp)
         )
 
-        if (showStartupUpdateDialog && latestRelease != null) {
+        if (showStartupUpdateDialog && latestBuild != null) {
             StartupUpdateDialog(
-                latestRelease = latestRelease,
+                latestBuild = latestBuild,
                 onDismiss = { showStartupUpdateDialog = false },
                 onNavigateToUpdate = {
                     showStartupUpdateDialog = false
                     currentSubScreen = MainSubScreen.Update
                 },
-                onIgnore = { version ->
-                    viewModel.setIgnoredVersion(version)
+                onIgnore = { sha ->
+                    updateViewModel.ignoreBuild(sha)
                     showStartupUpdateDialog = false
                 }
             )

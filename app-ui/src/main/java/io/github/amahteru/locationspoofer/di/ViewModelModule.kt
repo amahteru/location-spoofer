@@ -9,6 +9,6 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { MainViewModel(get(), get(), get(), get(), get(), get(), get(), get(), androidApplication()) }
-    viewModel { UpdateViewModel(androidApplication()) }
+    viewModel { UpdateViewModel(androidApplication(), get()) }
     viewModel { ManageDataViewModel(get()) }
 }

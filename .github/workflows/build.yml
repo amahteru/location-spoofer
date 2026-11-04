@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -54,18 +57,19 @@ jobs:
           [ -n "$BAIDU_API_KEY" ] || echo "::warning::未配置 BAIDU_API_KEY，安装包里的百度地图不可用"
           ./gradlew :app:assembleScopedRelease :app:assembleGlobalRelease
 
-          VERSION=$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d'=' -f2)
           DIST_DIR="app/build/outputs/apk/dist"
           mkdir -p "$DIST_DIR"
           for SCHEME in scoped global; do
-            APK=$(find "app/build/outputs/apk/$SCHEME/release" -name "*arm64-v8a*.apk" | head -n 1)
+            OUT_DIR="app/build/outputs/apk/$SCHEME/release"
+            VERSION=$(jq -r '.elements[0].versionName' "$OUT_DIR/output-metadata.json")
+            APK=$(find "$OUT_DIR" -name "*arm64-v8a*.apk" | head -n 1)
             if [ -z "$APK" ]; then
               echo "::error::没有找到 $SCHEME 方案的 arm64-v8a 安装包"
               exit 1
             fi
             SUFFIX=""
             case "$APK" in *unsigned*) SUFFIX="-unsigned" ;; esac
-            mv "$APK" "$DIST_DIR/LocationSpoofer-$SCHEME-arm64-v8a-v$VERSION$SUFFIX.apk"
+            mv "$APK" "$DIST_DIR/LocationSpoofer-$SCHEME-arm64-v8a-$VERSION$SUFFIX.apk"
           done
           ls -l "$DIST_DIR"
 

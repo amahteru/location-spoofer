@@ -63,21 +63,22 @@ fun UpdateCheckCard(
     newVersionName: String? = null,
     onCheckClick: () -> Unit
 ) {
-    val cleanNewVersion = remember(newVersionName) {
-        newVersionName?.trim()?.removePrefix("v")?.removePrefix("V")
-    }
-    val showNew = hasNewVersion && cleanNewVersion != null
+    val showNew = hasNewVersion && newVersionName != null
 
     NavigationCard(
         icon = Icons.Rounded.SystemUpdateAlt,
         title = stringResource(R.string.check_updates),
-        summary = if (showNew) stringResource(R.string.new_version_found_format, cleanNewVersion)
+        summary = if (showNew) stringResource(R.string.new_version_found)
         else stringResource(R.string.check_updates_desc),
         onClick = onCheckClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (showNew) {
-                    Badge { Text("v$cleanNewVersion") }
+                    Text(
+                        text = newVersionName,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Spacer(Modifier.width(AppSpacing.sm))
                 }
                 Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
