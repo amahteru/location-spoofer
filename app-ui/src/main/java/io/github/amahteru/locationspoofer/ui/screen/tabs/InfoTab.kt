@@ -29,7 +29,6 @@ import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import io.github.amahteru.locationspoofer.ui.screen.LANGUAGES
 import io.github.amahteru.locationspoofer.ui.screen.UpdateCheckCard
-import io.github.amahteru.locationspoofer.ui.screen.isNewerVersion
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.UpdateUiState
 import io.github.amahteru.locationspoofer.viewmodel.getSavedLanguage
@@ -58,15 +57,8 @@ fun InfoTab(
     onNavigateToEnvTokens: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {}
 ) {
-    val currentVersion = BuildConfig.VERSION_NAME
-    val targetReleases = remember(updateUiState?.releases, uiState.checkBetaUpdates) {
-        val list = updateUiState?.releases ?: emptyList()
-        if (uiState.checkBetaUpdates) list else list.filter { !it.isPrerelease }
-    }
-    val latestRelease = targetReleases.firstOrNull()
-    val hasNewVersion = remember(targetReleases) {
-        latestRelease != null && isNewerVersion(latestRelease.versionName, currentVersion)
-    }
+    val latestBuild = updateUiState?.latestBuild
+    val hasNewVersion = latestBuild?.hasUpdate == true
 
     val defaultLangText = stringResource(R.string.default_language)
     val savedLangCode = viewModel.getSavedLanguage()
@@ -147,7 +139,7 @@ fun InfoTab(
             item {
                 UpdateCheckCard(
                     hasNewVersion = hasNewVersion,
-                    newVersionName = if (hasNewVersion) latestRelease?.versionName else null,
+                    newVersionName = if (hasNewVersion) latestBuild.shortSha else null,
                     onCheckClick = onNavigateToUpdate
                 )
             }

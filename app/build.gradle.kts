@@ -52,8 +52,8 @@ android {
         testInstrumentationRunner = "io.github.amahteru.locationspoofer.SystemFilesInstrumentation"
         minSdk = 33
         targetSdk = 37
-        versionCode = providers.gradleProperty("APP_VERSION_CODE").get().toInt()
-        versionName = providers.gradleProperty("APP_VERSION_NAME").get()
+        versionCode = rootProject.extra["appVersionCode"] as Int
+        versionName = rootProject.extra["appVersionName"] as String
 
         vectorDrawables {
             useSupportLibrary = true

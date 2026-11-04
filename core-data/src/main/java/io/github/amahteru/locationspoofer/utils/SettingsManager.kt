@@ -80,9 +80,9 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("ignored_version", "") ?: ""
         set(value) = prefs.edit { putString("ignored_version", value) }
 
-    var checkBetaUpdates: Boolean
-        get() = prefs.getBoolean("check_beta_updates", false)
-        set(value) = prefs.edit { putBoolean("check_beta_updates", value) }
+    var githubToken: String
+        get() = prefs.getString("github_token", "") ?: ""
+        set(value) = prefs.edit { putString("github_token", value) }
 
     var isSpoofingActive: Boolean
         get() = prefs.getBoolean("is_spoofing_active", false)

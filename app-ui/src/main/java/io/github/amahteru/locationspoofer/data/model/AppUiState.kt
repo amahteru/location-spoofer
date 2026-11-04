@@ -111,7 +111,5 @@ data class AppState(
     val canMockBluetooth: Boolean = false,
 
     val pinnedCollectedLocationId: Long? = null,
-    val pinnedLocationName: String? = null,
-
-    val checkBetaUpdates: Boolean = false
+    val pinnedLocationName: String? = null
 )

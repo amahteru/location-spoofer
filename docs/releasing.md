@@ -32,11 +32,22 @@
 推送到 `main`、提交 PR 或在 Actions 页面手动触发时，`Build` 工作流会运行单元测试，构建两个方案的 Release APK，分别作为构建产物上传，下载即为 APK 文件：
 
 ```text
-LocationSpoofer-scoped-arm64-v8a-v<版本名>.apk
-LocationSpoofer-global-arm64-v8a-v<版本名>.apk
+LocationSpoofer-scoped-arm64-v8a-<版本名>.apk
+LocationSpoofer-global-arm64-v8a-<版本名>.apk
 ```
 
 未配置签名 Secrets 时 APK 不签名，文件名带 `-unsigned`，无法安装；未配置地图 Key 时构建日志会给出警告。工作流不再创建 Tag 和 Release。
+
+## 版本号
+
+版本号由根目录的 `build.gradle.kts` 在构建时根据 Git 生成，不需要手动维护：
+
+- `versionName` 是 7 位短哈希。非 `main` 分支加分支名前缀，PR 构建加 `pr<编号>` 前缀，本地有未提交改动时加 `-dirty` 后缀。
+- `versionCode` 是 `git rev-list --count HEAD` 的提交数，因此不要改写 `main` 的历史，否则新包的 `versionCode` 可能变小，无法覆盖安装。
+
+## 应用内更新
+
+应用检查 `main` 分支最近一次构建成功的 `Build` 工作流，和当前包的提交比较。填写 GitHub Token（Fine-grained，只授权本仓库，Actions 只读）后可在应用内下载，否则跳转浏览器。
 
 ## 首次切换签名
 

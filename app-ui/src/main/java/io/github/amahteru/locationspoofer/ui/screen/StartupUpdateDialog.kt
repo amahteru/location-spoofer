@@ -1,74 +1,61 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import android.text.format.DateFormat
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import io.github.amahteru.locationspoofer.data.model.GithubRelease
+import io.github.amahteru.locationspoofer.ui.BuildConfig
 import io.github.amahteru.locationspoofer.ui.R
-import io.github.amahteru.locationspoofer.ui.components.StatusLabel
-import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
+import io.github.amahteru.locationspoofer.viewmodel.LatestBuild
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun StartupUpdateDialog(
-    latestRelease: GithubRelease,
+    latestBuild: LatestBuild,
     onDismiss: () -> Unit,
     onNavigateToUpdate: () -> Unit,
     onIgnore: (String) -> Unit
 ) {
-    val cleanVersion = remember(latestRelease.versionName) {
-        latestRelease.versionName.trim().removePrefix("v").removePrefix("V")
-    }
+    val locale = LocalConfiguration.current.locales[0]
+    val builtAt = remember(latestBuild.createdAt, locale) { formatBuildTime(latestBuild.createdAt, locale) }
+    val lines = listOfNotNull(
+        stringResource(R.string.build_ready_format, latestBuild.shortSha),
+        stringResource(R.string.current_version_format, BuildConfig.VERSION_NAME),
+        builtAt?.let { stringResource(R.string.built_at_format, it) }
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Rounded.SystemUpdate, contentDescription = null) },
         title = { Text(stringResource(R.string.new_version_found)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                    StatusLabel(text = "v$cleanVersion")
-                }
-                if (latestRelease.body.isNotBlank()) {
-                    Column(
-                        modifier = Modifier
-                            .heightIn(max = 260.dp)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        RenderMarkdownContent(markdown = latestRelease.body)
-                    }
-                } else {
-                    Text(stringResource(R.string.new_version_prompt_desc))
-                }
-            }
-        },
+        text = { Text(lines.joinToString("\n")) },
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
                 onNavigateToUpdate()
             }) {
-                Text(stringResource(R.string.go_to_update))
+                Text(stringResource(R.string.view))
             }
         },
         dismissButton = {
-            Row {
-                TextButton(onClick = {
-                    onIgnore(latestRelease.versionName)
-                    onDismiss()
-                }) {
-                    Text(stringResource(R.string.ignore_this_version))
-                }
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.later))
-                }
+            TextButton(onClick = {
+                onIgnore(latestBuild.sha)
+                onDismiss()
+            }) {
+                Text(stringResource(R.string.ignore))
             }
         }
     )
 }
+
+private fun formatBuildTime(isoTime: String, locale: Locale): String? = runCatching {
+    val pattern = DateFormat.getBestDateTimePattern(locale, "MMMdHHmm")
+    DateTimeFormatter.ofPattern(pattern, locale).format(Instant.parse(isoTime).atZone(ZoneId.systemDefault()))
+}.getOrNull()

@@ -3,9 +3,13 @@ package io.github.amahteru.locationspoofer.viewmodel
 import android.app.DownloadManager
 import android.content.Context
 import android.app.Application
+import android.content.Intent
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.amahteru.locationspoofer.data.model.GithubRelease
+import io.github.amahteru.locationspoofer.data.repository.SettingsRepository
+import io.github.amahteru.locationspoofer.ui.R
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.utils.UpdateManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -17,91 +21,55 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONArray
+import org.json.JSONObject
 import io.github.amahteru.locationspoofer.ui.BuildConfig
+
+data class LatestBuild(
+    val sha: String,
+    val runId: Long,
+    val runUrl: String,
+    val createdAt: String,
+    val compareStatus: String
+) {
+    val shortSha: String get() = sha.take(7)
+    val hasUpdate: Boolean get() = compareStatus == "ahead" || compareStatus == "diverged"
+    val isUncomparable: Boolean get() = compareStatus == "unknown"
+}
 
 data class UpdateUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val releases: List<GithubRelease> = emptyList(),
+    val latestBuild: LatestBuild? = null,
+    val hasGithubToken: Boolean = false,
+    val isResolvingDownload: Boolean = false,
     val activeDownloadId: Long? = null,
     val downloadProgress: Int = 0,
     val downloadStatus: Int = DownloadManager.STATUS_PENDING
 )
 
-class UpdateViewModel(application: Application) : AndroidViewModel(application) {
+class UpdateViewModel(
+    application: Application,
+    private val settingsRepository: SettingsRepository
+) : AndroidViewModel(application) {
     private val context: Context get() = getApplication()
-    private val _uiState = MutableStateFlow(UpdateUiState())
+    private val _uiState = MutableStateFlow(
+        UpdateUiState(hasGithubToken = settingsRepository.githubToken.isNotBlank())
+    )
     val uiState: StateFlow<UpdateUiState> = _uiState.asStateFlow()
 
     private val updateManager = UpdateManager(context)
     private val okHttpClient = OkHttpClient()
+    private val noRedirectClient = okHttpClient.newBuilder().followRedirects(false).build()
 
-    fun fetchReleases() {
+    val githubToken: String get() = settingsRepository.githubToken
+
+    fun fetchLatestBuild() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val request = Request.Builder()
-                    .url("https://api.github.com/repos/amahteru/location-spoofer/releases")
-                    .header("Accept", "application/vnd.github.v3+json")
-                    .build()
-
-                val response = okHttpClient.newCall(request).execute()
-                if (!response.isSuccessful) {
-                    throw Exception("Failed to fetch updates: ${response.code}")
-                }
-
-                val jsonStr = response.body.string()
-                val jsonArray = JSONArray(jsonStr)
-                val releaseList = mutableListOf<GithubRelease>()
-
-                for (i in 0 until jsonArray.length()) {
-                    val obj = jsonArray.getJSONObject(i)
-                    val tagName = obj.optString("tag_name", "Unknown")
-                    val body = obj.optString("body", "")
-                    val publishedAt = obj.optString("published_at", "")
-                    val isPrerelease = obj.optBoolean("prerelease", false)
-
-                    var downloadUrl: String? = null
-                    var downloadUrl32Bit: String? = null
-                    val assets = obj.optJSONArray("assets")
-                    if (assets != null) {
-                        for (j in 0 until assets.length()) {
-                            val asset = assets.getJSONObject(j)
-                            val assetName = asset.optString("name", "")
-                            if (assetName.endsWith(".apk") && isAssetForCurrentScheme(assetName)) {
-                                val url = asset.optString("browser_download_url")
-                                if (assetName.contains("armeabi-v7a") || assetName.contains("32")) {
-                                    downloadUrl32Bit = url
-                                } else if (assetName.contains("arm64-v8a")) {
-                                    downloadUrl = url
-                                } else {
-                                    if (downloadUrl == null) {
-                                        downloadUrl = url
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (downloadUrl == null && downloadUrl32Bit != null) {
-                        downloadUrl = downloadUrl32Bit
-                    }
-
-                    releaseList.add(
-                        GithubRelease(
-                            tagName,
-                            body,
-                            downloadUrl,
-                            downloadUrl32Bit,
-                            publishedAt,
-                            isPrerelease
-                        )
-                    )
-                }
-
+                val build = loadLatestBuild()
                 withContext(Dispatchers.Main) {
-                    _uiState.update { it.copy(isLoading = false, releases = releaseList) }
+                    _uiState.update { it.copy(isLoading = false, latestBuild = build) }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
@@ -111,8 +79,110 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun startDownload(url: String, versionName: String) {
-        val fileName = "LocationSpoofer_$versionName.apk"
+    private fun loadLatestBuild(): LatestBuild {
+        val runs = getJson("$API/actions/workflows/$WORKFLOW/runs?branch=main&event=push&status=success&per_page=1")
+            ?: throw Exception("Failed to fetch builds")
+        val run = runs.optJSONArray("workflow_runs")?.optJSONObject(0)
+            ?: throw Exception("No successful build")
+        val headSha = run.getString("head_sha")
+
+        val compareStatus = if (headSha == BuildConfig.COMMIT_SHA) {
+            "identical"
+        } else {
+            getJson("$API/compare/${BuildConfig.COMMIT_SHA}...$headSha?per_page=1")
+                ?.optString("status", "unknown") ?: "unknown"
+        }
+
+        return LatestBuild(
+            sha = headSha,
+            runId = run.getLong("id"),
+            runUrl = run.optString("html_url"),
+            createdAt = run.optString("created_at"),
+            compareStatus = compareStatus
+        )
+    }
+
+    private fun findArtifact(runId: Long): JSONObject? {
+        val artifacts = getJson("$API/actions/runs/$runId/artifacts")?.optJSONArray("artifacts") ?: return null
+        for (i in 0 until artifacts.length()) {
+            val artifact = artifacts.getJSONObject(i)
+            val name = artifact.optString("name")
+            if (!artifact.optBoolean("expired") && name.endsWith(".apk") &&
+                !name.contains("unsigned") && isArtifactForCurrentScheme(name)
+            ) {
+                return artifact
+            }
+        }
+        return null
+    }
+
+    private fun getJson(url: String): JSONObject? {
+        val request = Request.Builder()
+            .url(url)
+            .header("Accept", "application/vnd.github+json")
+            .build()
+        okHttpClient.newCall(request).execute().use { response ->
+            if (response.code == 404) return null
+            if (!response.isSuccessful) throw Exception("GitHub API ${response.code}")
+            return JSONObject(response.body.string())
+        }
+    }
+
+    fun saveGithubToken(token: String) {
+        val trimmed = token.trim()
+        settingsRepository.githubToken = trimmed
+        _uiState.update { it.copy(hasGithubToken = trimmed.isNotEmpty()) }
+    }
+
+    fun getIgnoredSha(): String = settingsRepository.getIgnoredVersion()
+
+    fun ignoreBuild(sha: String) {
+        settingsRepository.setIgnoredVersion(sha)
+    }
+
+    fun startUpdate() {
+        val build = _uiState.value.latestBuild ?: return
+        val token = settingsRepository.githubToken
+        if (token.isBlank()) {
+            openInBrowser(build.runUrl)
+            return
+        }
+
+        _uiState.update { it.copy(isResolvingDownload = true) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val artifact = runCatching { findArtifact(build.runId) }.getOrNull()
+            val downloadUrl = artifact?.let {
+                runCatching { resolveArtifactUrl(it.optString("archive_download_url"), token) }.getOrNull()
+            }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(isResolvingDownload = false) }
+                if (artifact == null || downloadUrl == null) {
+                    AppSnackbar.show(context.getString(R.string.github_token_download_failed), long = true)
+                    openInBrowser(build.runUrl)
+                } else {
+                    startDownload(downloadUrl, artifact.optString("name"))
+                }
+            }
+        }
+    }
+
+    private fun resolveArtifactUrl(artifactUrl: String, token: String): String? {
+        val request = Request.Builder()
+            .url(artifactUrl)
+            .header("Accept", "application/vnd.github+json")
+            .header("Authorization", "Bearer $token")
+            .build()
+        noRedirectClient.newCall(request).execute().use { response ->
+            return if (response.isRedirect) response.header("Location") else null
+        }
+    }
+
+    private fun openInBrowser(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+    }
+
+    private fun startDownload(url: String, fileName: String) {
         val downloadId = updateManager.downloadApk(url, fileName)
         _uiState.update {
             it.copy(
@@ -165,7 +235,12 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
     }
+
+    private companion object {
+        const val API = "https://api.github.com/repos/amahteru/location-spoofer"
+        const val WORKFLOW = "build.yml"
+    }
 }
 
-private fun isAssetForCurrentScheme(assetName: String): Boolean =
+private fun isArtifactForCurrentScheme(assetName: String): Boolean =
     assetName.contains(if (BuildConfig.GLOBAL_SCHEME) "-global-" else "-scoped-")
