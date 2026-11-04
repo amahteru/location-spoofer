@@ -1,5 +1,9 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.data.model.simulatedWifi
+import io.github.amahteru.locationspoofer.data.model.simulatedBluetooth
+import io.github.amahteru.locationspoofer.data.model.CollectionIssue
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.core.net.toUri
 import io.github.amahteru.locationspoofer.ui.BuildConfig
@@ -36,10 +40,10 @@ internal fun MainViewModel.startSpoofing() {
     viewModelScope.launch {
         _uiState.update { it.copy(isSavingConfig = true) }
 
-        if (state.mockWifi && !hasLocalWifiWithin50m(lat, lng)) {
+        if (state.mockWifi && !EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng))) {
             fetchWifiFromWigleSync(lat, lng)
         }
-        if (state.mockCell && !hasLocalCellsWithin50m(lat, lng)) {
+        if (state.mockCell && !EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng))) {
             fetchCellFromOpenCellIdSync(lat, lng)
         }
 
@@ -54,9 +58,9 @@ internal fun MainViewModel.startSpoofing() {
             updatedState.collectedWifiJson,
             updatedState.collectedCellJson,
             updatedState.collectedBluetoothJson,
-            updatedState.mockWifi && updatedState.canMockWifi,
+            updatedState.simulatedWifi,
             updatedState.mockCell,
-            updatedState.mockBluetooth && updatedState.canMockBluetooth,
+            updatedState.simulatedBluetooth,
             updatedState.enableJitter
         )
         motionController.onStaticStarted(lat, lng)
@@ -153,9 +157,9 @@ private fun MainViewModel.syncMockSettings() {
     val state = _uiState.value
     viewModelScope.launch {
         locationRepository.patchConfig { json ->
-            json.put("mock_wifi", state.mockWifi && state.canMockWifi)
+            json.put("mock_wifi", state.simulatedWifi)
             json.put("mock_cell", state.mockCell)
-            json.put("mock_bluetooth", state.mockBluetooth && state.canMockBluetooth)
+            json.put("mock_bluetooth", state.simulatedBluetooth)
             json.put("enable_jitter", state.enableJitter)
         }
     }
@@ -180,47 +184,56 @@ internal fun MainViewModel.toggleContinuousScanning() {
     _uiState.update {
         it.copy(
             isContinuousScanning = true,
+            collectionIssue = null,
+            scannedPointCount = 0,
             scannedWifiCount = 0,
             scannedCellCount = 0,
             scannedBluetoothCount = 0
         )
     }
     continuousScanJob = viewModelScope.launch(Dispatchers.IO) {
-        val savedIds = linkedSetOf<Long>()
+        val saved = linkedMapOf<Long, io.github.amahteru.locationspoofer.data.db.CompleteLocation>()
         var routeId: Long? = null
         try {
-            if (state.isRouteCollection) {
-                val route = io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord(
-                    name = context.getString(R.string.collection_route_default_name,
-                        java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date())),
-                    pointsJson = kotlinx.serialization.json.Json.encodeToString(
-                        kotlinx.serialization.builtins.ListSerializer(io.github.amahteru.locationspoofer.data.model.RoutePoint.serializer()),
-                        state.collectionRoutePoints),
-                    halfWidthM = 50.0
-                )
-                withContext(NonCancellable) { routeId = environmentDao.insertCollectionRoute(route) }
-            }
             while (isActive) {
                 val realLoc = fetchRealLocationSilent(context)
                 val insideRoute = !state.isRouteCollection || (realLoc != null &&
                     io.github.amahteru.locationspoofer.utils.PolylineCoverage.distanceMeters(
                         io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(realLoc.first, realLoc.second),
                         state.collectionRoutePoints.map { io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(it.lat, it.lng) }
-                    ) <= 50.0)
+                    ) <= EnvironmentResolver.COVERAGE_RADIUS_M)
+                _uiState.update {
+                    it.copy(collectionIssue = when {
+                        realLoc == null -> CollectionIssue.NO_LOCATION
+                        !insideRoute -> CollectionIssue.OFF_ROUTE
+                        else -> null
+                    })
+                }
                 if (realLoc != null && insideRoute) {
                     val lat = realLoc.first
                     val lng = realLoc.second
                     withContext(NonCancellable) {
+                        if (state.isRouteCollection && routeId == null) {
+                            routeId = environmentDao.insertCollectionRoute(
+                                io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord(
+                                    name = context.getString(R.string.collection_route_default_name,
+                                        java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date())),
+                                    pointsJson = kotlinx.serialization.json.Json.encodeToString(
+                                        kotlinx.serialization.builtins.ListSerializer(io.github.amahteru.locationspoofer.data.model.RoutePoint.serializer()),
+                                        state.collectionRoutePoints),
+                                    halfWidthM = EnvironmentResolver.COVERAGE_RADIUS_M
+                                )
+                            )
+                        }
                         val wifiJson = environmentScanner.scanWifi()
                         val cellJson = environmentScanner.scanCell()
                         val bluetoothJson = environmentScanner.scanBluetooth()
                         val id = saveEnvironmentData(lat, lng, wifiJson, cellJson, bluetoothJson, mergeNearby = true, collectionRouteId = routeId)
-                        savedIds += id
-                        val counts = io.github.amahteru.locationspoofer.data.model.EnvironmentResolver.signalCounts(
-                            savedIds.mapNotNull { environmentDao.getCompleteLocationById(it) }
-                        )
+                        environmentDao.getCompleteLocationById(id)?.let { saved[id] = it }
+                        val counts = EnvironmentResolver.signalCounts(saved.values.toList())
                         _uiState.update {
                             it.copy(
+                                scannedPointCount = saved.size,
                                 scannedWifiCount = counts.wifi,
                                 scannedCellCount = counts.cell,
                                 scannedBluetoothCount = counts.bluetooth
@@ -239,14 +252,8 @@ internal fun MainViewModel.toggleContinuousScanning() {
             }
         } finally {
             withContext(NonCancellable) {
-                val records = try {
-                    savedIds.mapNotNull { environmentDao.getCompleteLocationById(it)?.location }
-                } catch (error: Exception) {
-                    error.printStackTrace()
-                    emptyList()
-                }
                 val savedRoute = routeId?.let { id ->
-                    if (savedIds.isEmpty()) {
+                    if (saved.isEmpty()) {
                         environmentDao.deleteCollectionRoute(id)
                         null
                     } else runCatching { environmentDao.getCollectionRoute(id)?.route }.getOrNull()
@@ -258,11 +265,14 @@ internal fun MainViewModel.toggleContinuousScanning() {
                         it.copy(
                             isContinuousScanning = false,
                             isStoppingCollection = false,
-                            pendingCollectionLocations = if (routeId == null) records else emptyList(),
-                            pendingCollectionRoute = savedRoute
+                            collectionIssue = null,
+                            pendingCollectionLocations = if (routeId == null) saved.values.map { record -> record.location } else emptyList(),
+                            pendingCollectionRoute = savedRoute,
+                            collectionRoutePoints = if (savedRoute != null) emptyList() else it.collectionRoutePoints,
+                            isDrawingCollectionRoute = it.isDrawingCollectionRoute || savedRoute != null
                         )
                     }
-                    if (requestedStop && savedIds.isEmpty()) {
+                    if (requestedStop && saved.isEmpty()) {
                         AppSnackbar.show(context.getString(R.string.collection_no_saved_points), long = true)
                     }
                 }
@@ -274,6 +284,10 @@ internal fun MainViewModel.toggleContinuousScanning() {
 internal fun MainViewModel.skipCollectionInfo() {
     if (_uiState.value.isSavingCollectionInfo) return
     _uiState.update { it.copy(pendingCollectionLocations = it.pendingCollectionLocations.drop(1)) }
+}
+
+internal fun MainViewModel.skipAllCollectionInfo() {
+    if (!_uiState.value.isSavingCollectionInfo) _uiState.update { it.copy(pendingCollectionLocations = emptyList()) }
 }
 
 internal fun MainViewModel.saveCollectionInfo(locationId: Long, placeName: String, remark: String) {

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.data.model.isAt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.clearPinnedCollectedLocation
+import io.github.amahteru.locationspoofer.viewmodel.removeSavedLocation
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @Composable
@@ -27,6 +29,11 @@ fun CoordinateInputCard(
     onCustomClick: () -> Unit
 ) {
     val textSecondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val favorite = remember(uiState.savedLocations, uiState.latitudeInput, uiState.longitudeInput) {
+        val lat = uiState.latitudeInput.toDoubleOrNull()
+        val lng = uiState.longitudeInput.toDoubleOrNull()
+        if (lat == null || lng == null) null else uiState.savedLocations.firstOrNull { it.isAt(lat, lng) }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -44,12 +51,16 @@ fun CoordinateInputCard(
                     Text(stringResource(R.string.custom_coordinate_btn))
                 }
                 TextButton(
-                    onClick = onSaveClick,
+                    onClick = { if (favorite != null) viewModel.removeSavedLocation(favorite) else onSaveClick() },
                     contentPadding = ButtonDefaults.TextButtonWithIconContentPadding
                 ) {
-                    Icon(Icons.Rounded.StarBorder, null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Icon(
+                        if (favorite != null) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
                     Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.bookmark))
+                    Text(stringResource(if (favorite != null) R.string.favorited else R.string.bookmark))
                 }
             }
         }

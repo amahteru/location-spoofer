@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
         <service
@@ -16,7 +15,7 @@
         <receiver
             android:name=".SpoofingControlReceiver"
             android:exported="true"
-            tools:ignore="ExportedReceiver">
+            android:permission="android.permission.DUMP">
             <intent-filter>
                 <action android:name="io.github.amahteru.locationspoofer.START" />
                 <action android:name="io.github.amahteru.locationspoofer.STOP" />

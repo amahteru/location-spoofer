@@ -1,5 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import androidx.compose.ui.res.stringResource
+import io.github.amahteru.locationspoofer.ui.R
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cancel
@@ -31,7 +33,7 @@ fun ModernSettingsInput(
         trailingIcon = if (value.isNotEmpty()) {
             {
                 IconButton(onClick = { onValueChange("") }) {
-                    Icon(Icons.Rounded.Cancel, contentDescription = null)
+                    Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text))
                 }
             }
         } else null,

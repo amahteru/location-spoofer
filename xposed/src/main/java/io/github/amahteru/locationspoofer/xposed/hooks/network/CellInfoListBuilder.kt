@@ -457,7 +457,7 @@ internal fun LocationHooker.cellAreaCode(cell: org.json.JSONObject, default: Int
     positiveJsonInt(cell, "tac", "lac", "area", default = default)
 
 internal fun LocationHooker.cellIdentityCode(cell: org.json.JSONObject, default: Int): Int =
-    positiveJsonInt(cell, "ci", "cid", "cellid", "cell", default = default)
+    positiveJsonInt(cell, "ci", "cid", "cellid", "cell", "basestationId", default = default)
 
 internal fun registeredCellJson(cellArray: org.json.JSONArray?): org.json.JSONObject? {
     if (cellArray == null || cellArray.length() == 0) return null

@@ -3,6 +3,7 @@ package io.github.amahteru.locationspoofer.data.model
 import io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord
 import io.github.amahteru.locationspoofer.data.db.CompleteCollectionRoute
 import io.github.amahteru.locationspoofer.data.db.CompleteLocation
+import io.github.amahteru.locationspoofer.data.db.LocationConnectedWifi
 import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng
 import io.github.amahteru.locationspoofer.utils.GeoMath
@@ -48,6 +49,12 @@ class EnvironmentResolverTest {
             listOf(point(5, 0.0, routeId = 1))
         )
         assertEquals(listOf(5L), recordsAtCenter(listOf(point(1, 10.0)), listOf(route)).map { it.location.id })
+    }
+
+    @Test fun connectedWifiCounts() {
+        val connected = point(1, 0.0).copy(connectedWifi = LocationConnectedWifi(locationId = 1, bssid = "AA:BB:CC:00:00:01"))
+        assertTrue(EnvironmentResolver.hasWifi(listOf(connected)))
+        assertFalse(EnvironmentResolver.hasWifi(emptyList()))
     }
 
     @Test fun recordsWithoutSignalsProduceEmptyEnvironment() {

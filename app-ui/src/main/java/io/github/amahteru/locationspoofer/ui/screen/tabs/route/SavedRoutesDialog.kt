@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.Dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.data.model.SavedRoute
-import io.github.amahteru.locationspoofer.ui.screen.SaveNameDialog
+import io.github.amahteru.locationspoofer.ui.screen.RenameDialog
 import io.github.amahteru.locationspoofer.ui.components.AppBottomSheet
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.EmptyState
@@ -91,11 +91,8 @@ fun SavedRoutesDialog(
     }
 
     renaming?.let { target ->
-        SaveNameDialog(
-            title = stringResource(R.string.rename),
+        RenameDialog(
             initialName = target.name,
-            icon = Icons.Rounded.Edit,
-            confirmLabel = stringResource(R.string.save),
             onConfirm = { name ->
                 viewModel.renameSavedRoute(target, name)
                 renaming = null

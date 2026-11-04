@@ -66,7 +66,7 @@ class LocationRepository(
         SpoofingState.routeJson = config.optJSONArray("route_points")?.toString() ?: "[]"
         SpoofingState.isRouteMode = config.optBoolean("is_route_mode", false)
         SpoofingState.routeDistanceOffset = config.optDouble("route_distance_offset", 0.0)
-        SpoofingState.wifiJson = config.optJSONObject("wifi_json")?.toString() ?: "[]"
+        SpoofingState.wifiJson = config.optJSONObject("wifi_json")?.toString() ?: "{}"
         SpoofingState.cellJson = config.optJSONArray("cell_json")?.toString() ?: "[]"
         SpoofingState.bluetoothJson = config.optJSONArray("bluetooth_json")?.toString() ?: "[]"
         SpoofingState.enableJitter = config.optBoolean("enable_jitter", true)
@@ -85,7 +85,7 @@ class LocationRepository(
         startTime: Long,
         routePoints: List<RoutePoint>,
         isRouteMode: Boolean,
-        wifiJson: String = "[]",
+        wifiJson: String = "{}",
         cellJson: String = "[]",
         bluetoothJson: String = "[]",
         mockWifi: Boolean = true,
@@ -144,7 +144,7 @@ class LocationRepository(
         SpoofingState.isActive = false
         SpoofingState.latitude = 0.0
         SpoofingState.longitude = 0.0
-        SpoofingState.wifiJson = "[]"
+        SpoofingState.wifiJson = "{}"
         SpoofingState.cellJson = "[]"
         SpoofingState.bluetoothJson = "[]"
         SpoofingState.routeJson = "[]"
@@ -164,11 +164,21 @@ class LocationRepository(
 
     val configWriteFailures get() = configManager.writeFailures
 
-    suspend fun updateEnvironment(wifiJson: String, cellJson: String, bluetoothJson: String) {
+    suspend fun updateEnvironment(
+        wifiJson: String,
+        cellJson: String,
+        bluetoothJson: String,
+        mockWifi: Boolean,
+        mockBluetooth: Boolean
+    ) {
         SpoofingState.wifiJson = wifiJson
         SpoofingState.cellJson = cellJson
         SpoofingState.bluetoothJson = bluetoothJson
-        configManager.patchConfig { configManager.putEnvironment(it, wifiJson, cellJson, bluetoothJson) }
+        configManager.patchConfig {
+            configManager.putEnvironment(it, wifiJson, cellJson, bluetoothJson)
+            it.put("mock_wifi", mockWifi)
+            it.put("mock_bluetooth", mockBluetooth)
+        }
     }
 
     suspend fun updateConfig(
@@ -257,6 +267,8 @@ class LocationRepository(
     suspend fun insertSavedRouteEntity(route: SavedRouteEntity) {
         savedRouteDao.insertSavedRoute(route)
     }
+
+    suspend fun getSavedRoute(id: Long): SavedRouteEntity? = savedRouteDao.getSavedRoute(id)
 
     suspend fun renameSavedRoute(id: Long, name: String) {
         savedRouteDao.renameSavedRoute(id, name)

@@ -164,105 +164,111 @@ fun PermissionSetupScreen(viewModel: MainViewModel, uiState: AppState) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xl),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .safeDrawingPadding()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = AppSpacing.sm),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.xl),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
             ) {
-                Box(
+                Column(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(horizontal = AppSpacing.sm),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
                 ) {
-                    Icon(
-                        Icons.Rounded.Shield,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(40.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Rounded.Shield,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.permission_setup_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = stringResource(R.string.permission_setup_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                 }
-                Text(
-                    text = stringResource(R.string.permission_setup_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+
+                EnvironmentGroup(
+                    hasRoot = uiState.hasRootAccess,
+                    isLSPosedActive = uiState.isLSPosedActive,
+                    checkingRoot = checkingRoot,
+                    onCheckRoot = {
+                        checkingRoot = true
+                        viewModel.recheckRootAccess { root ->
+                            checkingRoot = false
+                            if (!root) {
+                                AppSnackbar.show(resources.getString(R.string.env_root_denied), long = true)
+                            }
+                        }
+                    },
+                    onRestart = {
+                        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                        if (launch?.component != null) {
+                            context.startActivity(Intent.makeRestartActivityTask(launch.component))
+                            Runtime.getRuntime().exit(0)
+                        }
+                    }
                 )
-                Text(
-                    text = stringResource(R.string.permission_setup_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                PermissionGroup(
+                    title = stringResource(R.string.permission_group_core),
+                    permissions = CORE_PERMISSIONS,
+                    granted = granted,
+                    isBlocked = ::isBlocked,
+                    onRequest = ::request
+                )
+                PermissionGroup(
+                    title = stringResource(R.string.permission_group_optional),
+                    permissions = OPTIONAL_PERMISSIONS,
+                    granted = granted,
+                    isBlocked = ::isBlocked,
+                    onRequest = ::request
                 )
             }
 
-            EnvironmentGroup(
-                hasRoot = uiState.hasRootAccess,
-                isLSPosedActive = uiState.isLSPosedActive,
-                checkingRoot = checkingRoot,
-                onCheckRoot = {
-                    checkingRoot = true
-                    viewModel.recheckRootAccess { root ->
-                        checkingRoot = false
-                        if (!root) {
-                            AppSnackbar.show(resources.getString(R.string.env_root_denied), long = true)
-                        }
-                    }
-                },
-                onRestart = {
-                    val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                    if (launch?.component != null) {
-                        context.startActivity(Intent.makeRestartActivityTask(launch.component))
-                        Runtime.getRuntime().exit(0)
-                    }
-                }
-            )
-            PermissionGroup(
-                title = stringResource(R.string.permission_group_core),
-                permissions = CORE_PERMISSIONS,
-                granted = granted,
-                isBlocked = ::isBlocked,
-                onRequest = ::request
-            )
-            PermissionGroup(
-                title = stringResource(R.string.permission_group_optional),
-                permissions = OPTIONAL_PERMISSIONS,
-                granted = granted,
-                isBlocked = ::isBlocked,
-                onRequest = ::request
-            )
+            Button(
+                onClick = { viewModel.completePermissionSetup() },
+                enabled = environmentReady,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
+                    .height(MediumButtonDefaults.Height),
+                contentPadding = MediumButtonDefaults.ContentPadding
+            ) {
+                Text(stringResource(R.string.permission_continue), style = MediumButtonDefaults.TextStyle)
+            }
         }
-
-        AppSnackbar.Host()
-
-        Button(
-            onClick = { viewModel.completePermissionSetup() },
-            enabled = environmentReady,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
-                .height(MediumButtonDefaults.Height),
-            contentPadding = MediumButtonDefaults.ContentPadding
-        ) {
-            Text(stringResource(R.string.permission_continue), style = MediumButtonDefaults.TextStyle)
-        }
+        AppSnackbar.Host(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .safeDrawingPadding()
+                .padding(bottom = MediumButtonDefaults.Height + AppSpacing.md * 2)
+        )
     }
 }
 

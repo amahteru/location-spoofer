@@ -316,6 +316,7 @@ fun BaiduMapViewContainer(
     }
 
     MapAndroidView(baiduMapView, modifier) {
+        showZoomControls(false)
         val controller = BaiduMapControllerImpl(map, this, context)
         controller.setDarkMode(isDark, context)
         map.setOnFirstFrameDrawListener { post { onMapReady(controller) } }

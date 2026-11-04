@@ -1,5 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import io.github.amahteru.locationspoofer.data.db.displayName
+import io.github.amahteru.locationspoofer.data.db.coordinateText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,12 +34,11 @@ fun CollectedLocationCard(
 ) {
     val placeName = item.location.placeName
     val remark = item.location.remark
-    val coordinates = String.format(Locale.US, "%.5f, %.5f", item.location.lat, item.location.lng)
     CollectedDataCard(
         icon = Icons.Rounded.Place,
-        title = placeName.ifBlank { remark }.ifBlank { stringResource(R.string.coord_record_title) },
+        title = item.location.displayName(stringResource(R.string.coord_record_title)),
         subtitle = remark.takeIf { placeName.isNotBlank() && it.isNotBlank() },
-        detail = "$coordinates\n${formatTime(item.location.timestamp)}",
+        detail = "${item.location.coordinateText}\n${formatTime(item.location.timestamp)}",
         records = listOf(item),
         onClick = onClick,
         trailing = trailing
@@ -72,7 +73,7 @@ fun CollectedDataMenu(
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Rounded.MoreVert, contentDescription = null)
+            Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(R.string.more_options))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             if (favorited != null) {

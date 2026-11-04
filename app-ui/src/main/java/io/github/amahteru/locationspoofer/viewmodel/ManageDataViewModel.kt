@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewModel() {
     private val _uiState = MutableStateFlow(ManageDataUiState())
@@ -37,7 +38,7 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
 
     fun deleteManageDataSingle(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.deleteLocation(id)
+            environmentDao.deleteLocationWithDevices(id)
         }
     }
 
@@ -49,19 +50,23 @@ class ManageDataViewModel(private val environmentDao: EnvironmentDao) : ViewMode
         remark: String,
         selectedWifiBssid: String?,
         selectedBluetoothAddress: String?,
-        selectedCellKey: String?
+        selectedCellKey: String?,
+        onSaved: () -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            environmentDao.updateMetadata(
-                id,
-                lat,
-                lng,
-                placeName,
-                remark,
-                selectedWifiBssid,
-                selectedBluetoothAddress,
-                selectedCellKey
-            )
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                environmentDao.updateMetadata(
+                    id,
+                    lat,
+                    lng,
+                    placeName,
+                    remark,
+                    selectedWifiBssid,
+                    selectedBluetoothAddress,
+                    selectedCellKey
+                )
+            }
+            onSaved()
         }
     }
 

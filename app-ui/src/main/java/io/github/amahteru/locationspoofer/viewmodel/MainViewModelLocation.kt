@@ -1,5 +1,7 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.data.db.displayName
+import io.github.amahteru.locationspoofer.data.db.CompleteLocation
 import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import android.content.Context
@@ -8,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import io.github.amahteru.locationspoofer.ui.R
+import io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng
+import io.github.amahteru.locationspoofer.utils.GeoMath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -17,6 +21,13 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 
+private fun oneShotLocationOption() = AMapLocationClientOption().apply {
+    locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
+    isOnceLocation = true
+    isNeedAddress = false
+    isLocationCacheEnable = false
+}
+
 internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((Double, Double) -> Unit)? = null) {
     viewModelScope.launch(Dispatchers.Main) {
         val client = try {
@@ -25,11 +36,7 @@ internal fun MainViewModel.fetchCurrentLocation(ctx: Context, forceCallback: ((D
             fallbackToNativeLocation(ctx, forceCallback, true)
             return@launch
         }
-        client.setLocationOption(AMapLocationClientOption().apply {
-            locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
-            isOnceLocation = true
-            isNeedAddress = false
-        })
+        client.setLocationOption(oneShotLocationOption())
         client.setLocationListener { loc ->
             if (loc != null && loc.errorCode == 0) {
                 if (_uiState.value.longitudeInput.isEmpty() || _uiState.value.latitudeInput.isEmpty()) {
@@ -125,11 +132,7 @@ internal suspend fun MainViewModel.fetchRealLocationSilent(ctx: Context): Pair<D
                 runCatching { client.stopLocation(); client.onDestroy() }
             }
             cont.invokeOnCancellation { closeClient() }
-            client.setLocationOption(AMapLocationClientOption().apply {
-                locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
-                isOnceLocation = true
-                isNeedAddress = false
-            })
+            client.setLocationOption(oneShotLocationOption())
             client.setLocationListener { location ->
                 closeClient()
                 if (cont.isActive) {
@@ -227,7 +230,7 @@ internal fun MainViewModel.evaluateMockCapabilities() {
                 canMockWifi = false,
                 canMockCell = false,
                 canMockBluetooth = false,
-                collectedWifiJson = "[]",
+                collectedWifiJson = "{}",
                 collectedCellJson = "[]",
                 collectedBluetoothJson = "[]",
             )
@@ -247,9 +250,7 @@ internal fun MainViewModel.selectCollectedLocation(locationId: Long, announce: B
         }
         if (record != null) {
             pinnedLocationRecordId = locationId
-            val name = record.location.placeName.ifBlank { record.location.remark }.ifBlank {
-                String.format(Locale.US, "(%.5f, %.5f)", record.location.lat, record.location.lng)
-            }
+            val name = record.location.displayName()
             _uiState.update {
                 it.copy(
                     latitudeInput = record.location.lat.toString(),
@@ -276,27 +277,17 @@ internal fun MainViewModel.clearPinnedCollectedLocation() {
     evaluateMockCapabilities()
 }
 
-private fun MainViewModel.calculateDistanceMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
-    val dLat = Math.toRadians(lat2 - lat1)
-    val dLng = Math.toRadians(lng2 - lng1)
-    val a = kotlin.math.sin(dLat / 2).let { it * it } +
-            kotlin.math.cos(Math.toRadians(lat1)) *
-            kotlin.math.cos(Math.toRadians(lat2)) *
-            kotlin.math.sin(dLng / 2).let { it * it }
-    return 2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
-}
-
 internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, lng: Double) {
     val currentPinnedId = pinnedLocationRecordId
-    var pinnedRecord: io.github.amahteru.locationspoofer.data.db.CompleteLocation? = null
+    var pinnedRecord: CompleteLocation? = null
 
     if (currentPinnedId != null) {
         val pinned = withContext(Dispatchers.IO) {
             environmentDao.getCompleteLocationById(currentPinnedId)
         }
         if (pinned != null) {
-            val distToPinned = calculateDistanceMeters(lat, lng, pinned.location.lat, pinned.location.lng)
-            if (distToPinned <= 50.0) {
+            val distToPinned = GeoMath.distance(LatLng(lat, lng), LatLng(pinned.location.lat, pinned.location.lng))
+            if (distToPinned <= EnvironmentResolver.COVERAGE_RADIUS_M) {
                 pinnedRecord = pinned
             } else {
                 pinnedLocationRecordId = null
@@ -334,25 +325,23 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
         if (current.latitudeInput.toDoubleOrNull() != lat || current.longitudeInput.toDoubleOrNull() != lng) {
             return@withContext
         }
-        val (wifiJson, cellJson, btJson) = locationToJson(validRecords, lat, lng)
-        _uiState.update {
-            it.copy(
-                canMockWifi = EnvironmentResolver.hasWifi(validRecords),
-                canMockCell = EnvironmentResolver.hasCell(validRecords),
-                canMockBluetooth = EnvironmentResolver.hasBluetooth(validRecords),
-                collectedWifiJson = wifiJson,
-                collectedCellJson = cellJson,
-                collectedBluetoothJson = btJson,
-            )
-        }
+        applyEnvironment(validRecords, lat, lng)
     }
 }
 
-internal fun MainViewModel.hasLocalWifiWithin50m(lat: Double, lng: Double): Boolean =
-    EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng))
-
-internal fun MainViewModel.hasLocalCellsWithin50m(lat: Double, lng: Double): Boolean =
-    EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng))
+internal fun MainViewModel.applyEnvironment(records: List<CompleteLocation>, lat: Double, lng: Double) {
+    val (wifi, cell, bluetooth) = EnvironmentResolver.toJson(records, lat, lng, pinnedLocationRecordId)
+    _uiState.update {
+        it.copy(
+            canMockWifi = EnvironmentResolver.hasWifi(records),
+            canMockCell = EnvironmentResolver.hasCell(records),
+            canMockBluetooth = EnvironmentResolver.hasBluetooth(records),
+            collectedWifiJson = wifi,
+            collectedCellJson = cell,
+            collectedBluetoothJson = bluetooth,
+        )
+    }
+}
 
 internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double) {
     val settingsToken = settingsRepository.getWigleApiToken()
@@ -432,33 +421,25 @@ internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Doub
             val formattedWifiJson = wifiObj.toString()
 
             withContext(Dispatchers.IO) {
-                saveEnvironmentData(lat, lng, formattedWifiJson, "[]", "[]")
-                val newestLocation = environmentDao.getAllLocations()
-                    .firstOrNull { it.lat == lat && it.lng == lng }
-                if (newestLocation != null) {
-                    val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
-                    environmentDao.updateMetadata(
-                        newestLocation.id,
-                        lat,
-                        lng,
-                        context.getString(R.string.wigle_import),
-                        "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
-                            String.format(
-                                java.util.Locale.US, "%.6f",
-                                lng
-                            )
-                        })",
-                        null, null, null
-                    )
-                }
+                val id = saveEnvironmentData(lat, lng, formattedWifiJson, "[]", "{}")
+                val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
+                environmentDao.updateMetadata(
+                    id,
+                    lat,
+                    lng,
+                    context.getString(R.string.wigle_import),
+                    "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
+                        String.format(
+                            java.util.Locale.US, "%.6f",
+                            lng
+                        )
+                    })",
+                    null, null, null
+                )
             }
 
             withContext(Dispatchers.Main) {
                 evaluateMockCapabilities()
-                viewModelScope.launch(Dispatchers.IO) {
-                    val count = environmentDao.getRecordCount()
-                    _uiState.update { it.copy(environmentRecordCount = count) }
-                }
             }
         } else {
             withContext(Dispatchers.Main) {
@@ -500,33 +481,25 @@ internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng:
             }
 
             withContext(Dispatchers.IO) {
-                saveEnvironmentData(lat, lng, "{}", formattedCells.toString(), "[]")
-                val newestLocation = environmentDao.getAllLocations()
-                    .firstOrNull { it.lat == lat && it.lng == lng }
-                if (newestLocation != null) {
-                    val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
-                    environmentDao.updateMetadata(
-                        newestLocation.id,
-                        lat,
-                        lng,
-                        context.getString(R.string.opencellid_import),
-                        "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
-                            String.format(
-                                java.util.Locale.US, "%.6f",
-                                lng
-                            )
-                        })",
-                        null, null, null
-                    )
-                }
+                val id = saveEnvironmentData(lat, lng, "{}", formattedCells.toString(), "[]")
+                val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
+                environmentDao.updateMetadata(
+                    id,
+                    lat,
+                    lng,
+                    context.getString(R.string.opencellid_import),
+                    "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
+                        String.format(
+                            java.util.Locale.US, "%.6f",
+                            lng
+                        )
+                    })",
+                    null, null, null
+                )
             }
 
             withContext(Dispatchers.Main) {
                 evaluateMockCapabilities()
-                viewModelScope.launch(Dispatchers.IO) {
-                    val count = environmentDao.getRecordCount()
-                    _uiState.update { it.copy(environmentRecordCount = count) }
-                }
             }
         }
     } catch (e: Exception) {

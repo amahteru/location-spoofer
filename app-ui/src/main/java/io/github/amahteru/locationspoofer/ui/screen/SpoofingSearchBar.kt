@@ -87,7 +87,7 @@ fun PlaceSearchBar(
             trailingIcon = if (textFieldState.text.isNotEmpty()) {
                 {
                     IconButton(onClick = { textFieldState.clearText() }) {
-                        Icon(Icons.Rounded.Close, contentDescription = null)
+                        Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text))
                     }
                 }
             } else null

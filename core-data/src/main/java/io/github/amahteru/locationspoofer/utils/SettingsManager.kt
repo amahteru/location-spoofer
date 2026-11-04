@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.utils
 
+import io.github.amahteru.locationspoofer.data.model.isAt
 import androidx.core.content.edit
 import android.content.Context
 import android.content.SharedPreferences
@@ -100,7 +101,7 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit { putBoolean("enable_jitter", value) }
 
     var restartAppsOnSpoof: Boolean
-        get() = prefs.getBoolean("restart_apps_on_spoof", true)
+        get() = prefs.getBoolean("restart_apps_on_spoof", false)
         set(value) = prefs.edit { putBoolean("restart_apps_on_spoof", value) }
 
     var altitude: String
@@ -162,14 +163,14 @@ class SettingsManager(context: Context) {
 
     fun addSavedLocation(location: SavedLocation) {
         val list = getSavedLocations().toMutableList()
-        list.removeAll { it.lat == location.lat && it.lng == location.lng }
+        list.removeAll { it.isAt(location.lat, location.lng) }
         list.add(location)
         saveLocationList(list)
     }
 
     fun removeSavedLocation(location: SavedLocation) {
         val list = getSavedLocations().toMutableList()
-        list.removeAll { it.lat == location.lat && it.lng == location.lng }
+        list.removeAll { it.isAt(location.lat, location.lng) }
         saveLocationList(list)
     }
 

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import kotlin.math.cos
 
@@ -26,7 +27,7 @@ object MapCoverageHelper {
         }
 
         targetList.forEach { loc ->
-            controller.addCircle(loc.lat, loc.lng, 50.0, palette.coverageFill, palette.coverageStroke, 1f)
+            controller.addCircle(loc.lat, loc.lng, EnvironmentResolver.COVERAGE_RADIUS_M, palette.coverageFill, palette.coverageStroke, 1f)
         }
     }
 

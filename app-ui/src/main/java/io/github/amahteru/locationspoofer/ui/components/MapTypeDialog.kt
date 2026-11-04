@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -39,56 +38,46 @@ fun MapTypeDialog(
         Triple(MapEngine.GOOGLE, Icons.Rounded.Public, R.string.map_engine_google)
     )
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.navigationBarsPadding().padding(bottom = AppSpacing.lg)) {
-            Text(
-                text = stringResource(R.string.layers_and_engine_title),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = AppSpacing.screenMargin)
-            )
-            Text(
-                text = stringResource(R.string.layers_and_engine_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = AppSpacing.screenMargin, vertical = AppSpacing.xs)
-            )
-
-            SheetSectionHeader(stringResource(R.string.map_layers))
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = AppSpacing.screenMargin)
-            ) {
-                mapTypes.forEachIndexed { index, (type, icon, label) ->
-                    SegmentedButton(
-                        selected = currentMapType == type,
-                        onClick = { onMapTypeSelected(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index, mapTypes.size),
-                        icon = { SegmentedButtonDefaults.Icon(active = currentMapType == type) { Icon(icon, null, Modifier.size(18.dp)) } }
-                    ) {
-                        Text(stringResource(label), maxLines = 1)
-                    }
+    AppBottomSheet(
+        title = stringResource(R.string.layers_and_engine_title),
+        subtitle = stringResource(R.string.layers_and_engine_desc),
+        onDismiss = onDismiss
+    ) {
+        SheetSectionHeader(stringResource(R.string.map_layers))
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppSpacing.screenMargin)
+        ) {
+            mapTypes.forEachIndexed { index, (type, icon, label) ->
+                SegmentedButton(
+                    selected = currentMapType == type,
+                    onClick = { onMapTypeSelected(type) },
+                    shape = SegmentedButtonDefaults.itemShape(index, mapTypes.size),
+                    icon = { SegmentedButtonDefaults.Icon(active = currentMapType == type) { Icon(icon, null, Modifier.size(18.dp)) } }
+                ) {
+                    Text(stringResource(label), maxLines = 1)
                 }
             }
+        }
 
-            SheetSectionHeader(stringResource(R.string.map_engine_service))
-            Column(modifier = Modifier.selectableGroup()) {
-                engines.forEach { (engine, icon, label) ->
-                    val selected = currentMapEngine == engine
-                    ListItem(
-                        headlineContent = { Text(stringResource(label)) },
-                        leadingContent = { Icon(icon, contentDescription = null) },
-                        trailingContent = { RadioButton(selected = selected, onClick = null) },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier
-                            .padding(horizontal = AppSpacing.sm)
-                            .selectable(
-                                selected = selected,
-                                role = Role.RadioButton,
-                                onClick = { onMapEngineSelected(engine) }
-                            )
-                    )
-                }
+        SheetSectionHeader(stringResource(R.string.map_engine_service))
+        Column(modifier = Modifier.selectableGroup()) {
+            engines.forEach { (engine, icon, label) ->
+                val selected = currentMapEngine == engine
+                ListItem(
+                    headlineContent = { Text(stringResource(label)) },
+                    leadingContent = { Icon(icon, contentDescription = null) },
+                    trailingContent = { RadioButton(selected = selected, onClick = null) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .padding(horizontal = AppSpacing.sm)
+                        .selectable(
+                            selected = selected,
+                            role = Role.RadioButton,
+                            onClick = { onMapEngineSelected(engine) }
+                        )
+                )
             }
         }
     }

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
+import io.github.amahteru.locationspoofer.ui.screen.RenameDialog
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +13,8 @@ import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import io.github.amahteru.locationspoofer.data.model.SavedLocation
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -74,6 +77,7 @@ fun LocationTab(
     val spoofingUiState by viewModel.spoofingUiState.collectAsState()
     val onIntent = { intent: SpoofingIntent -> viewModel.handleSpoofingIntent(intent) }
     var showLocalDataDialog by remember { mutableStateOf(false) }
+    var renamingLocation by remember { mutableStateOf<SavedLocation?>(null) }
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -87,6 +91,8 @@ fun LocationTab(
 
     var tabBottom by remember { mutableFloatStateOf(0f) }
     var panelSearchTop by remember { mutableFloatStateOf(0f) }
+    val density = LocalDensity.current
+    if (panelSearchTop > 0f) AppSnackbar.BottomInset(with(density) { (tabBottom - panelSearchTop).toDp() } - tabBarHeight)
 
     Box(
         modifier = Modifier
@@ -137,6 +143,7 @@ fun LocationTab(
                 viewModel.loadSavedLocation(location)
                 mapController?.animateCamera(location.lat, location.lng, STREET_ZOOM)
             },
+            onRenameSavedLocation = { renamingLocation = it },
             onDeleteSavedLocation = { location ->
                 viewModel.removeSavedLocation(location)
             },
@@ -202,7 +209,18 @@ fun LocationTab(
                 onIntent(SpoofingIntent.SetSavedLocationsVisible(false))
             },
             onDelete = viewModel::removeSavedLocation,
-            onRename = viewModel::renameSavedLocation
+            onRename = { renamingLocation = it }
+        )
+    }
+
+    renamingLocation?.let { target ->
+        RenameDialog(
+            initialName = target.name,
+            onConfirm = { name ->
+                viewModel.renameSavedLocation(target, name)
+                renamingLocation = null
+            },
+            onDismiss = { renamingLocation = null }
         )
     }
 

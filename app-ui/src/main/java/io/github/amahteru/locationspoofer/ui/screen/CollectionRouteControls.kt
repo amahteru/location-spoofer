@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.data.model.AppState
+import io.github.amahteru.locationspoofer.data.model.CollectionIssue
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.viewmodel.*
@@ -43,7 +44,7 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                     Text(stringResource(R.string.selected_waypoints_count, state.collectionRoutePoints.size), style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                         TextButton(enabled = state.collectionRoutePoints.isNotEmpty(), onClick = viewModel::undoCollectionRoutePoint) {
-                            Text(stringResource(R.string.collection_route_undo))
+                            Text(stringResource(R.string.undo))
                         }
                         Button(modifier = Modifier.weight(1f).height(48.dp), onClick = {
                             val lat = map?.cameraTargetLat ?: state.latitudeInput.toDoubleOrNull()
@@ -62,6 +63,13 @@ fun CollectionRouteControls(viewModel: MainViewModel, state: AppState, map: AppM
                         }
                     }
                 }
+            }
+            state.collectionIssue?.let { issue ->
+                Text(
+                    stringResource(if (issue == CollectionIssue.NO_LOCATION) R.string.collection_waiting_location else R.string.collection_off_route),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
             if (!state.isRouteCollection || !state.isDrawingCollectionRoute) {
                 Button(

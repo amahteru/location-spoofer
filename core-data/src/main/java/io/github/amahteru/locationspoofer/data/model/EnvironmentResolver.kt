@@ -14,6 +14,8 @@ import org.json.JSONObject
 data class SignalCounts(val wifi: Int, val cell: Int, val bluetooth: Int)
 
 object EnvironmentResolver {
+    const val COVERAGE_RADIUS_M = 50.0
+
     fun recordsAt(
         locations: List<CompleteLocation>,
         routes: List<CompleteCollectionRoute>,
@@ -25,7 +27,7 @@ object EnvironmentResolver {
         val route = CollectionRouteMatcher.routeAt(routes, position, preferredRouteId)
         if (route != null) return CollectionRouteMatcher.samplesAt(route, position)
         return locations
-            .filter { it.location.collectionRouteId == null && GeoMath.distance(position, LatLng(it.location.lat, it.location.lng)) <= 50.0 }
+            .filter { it.location.collectionRouteId == null && GeoMath.distance(position, LatLng(it.location.lat, it.location.lng)) <= COVERAGE_RADIUS_M }
             .sortedBy { GeoMath.distance(position, LatLng(it.location.lat, it.location.lng)) }
     }
 
@@ -53,14 +55,7 @@ object EnvironmentResolver {
             if (i == 0 && (it.location.id == pinnedId || it.location.selectedWifiBssid != null)) {
                 1000.0
             } else {
-                val rLat = Math.toRadians(it.location.lat - targetLat)
-                val rLng = Math.toRadians(it.location.lng - targetLng)
-                val rA = kotlin.math.sin(rLat / 2).let { v -> v * v } + kotlin.math.cos(
-                    Math.toRadians(targetLat)
-                ) * kotlin.math.cos(Math.toRadians(it.location.lat)) * kotlin.math.sin(rLng / 2)
-                    .let { v -> v * v }
-                val dist =
-                    2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(rA), kotlin.math.sqrt(1 - rA))
+                val dist = GeoMath.distance(LatLng(targetLat, targetLng), LatLng(it.location.lat, it.location.lng))
                 val safeDist = kotlin.math.max(dist, 1.0)
                 1.0 / (safeDist * safeDist)
             }
@@ -69,14 +64,12 @@ object EnvironmentResolver {
         val closestRecord = records.first()
         val explicitWifiBssid = closestRecord.location?.selectedWifiBssid
         val explicitWifi =
-            if (explicitWifiBssid != null && explicitWifiBssid != "__NONE__") {
+            if (explicitWifiBssid != null) {
                 closestRecord.wifis.find { it.device.bssid.equals(explicitWifiBssid, ignoreCase = true) }
             } else null
 
         val closestConnectedWifi = closestRecord.connectedWifi
-        val connectedObj = if (explicitWifiBssid == "__NONE__") {
-            null
-        } else if (explicitWifi != null) {
+        val connectedObj = if (explicitWifi != null) {
             JSONObject().apply {
                 put("ssid", explicitWifi.device.ssid)
                 put("bssid", explicitWifi.device.bssid)

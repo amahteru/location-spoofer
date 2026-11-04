@@ -161,21 +161,15 @@ fun MainScaffoldScreen(
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
-                AnimatedVisibility(
-                    visible = currentSubScreen == MainSubScreen.None,
-                    enter = fadeIn(motion.defaultEffectsSpec()) + expandVertically(motion.defaultSpatialSpec()),
-                    exit = fadeOut(motion.fastEffectsSpec()) + shrinkVertically(motion.fastSpatialSpec())
-                ) {
-                    NavigationBar {
-                        BottomTab.values().forEachIndexed { index, tab ->
-                            val label = tab.getLabel()
-                            NavigationBarItem(
-                                selected = selectedTab == index,
-                                onClick = { selectPage(index) },
-                                icon = { Icon(imageVector = tab.icon, contentDescription = label) },
-                                label = { Text(text = label, maxLines = 1) }
-                            )
-                        }
+                NavigationBar {
+                    BottomTab.values().forEachIndexed { index, tab ->
+                        val label = tab.getLabel()
+                        NavigationBarItem(
+                            selected = selectedTab == index,
+                            onClick = { selectPage(index) },
+                            icon = { Icon(imageVector = tab.icon, contentDescription = label) },
+                            label = { Text(text = label, maxLines = 1) }
+                        )
                     }
                 }
             }
@@ -399,7 +393,7 @@ fun MainScaffoldScreen(
             Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = if (currentSubScreen == MainSubScreen.None) 80.dp else 0.dp)
+                .padding(bottom = if (currentSubScreen == MainSubScreen.None) 80.dp + AppSnackbar.bottomInset else 0.dp)
         )
 
         if (showStartupUpdateDialog && latestBuild != null) {

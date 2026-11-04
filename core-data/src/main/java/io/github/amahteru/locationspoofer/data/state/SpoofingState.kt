@@ -4,7 +4,7 @@ object SpoofingState {
     var isActive = false
     var latitude = 0.0
     var longitude = 0.0
-    var wifiJson = "[]"
+    var wifiJson = "{}"
     var cellJson = "[]"
     var bluetoothJson = "[]"
     var simMode = "STILL"

@@ -1,11 +1,16 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.data.model.simulatedWifi
+import io.github.amahteru.locationspoofer.data.model.simulatedBluetooth
+import io.github.amahteru.locationspoofer.data.model.isAt
+import io.github.amahteru.locationspoofer.data.db.displayName
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.data.motion.MotionController
 import java.util.Locale
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.model.RoutePoint
 import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
 import io.github.amahteru.locationspoofer.data.model.RouteRunMode
@@ -65,7 +70,7 @@ internal fun MainViewModel.toggleCollectedRouteFavorite(route: io.github.amahter
 
 internal fun MainViewModel.deleteSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {
     viewModelScope.launch(Dispatchers.IO) {
-        val entity = locationRepository.getAllSavedRoutesList().firstOrNull { it.id == route.id } ?: return@launch
+        val entity = locationRepository.getSavedRoute(route.id) ?: return@launch
         locationRepository.deleteSavedRoute(route.id)
         AppSnackbar.show(
             context.getString(R.string.favorite_removed, route.name),
@@ -101,10 +106,10 @@ internal fun MainViewModel.joystickMaxSpeedMs(): Float =
 
 internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging: Boolean = false) {
     if (motionController.state.value.hasRoute) return
-    val spoofedLat = settingsRepository.lastSpoofedLat.toDoubleOrNull()
-    val spoofedLng = settingsRepository.lastSpoofedLng.toDoubleOrNull()
-    if (_uiState.value.isSpoofingActive && spoofedLat != null && spoofedLng != null &&
-        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(spoofedLat, spoofedLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
+    val currentLat = _uiState.value.latitudeInput.toDoubleOrNull()
+    val currentLng = _uiState.value.longitudeInput.toDoubleOrNull()
+    if (currentLat != null && currentLng != null &&
+        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(currentLat, currentLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
     _uiState.update {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
@@ -118,10 +123,10 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
         settingsRepository.lastSpoofedLat = lat.toString()
         settingsRepository.lastSpoofedLng = lng.toString()
         viewModelScope.launch {
-            if (state.mockWifi && !hasLocalWifiWithin50m(lat, lng) && !isDragging) {
+            if (state.mockWifi && !EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng)) && !isDragging) {
                 fetchWifiFromWigleSync(lat, lng)
             }
-            if (state.mockCell && !hasLocalCellsWithin50m(lat, lng) && !isDragging) {
+            if (state.mockCell && !EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng)) && !isDragging) {
                 fetchCellFromOpenCellIdSync(lat, lng)
             }
             evaluateMockCapabilitiesSuspend(lat, lng)
@@ -137,9 +142,9 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
                 wifiJson = updatedState.collectedWifiJson,
                 cellJson = updatedState.collectedCellJson,
                 bluetoothJson = updatedState.collectedBluetoothJson,
-                mockWifi = updatedState.mockWifi && updatedState.canMockWifi,
+                mockWifi = updatedState.simulatedWifi,
                 mockCell = updatedState.mockCell,
-                mockBluetooth = updatedState.mockBluetooth && updatedState.canMockBluetooth,
+                mockBluetooth = updatedState.simulatedBluetooth,
                 enableJitter = updatedState.enableJitter
             )
             motionController.onStaticStarted(lat, lng)
@@ -269,9 +274,7 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
     SpoofingState.simBearing = 0f
 
     viewModelScope.launch {
-        val records = environmentRecordsAt(startPoint.lat, startPoint.lng)
-        val (wifi, cell, bluetooth) = locationToJson(records, startPoint.lat, startPoint.lng)
-        _uiState.update { it.copy(collectedWifiJson = wifi, collectedCellJson = cell, collectedBluetoothJson = bluetooth) }
+        applyEnvironment(environmentRecordsAt(startPoint.lat, startPoint.lng), startPoint.lat, startPoint.lng)
         locationRepository.startSpoofing(
             context,
             startPoint.lat,
@@ -284,9 +287,9 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
             _uiState.value.collectedWifiJson,
             _uiState.value.collectedCellJson,
             _uiState.value.collectedBluetoothJson,
-            _uiState.value.mockWifi,
+            _uiState.value.simulatedWifi,
             _uiState.value.mockCell,
-            _uiState.value.mockBluetooth,
+            _uiState.value.simulatedBluetooth,
             _uiState.value.enableJitter,
             speedMs = speed,
             stopAtDestination = _uiState.value.stopAtDestination
@@ -356,9 +359,9 @@ private fun MainViewModel.switchRouteToStatic(nextStage: RoutePlanStage, keepSta
             startTime = SpoofingState.startTimestamp,
             routePoints = emptyList(),
             isRouteMode = false,
-            mockWifi = state.mockWifi && state.canMockWifi,
+            mockWifi = state.simulatedWifi,
             mockCell = state.mockCell,
-            mockBluetooth = state.mockBluetooth && state.canMockBluetooth,
+            mockBluetooth = state.simulatedBluetooth,
             enableJitter = state.enableJitter
         )
     }
@@ -370,16 +373,6 @@ internal fun MainViewModel.saveCurrentLocation(name: String) {
     settingsRepository.addSavedLocation(SavedLocation(name, lat, lng))
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
     AppSnackbar.show(context.getString(R.string.favorite_added, name))
-}
-
-private fun MainViewModel.resolveFavoriteName(record: io.github.amahteru.locationspoofer.data.db.CompleteLocation): String {
-    val lat = record.location.lat
-    val lng = record.location.lng
-    return when {
-        record.location.placeName.isNotBlank() -> record.location.placeName
-        record.location.remark.isNotBlank() -> record.location.remark
-        else -> String.format(Locale.US, "(%.5f, %.5f)", lat, lng)
-    }
 }
 
 internal fun MainViewModel.toggleCollectedLocationFavorite(locationId: Long) {
@@ -395,11 +388,11 @@ internal fun MainViewModel.toggleCollectedLocationFavorite(locationId: Long) {
 
             val lat = record.location.lat
             val lng = record.location.lng
-            val existing = settingsRepository.getSavedLocations().firstOrNull { it.lat == lat && it.lng == lng }
+            val existing = settingsRepository.getSavedLocations().firstOrNull { it.isAt(lat, lng) }
             if (existing != null) {
                 removeSavedLocation(existing)
             } else {
-                val name = resolveFavoriteName(record)
+                val name = record.location.displayName()
                 settingsRepository.addSavedLocation(SavedLocation(name, lat, lng))
                 _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
                 AppSnackbar.show(context.getString(R.string.favorite_added, name))
@@ -411,7 +404,7 @@ internal fun MainViewModel.toggleCollectedLocationFavorite(locationId: Long) {
 internal fun MainViewModel.syncFavoriteCoordinateIfExists(oldLat: Double, oldLng: Double, newLat: Double, newLng: Double) {
     settingsRepository.setSavedLocations(
         settingsRepository.getSavedLocations()
-            .map { if (it.lat == oldLat && it.lng == oldLng) it.copy(lat = newLat, lng = newLng) else it }
+            .map { if (it.isAt(oldLat, oldLng)) it.copy(lat = newLat, lng = newLng) else it }
             .distinctBy { it.lat to it.lng }
     )
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
@@ -428,7 +421,7 @@ internal fun MainViewModel.loadSavedLocation(loc: SavedLocation) {
 }
 
 internal fun MainViewModel.removeSavedLocation(location: SavedLocation) {
-    val index = settingsRepository.getSavedLocations().indexOfFirst { it.lat == location.lat && it.lng == location.lng }
+    val index = settingsRepository.getSavedLocations().indexOfFirst { it.isAt(location.lat, location.lng) }
     settingsRepository.removeSavedLocation(location)
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
     AppSnackbar.show(
@@ -436,7 +429,7 @@ internal fun MainViewModel.removeSavedLocation(location: SavedLocation) {
         actionLabel = context.getString(R.string.undo),
         onAction = {
             val saved = settingsRepository.getSavedLocations().toMutableList()
-            if (saved.none { it.lat == location.lat && it.lng == location.lng }) {
+            if (saved.none { it.isAt(location.lat, location.lng) }) {
                 saved.add(index.coerceIn(0, saved.size), location)
                 settingsRepository.setSavedLocations(saved)
                 _uiState.update { it.copy(savedLocations = saved) }
@@ -499,13 +492,10 @@ private fun MainViewModel.updatePosition(lat: Double, lng: Double, bearing: Floa
     SpoofingState.longitude = lng
     SpoofingState.simBearing = bearing
 
-    val dLat = Math.toRadians(lat - lastDbQueryLat)
-    val dLng = Math.toRadians(lng - lastDbQueryLng)
-    val a = kotlin.math.sin(dLat / 2).let { it * it } + kotlin.math.cos(
-        Math.toRadians(lastDbQueryLat)
-    ) * kotlin.math.cos(Math.toRadians(lat)) * kotlin.math.sin(dLng / 2).let { it * it }
-    val distance =
-        2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+    val distance = io.github.amahteru.locationspoofer.utils.GeoMath.distance(
+        io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lastDbQueryLat, lastDbQueryLng),
+        io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)
+    )
 
     val coveredRouteId = io.github.amahteru.locationspoofer.data.model.CollectionRouteMatcher.routeAt(
         collectionRoutes.value,
@@ -519,9 +509,15 @@ private fun MainViewModel.updatePosition(lat: Double, lng: Double, bearing: Floa
 
         environmentUpdateJob?.cancel()
         environmentUpdateJob = viewModelScope.launch {
-            val records = environmentRecordsAt(lat, lng)
-            val jsons = locationToJson(records, lat, lng)
-            locationRepository.updateEnvironment(jsons.first, jsons.second, jsons.third)
+            applyEnvironment(environmentRecordsAt(lat, lng), lat, lng)
+            val state = _uiState.value
+            locationRepository.updateEnvironment(
+                state.collectedWifiJson,
+                state.collectedCellJson,
+                state.collectedBluetoothJson,
+                state.simulatedWifi,
+                state.simulatedBluetooth
+            )
         }
     }
 }

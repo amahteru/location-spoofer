@@ -1,13 +1,17 @@
 package io.github.amahteru.locationspoofer.utils
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.os.SystemClock
 import android.telephony.CellInfo
 import android.telephony.CellInfoCdma
 import android.telephony.CellInfoGsm
@@ -59,6 +63,35 @@ class EnvironmentScanner(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
+    private suspend fun freshScanResults(wifiManager: WifiManager): List<android.net.wifi.ScanResult> {
+        val scanStart = SystemClock.elapsedRealtime()
+        var receiver: BroadcastReceiver? = null
+        try {
+            withTimeoutOrNull(WIFI_SCAN_TIMEOUT_MS) {
+                suspendCancellableCoroutine { continuation ->
+                    val scanReceiver = object : BroadcastReceiver() {
+                        override fun onReceive(context: Context, intent: Intent) {
+                            if (continuation.isActive) continuation.resume(Unit)
+                        }
+                    }
+                    context.applicationContext.registerReceiver(
+                        scanReceiver,
+                        IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION),
+                        Context.RECEIVER_NOT_EXPORTED
+                    )
+                    receiver = scanReceiver
+                    if (!wifiManager.startScan() && continuation.isActive) continuation.resume(Unit)
+                }
+            }
+        } finally {
+            receiver?.let { context.applicationContext.unregisterReceiver(it) }
+        }
+        val oldestAllowed = scanStart - WIFI_RESULT_MAX_AGE_MS
+        return wifiManager.scanResults.filter { it.timestamp / 1000 >= oldestAllowed }
+    }
+
+    @SuppressLint("MissingPermission")
     suspend fun scanWifi(): String = withContext(Dispatchers.IO) {
         val wifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -72,12 +105,7 @@ class EnvironmentScanner(private val context: Context) {
             resultObj.put("isConnected", isWifiConnected)
 
             val connectedBssid = connectionInfo?.bssid
-            try {
-                @Suppress("DEPRECATION")
-                wifiManager.startScan()
-            } catch (e: Throwable) {
-            }
-            val results = wifiManager.scanResults ?: emptyList()
+            val results = freshScanResults(wifiManager)
 
             if (connectionInfo != null && connectedBssid != null && connectedBssid != "02:00:00:00:00:00") {
                 val connObj = JSONObject()
@@ -105,18 +133,9 @@ class EnvironmentScanner(private val context: Context) {
                 connObj.put("channel", MacVendorHelper.frequencyToChannel(connectionInfo.frequency))
                 connObj.put("capabilities", match?.capabilities ?: "[WPA2-PSK-CCMP][ESS]")
                 connObj.put("macAddress", "02:00:00:00:00:00")
-                try {
-                    connObj.put("linkSpeed", connectionInfo.linkSpeed)
-                } catch (e: Throwable) {
-                }
-                try {
-                    connObj.put("networkId", connectionInfo.networkId)
-                } catch (e: Throwable) {
-                }
-                try {
-                    connObj.put("wifiStandard", connectionInfo.wifiStandard)
-                } catch (e: Throwable) {
-                }
+                connObj.put("linkSpeed", connectionInfo.linkSpeed)
+                connObj.put("networkId", connectionInfo.networkId)
+                connObj.put("wifiStandard", connectionInfo.wifiStandard)
                 resultObj.put("connectedWifi", connObj)
             } else {
                 resultObj.put("connectedWifi", JSONObject.NULL)
@@ -362,5 +381,7 @@ class EnvironmentScanner(private val context: Context) {
 
     companion object {
         private const val WIFI_INFO_TIMEOUT_MS = 1_500L
+        private const val WIFI_SCAN_TIMEOUT_MS = 8_000L
+        private const val WIFI_RESULT_MAX_AGE_MS = 30_000L
     }
 }

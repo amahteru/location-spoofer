@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.managedata
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.StatusLabel
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.AnimatedContent
@@ -175,6 +176,7 @@ fun ModernEditDataDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         Scaffold(
+            snackbarHost = { AppSnackbar.Host() },
             topBar = {
                 TopAppBar(
                     navigationIcon = {
@@ -268,7 +270,7 @@ fun ModernEditDataDialog(
                     placeholder = { Text(stringResource(R.string.set_place_name_hint)) },
                     leadingIcon = { Icon(Icons.Rounded.Place, contentDescription = null) },
                     trailingIcon = if (placeName.isNotEmpty()) {
-                        { IconButton(onClick = { placeName = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = null) } }
+                        { IconButton(onClick = { placeName = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text)) } }
                     } else null,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -280,7 +282,7 @@ fun ModernEditDataDialog(
                     placeholder = { Text(stringResource(R.string.add_remark_hint)) },
                     leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Notes, contentDescription = null) },
                     trailingIcon = if (remark.isNotEmpty()) {
-                        { IconButton(onClick = { remark = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = null) } }
+                        { IconButton(onClick = { remark = "" }) { Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text)) } }
                     } else null,
                     minLines = 2,
                     maxLines = 3,

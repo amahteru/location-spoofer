@@ -1,5 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.data.model.isAt
+import io.github.amahteru.locationspoofer.data.db.displayName
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.StatusLabel
@@ -42,7 +44,6 @@ import io.github.amahteru.locationspoofer.viewmodel.toggleCollectedRouteFavorite
 import io.github.amahteru.locationspoofer.data.model.routePoints
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
-import java.util.Locale
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @Composable
@@ -61,10 +62,6 @@ fun ManageDataScreen(
     val collectionRoutes = manageDataUiState.collectionRoutes
     var editingRoute by remember { mutableStateOf<io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord?>(null) }
     var deletingRoute by remember { mutableStateOf<io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord?>(null) }
-
-    val favoritedCoords = remember(uiState.savedLocations) {
-        uiState.savedLocations.mapTo(HashSet()) { it.lat to it.lng }
-    }
 
     val favoritedRoutes = remember(uiState.savedRoutes) { uiState.savedRoutes.mapTo(HashSet()) { it.points } }
 
@@ -228,7 +225,7 @@ fun ManageDataScreen(
                                 CollectedDataMenu(
                                     onEdit = { editingItem = item },
                                     onDelete = { itemToDelete = item },
-                                    favorited = (item.location.lat to item.location.lng) in favoritedCoords,
+                                    favorited = uiState.savedLocations.any { it.isAt(item.location.lat, item.location.lng) },
                                     onFavorite = { viewModel.toggleCollectedLocationFavorite(item.location.id) }
                                 )
                             }
@@ -255,9 +252,10 @@ fun ManageDataScreen(
                     selectedWifiBssid,
                     selectedBluetoothAddress,
                     selectedCellKey
-                )
-                viewModel.syncFavoriteCoordinateIfExists(currentItem.location.lat, currentItem.location.lng, lat, lng)
-                viewModel.selectCollectedLocation(currentItem.location.id)
+                ) {
+                    viewModel.syncFavoriteCoordinateIfExists(currentItem.location.lat, currentItem.location.lng, lat, lng)
+                    viewModel.selectCollectedLocation(currentItem.location.id)
+                }
                 editingItem = null
             },
             onSaveWifi = { bssid, ssid, frequency, level, capabilities, vendor, isConnected, isDesignated ->
@@ -327,39 +325,29 @@ fun ManageDataScreen(
     }
 
     editingRoute?.let { route ->
-        CollectionRouteInfoDialog(route, uiState.isSavingCollectionInfo,
+        CollectionRouteInfoDialog(route, uiState.isSavingCollectionInfo, editing = true,
             onDismiss = { editingRoute = null },
             onSave = { name, remark ->
                 viewModel.saveCollectionRouteInfo(route.id, name, remark, closePending = false, onSaved = { editingRoute = null })
             })
     }
     deletingRoute?.let { route ->
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { deletingRoute = null },
-            title = { Text(stringResource(R.string.collection_route_delete_title)) },
-            text = { Text(stringResource(R.string.collection_route_delete_message, route.name)) },
-            confirmButton = { TextButton(onClick = { viewModel.deleteCollectedRoute(route.id); deletingRoute = null }) { Text(stringResource(R.string.delete)) } },
-            dismissButton = { TextButton(onClick = { deletingRoute = null }) { Text(stringResource(R.string.cancel)) } }
+        ManageDeleteConfirmDialog(
+            title = stringResource(R.string.collection_route_delete_title),
+            message = stringResource(R.string.collection_route_delete_message, route.name),
+            onDismiss = { deletingRoute = null },
+            onConfirm = {
+                viewModel.deleteCollectedRoute(route.id)
+                deletingRoute = null
+            }
         )
     }
 
     if (itemToDelete != null) {
         val targetItem = itemToDelete!!
-        val displayName = when {
-            targetItem.location.placeName.isNotBlank() -> targetItem.location.placeName
-            targetItem.location.remark.isNotBlank() -> targetItem.location.remark
-            else -> "坐标 (${
-                String.format(
-                    Locale.US,
-                    "%.4f",
-                    targetItem.location.lat
-                )
-            }, ${String.format(Locale.US, "%.4f", targetItem.location.lng)})"
-        }
-
         ManageDeleteConfirmDialog(
             title = stringResource(R.string.delete_data_title),
-            message = stringResource(R.string.delete_data_confirm_format, displayName),
+            message = stringResource(R.string.delete_data_confirm_format, targetItem.location.displayName()),
             onDismiss = { itemToDelete = null },
             onConfirm = {
                 manageDataViewModel.deleteManageDataSingle(targetItem.location.id)

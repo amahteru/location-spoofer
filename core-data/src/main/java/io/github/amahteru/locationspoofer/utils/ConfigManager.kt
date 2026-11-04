@@ -45,7 +45,7 @@ class ConfigManager(private val context: Context) {
         startTimestamp: Long = System.currentTimeMillis(),
         routePoints: List<RoutePoint> = emptyList(),
         isRouteMode: Boolean = false,
-        wifiJson: String = "[]",
+        wifiJson: String = "{}",
         cellJson: String = "[]",
         bluetoothJson: String = "[]",
         mockWifi: Boolean = true,
@@ -127,16 +127,7 @@ class ConfigManager(private val context: Context) {
     }
 
     fun putEnvironment(json: JSONObject, wifiJson: String, cellJson: String, bluetoothJson: String) {
-        val wifiObj = try {
-            JSONObject(wifiJson)
-        } catch (e: Exception) {
-            JSONObject().apply {
-                put("isConnected", false)
-                put("connectedWifi", JSONObject.NULL)
-                put("nearbyWifi", JSONArray())
-            }
-        }
-        json.put("wifi_json", wifiObj)
+        json.put("wifi_json", JSONObject(wifiJson))
         json.put("cell_json", JSONArray(cellJson))
         json.put("bluetooth_json", JSONArray(bluetoothJson))
     }

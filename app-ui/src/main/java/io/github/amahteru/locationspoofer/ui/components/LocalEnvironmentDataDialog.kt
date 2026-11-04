@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import io.github.amahteru.locationspoofer.data.model.isAt
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
@@ -24,7 +25,6 @@ import io.github.amahteru.locationspoofer.data.model.SavedRoute
 import io.github.amahteru.locationspoofer.data.model.routePoints
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalEnvironmentDataDialog(
     dataList: List<CompleteLocation>,
@@ -40,10 +40,6 @@ fun LocalEnvironmentDataDialog(
     onFavoriteRoute: (io.github.amahteru.locationspoofer.data.db.CompleteCollectionRoute) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
-
-    val favoritedCoords = remember(savedLocations) {
-        savedLocations.mapTo(HashSet()) { it.lat to it.lng }
-    }
 
     val favoritedRoutes = remember(savedRoutes) { savedRoutes.mapTo(HashSet()) { it.points } }
 
@@ -67,155 +63,134 @@ fun LocalEnvironmentDataDialog(
         collectionRoutes.filter { query.isBlank() || it.route.name.contains(query, true) || it.route.remark.contains(query, true) }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    AppBottomSheet(
+        title = stringResource(R.string.local_collected_datasource),
+        subtitle = if (dataList.isEmpty() && collectionRoutes.isEmpty()) stringResource(R.string.no_local_env_data) else stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
+        onDismiss = onDismiss,
+        skipPartiallyExpanded = true,
+        actions = {
+            if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
+                IconButton(onClick = onImportClick) {
+                    Icon(Icons.Rounded.FolderOpen, contentDescription = stringResource(R.string.import_external_data_json))
+                }
+            }
+        }
     ) {
-        Box {
-            Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-                Row(
+        if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
+            AppSearchField(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                placeholder = stringResource(R.string.search_remark_coord_hint),
+                modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
+            )
+        }
+
+    val listState = when {
+        isLoading -> 0
+        dataList.isEmpty() && collectionRoutes.isEmpty() -> 1
+        filteredList.isEmpty() && filteredRoutes.isEmpty() -> 2
+        else -> 3
+    }
+    AnimatedContent(
+        targetState = listState,
+        transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
+        modifier = Modifier.weight(1f, fill = false),
+        label = "local_data_list_state"
+    ) { state ->
+        when (state) {
+            0 -> {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = AppSpacing.screenMargin, end = AppSpacing.md),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(180.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.local_collected_datasource),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = if (dataList.isEmpty() && collectionRoutes.isEmpty()) stringResource(R.string.no_local_env_data) else stringResource(R.string.local_collection_records_count, dataList.size, collectionRoutes.size),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
-                        IconButton(onClick = onImportClick) {
-                            Icon(Icons.Rounded.FolderOpen, contentDescription = stringResource(R.string.import_external_data_json))
-                        }
+                    CircularProgressIndicator()
+                }
+            }
+            1 -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = AppSpacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        Icons.Rounded.FolderOff,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(Modifier.height(AppSpacing.md))
+                    Text(
+                        text = stringResource(R.string.no_local_env_data),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(AppSpacing.xs))
+                    Text(
+                        text = stringResource(R.string.scan_or_import_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = AppSpacing.lg)
+                    )
+                    Spacer(Modifier.height(AppSpacing.lg))
+                    FilledTonalButton(
+                        onClick = onImportClick,
+                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                    ) {
+                        Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.import_external_data_json))
                     }
                 }
-
-                if (dataList.isNotEmpty() || collectionRoutes.isNotEmpty()) {
-                    AppSearchField(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        placeholder = stringResource(R.string.search_remark_coord_hint),
-                        modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
+            }
+            2 -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_matching_collected_points),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-            val listState = when {
-                isLoading -> 0
-                dataList.isEmpty() && collectionRoutes.isEmpty() -> 1
-                filteredList.isEmpty() && filteredRoutes.isEmpty() -> 2
-                else -> 3
             }
-            AnimatedContent(
-                targetState = listState,
-                transitionSpec = { fadeIn(AppMotion.defaultEffectsSpec()) togetherWith fadeOut(AppMotion.fastEffectsSpec()) },
-                modifier = Modifier.weight(1f, fill = false),
-                label = "local_data_list_state"
-            ) { state ->
-                when (state) {
-                    0 -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                ) {
+                    items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
+                        Box(Modifier.animateListItem(this)) {
+                            CollectedRouteCard(route, onClick = { onSelectRoute(route) }) {
+                                FavoriteToggle(route.route.routePoints() in favoritedRoutes) { onFavoriteRoute(route) }
+                            }
                         }
                     }
-                    1 -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = AppSpacing.xl),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.FolderOff,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(Modifier.height(AppSpacing.md))
-                            Text(
-                                text = stringResource(R.string.no_local_env_data),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(AppSpacing.xs))
-                            Text(
-                                text = stringResource(R.string.scan_or_import_hint),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = AppSpacing.lg)
-                            )
-                            Spacer(Modifier.height(AppSpacing.lg))
-                            FilledTonalButton(
-                                onClick = onImportClick,
-                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+                    items(filteredList, key = { it.location.id }) { item ->
+                        Box(Modifier.animateListItem(this)) {
+                            CollectedLocationCard(
+                                item,
+                                onClick = {
+                                    onSelectPoint(item)
+                                    onDismiss()
+                                }
                             ) {
-                                Icon(Icons.Rounded.FolderOpen, null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.import_external_data_json))
-                            }
-                        }
-                    }
-                    2 -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(140.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.no_matching_collected_points),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.xs),
-                            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-                        ) {
-                            items(filteredRoutes, key = { "collection-route-${it.route.id}" }) { route ->
-                                Box(Modifier.animateListItem(this)) {
-                                    CollectedRouteCard(route, onClick = { onSelectRoute(route) }) {
-                                        FavoriteToggle(route.route.routePoints() in favoritedRoutes) { onFavoriteRoute(route) }
-                                    }
-                                }
-                            }
-                            items(filteredList, key = { it.location.id }) { item ->
-                                Box(Modifier.animateListItem(this)) {
-                                    CollectedLocationCard(
-                                        item,
-                                        onClick = {
-                                            onSelectPoint(item)
-                                            onDismiss()
-                                        }
-                                    ) {
-                                        FavoriteToggle((item.location.lat to item.location.lng) in favoritedCoords) { onFavorite(item) }
-                                    }
-                                }
+                                FavoriteToggle(savedLocations.any { it.isAt(item.location.lat, item.location.lng) }) { onFavorite(item) }
                             }
                         }
                     }
                 }
             }
-                Spacer(Modifier.height(AppSpacing.lg))
-            }
-            AppSnackbar.Host(Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
         }
+    }
     }
 }
 

@@ -14,6 +14,7 @@ import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.saveCollectionInfo
+import io.github.amahteru.locationspoofer.viewmodel.skipAllCollectionInfo
 import io.github.amahteru.locationspoofer.viewmodel.skipCollectionInfo
 import io.github.amahteru.locationspoofer.viewmodel.saveCollectionRouteInfo
 import io.github.amahteru.locationspoofer.viewmodel.skipCollectionRouteInfo
@@ -42,7 +43,10 @@ fun CollectionInfoDialogHost(viewModel: MainViewModel, uiState: AppState) {
         initialRemark = record.remark,
         saving = uiState.isSavingCollectionInfo,
         nameRequired = false,
+        description = stringResource(R.string.collection_info_description),
+        dismissLabel = stringResource(R.string.collection_info_skip),
         onDismiss = viewModel::skipCollectionInfo,
+        onSkipAll = if (remaining > 1) viewModel::skipAllCollectionInfo else null,
         onSave = { name, remark -> viewModel.saveCollectionInfo(record.id, name, remark) }
     ) {
         if (remaining > 1) Text(stringResource(R.string.collection_info_remaining, remaining))
@@ -55,7 +59,7 @@ fun CollectionInfoDialogHost(viewModel: MainViewModel, uiState: AppState) {
 }
 
 @Composable
-fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
+fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, editing: Boolean = false, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
     CollectionDetailsDialog(
         key = "route-${route.id}",
         title = stringResource(R.string.collection_route_details),
@@ -65,6 +69,8 @@ fun CollectionRouteInfoDialog(route: CollectionRouteRecord, saving: Boolean, onD
         initialRemark = route.remark,
         saving = saving,
         nameRequired = true,
+        description = if (editing) null else stringResource(R.string.collection_info_description),
+        dismissLabel = stringResource(if (editing) R.string.cancel else R.string.collection_info_skip),
         onDismiss = onDismiss,
         onSave = onSave
     )
@@ -80,8 +86,11 @@ private fun CollectionDetailsDialog(
     initialRemark: String,
     saving: Boolean,
     nameRequired: Boolean,
+    description: String?,
+    dismissLabel: String,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
+    onSkipAll: (() -> Unit)? = null,
     details: @Composable ColumnScope.() -> Unit = {}
 ) {
     var name by rememberSaveable(key) { mutableStateOf(initialName) }
@@ -96,7 +105,7 @@ private fun CollectionDetailsDialog(
                 modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
-                Text(stringResource(R.string.collection_info_description))
+                if (description != null) Text(description)
                 details()
                 OutlinedTextField(
                     value = name,
@@ -120,8 +129,15 @@ private fun CollectionDetailsDialog(
             }
         },
         dismissButton = {
-            TextButton(enabled = !saving, onClick = onDismiss) {
-                Text(stringResource(R.string.collection_info_skip))
+            Row {
+                onSkipAll?.let {
+                    TextButton(enabled = !saving, onClick = it) {
+                        Text(stringResource(R.string.collection_info_skip_all))
+                    }
+                }
+                TextButton(enabled = !saving, onClick = onDismiss) {
+                    Text(dismissLabel)
+                }
             }
         },
         confirmButton = {

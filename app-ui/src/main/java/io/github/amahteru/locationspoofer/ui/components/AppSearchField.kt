@@ -1,8 +1,10 @@
 package io.github.amahteru.locationspoofer.ui.components
 
+import androidx.compose.ui.res.stringResource
+import io.github.amahteru.locationspoofer.ui.R
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,7 +50,7 @@ fun AppSearchField(
             trailingIcon = if (query.isNotEmpty()) {
                 {
                     IconButton(onClick = { onQueryChange("") }) {
-                        Icon(Icons.Rounded.Close, contentDescription = null)
+                        Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text))
                     }
                 }
             } else null

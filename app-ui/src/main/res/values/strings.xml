@@ -284,7 +284,6 @@
 
     <string name="no_saved_locations_card_hint">No favorites yet. Tap “Favorite” above to add one</string>
     <string name="saved_locations_card_title">Favorite locations</string>
-    <string name="delete_saved_location_short">Delete</string>
 
 
     <string name="manage_wifi_list_title">Simulated Wi-Fi</string>
@@ -371,6 +370,7 @@
     <string name="import_parse_failed">Couldn’t read this file. Pick a valid backup</string>
     <string name="add_to_favorites">Favorite</string>
     <string name="favorite_failed">Operation failed. The record may have been deleted</string>
+    <string name="favorited">Saved</string>
     <string name="favorite_added">Added “%1$s” to favorites</string>
     <string name="favorite_removed">Removed “%1$s” from favorites</string>
     <string name="search_failed">Search failed. Check your network and try again</string>
@@ -390,9 +390,14 @@
     <string name="collection_info_remaining">Points left to describe: %d</string>
     <string name="collection_location_name">Location name</string>
     <string name="collection_info_skip">Skip</string>
+    <string name="collection_info_skip_all">Skip all</string>
+    <string name="collection_waiting_location">Waiting for location…</string>
+    <string name="collection_off_route">Outside the 50 m route corridor. Not saving</string>
+    <string name="clear_text">Clear</string>
+    <string name="more_options">More options</string>
     <string name="collection_info_saving">Saving…</string>
     <string name="collection_stopping">Finishing collection…</string>
-    <string name="collection_no_saved_points">No points saved. Check location permission and try again</string>
+    <string name="collection_no_saved_points">Nothing saved. Check location and stay in range</string>
     <string name="collection_info_save_failed">Couldn’t save point details. Please try again</string>
 
     <string name="collection_point_mode">Point collection</string>
@@ -401,7 +406,6 @@
     <string name="collection_route_collect_hint">Walk the route to collect data within 50 m</string>
     <string name="collection_route_add_point">Add waypoint</string>
     <string name="collection_route_done">Done</string>
-    <string name="collection_route_undo">Undo</string>
     <string name="collection_route_edit_drawing">Edit route</string>
     <string name="collection_route_start">Start route collection</string>
     <string name="collection_route_center">Waypoint crosshair</string>

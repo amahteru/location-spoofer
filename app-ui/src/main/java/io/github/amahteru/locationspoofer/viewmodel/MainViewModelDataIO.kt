@@ -5,7 +5,7 @@ import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import io.github.amahteru.locationspoofer.data.model.ImportExportCounts
 import io.github.amahteru.locationspoofer.data.model.ImportExportSelection
 import io.github.amahteru.locationspoofer.data.model.AppMapType
-import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
+import io.github.amahteru.locationspoofer.data.model.isAt
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
@@ -21,176 +21,169 @@ internal suspend fun MainViewModel.saveEnvironmentData(
     bluetoothJson: String,
     mergeNearby: Boolean = false,
     collectionRouteId: Long? = null
-): Long {
-    val existingLocation = if (mergeNearby) null else environmentDao.findLocationByCoordinates(lat, lng)
-    val locId = if (mergeNearby) {
-        environmentDao.findOrCreateCollectionLocation(lat, lng, collectionRouteId)
-    } else if (existingLocation != null) {
-        environmentDao.updateCollectionTimestamp(existingLocation.id, System.currentTimeMillis())
-        existingLocation.id
-    } else {
-        environmentDao.insertLocation(
-            io.github.amahteru.locationspoofer.data.db.LocationRecord(
-                lat = lat,
-                lng = lng
+): Long = environmentDao.runInTransaction {
+        val existingLocation = if (mergeNearby) null else environmentDao.findLocationByCoordinates(lat, lng)
+        val locId = if (mergeNearby) {
+            environmentDao.findOrCreateCollectionLocation(lat, lng, collectionRouteId)
+        } else if (existingLocation != null) {
+            environmentDao.updateCollectionTimestamp(existingLocation.id, System.currentTimeMillis())
+            existingLocation.id
+        } else {
+            environmentDao.insertLocation(
+                io.github.amahteru.locationspoofer.data.db.LocationRecord(
+                    lat = lat,
+                    lng = lng
+                )
             )
-        )
-    }
-
-    try {
-        val wifiObj = org.json.JSONObject(wifiJson)
-        val isConnected = wifiObj.optBoolean("isConnected", false)
-        if (isConnected && wifiObj.has("connectedWifi")) {
-            val conn = wifiObj.getJSONObject("connectedWifi")
-            val connWifi = io.github.amahteru.locationspoofer.data.db.LocationConnectedWifi(
-                locationId = locId,
-                bssid = conn.optString("bssid"),
-                ssid = conn.optString("ssid"),
-                vendor = conn.optString("vendor"),
-                macAddress = conn.optString("macAddress"),
-                frequency = conn.optInt("frequency"),
-                linkSpeed = conn.optInt("linkSpeed"),
-                level = conn.optInt("level"),
-                capabilities = conn.optString("capabilities"),
-                networkId = conn.optInt("networkId"),
-                wifiStandard = conn.optInt("wifiStandard")
-            )
-            environmentDao.insertConnectedWifi(connWifi)
         }
 
-        val nearbyArr = wifiObj.optJSONArray("nearbyWifi")
-        if (nearbyArr != null) {
-            for (i in 0 until nearbyArr.length()) {
-                val obj = nearbyArr.getJSONObject(i)
-                val bssid = obj.optString("bssid")
-                if (bssid.isEmpty()) continue
-                environmentDao.insertWifiDevice(
-                    io.github.amahteru.locationspoofer.data.db.WifiDevice(
-                        bssid = bssid,
-                        ssid = obj.optString("ssid", ""),
-                        frequency = obj.optInt("frequency", 0),
-                        capabilities = obj.optString("capabilities", ""),
-                        vendor = obj.optString("vendor", "")
-                    )
+        try {
+            val wifiObj = org.json.JSONObject(wifiJson)
+            val conn = wifiObj.optJSONObject("connectedWifi")
+            if (wifiObj.optBoolean("isConnected", false) && conn != null) {
+                val connWifi = io.github.amahteru.locationspoofer.data.db.LocationConnectedWifi(
+                    locationId = locId,
+                    bssid = conn.optString("bssid"),
+                    ssid = conn.optString("ssid"),
+                    vendor = conn.optString("vendor"),
+                    macAddress = conn.optString("macAddress"),
+                    frequency = conn.optInt("frequency"),
+                    linkSpeed = conn.optInt("linkSpeed"),
+                    level = conn.optInt("level"),
+                    capabilities = conn.optString("capabilities"),
+                    networkId = conn.optInt("networkId"),
+                    wifiStandard = conn.optInt("wifiStandard")
                 )
-                environmentDao.insertLocationWifi(
-                    io.github.amahteru.locationspoofer.data.db.LocationWifi(
-                        locationId = locId,
-                        bssid = bssid,
-                        level = obj.optInt("level", 0)
-                    )
-                )
+                environmentDao.insertConnectedWifi(connWifi)
             }
-        }
-    } catch (e: org.json.JSONException) {
-        e.printStackTrace()
-    }
 
-    try {
-        val cellArr = org.json.JSONArray(cellJson)
-        for (i in 0 until cellArr.length()) {
-            val obj = cellArr.getJSONObject(i)
-            val type =
-                normalizeCellType(obj.optString("type", obj.optString("radio", "UNKNOWN")))
-            val area = cellArea(obj)
-            val identity = cellIdentity(obj)
-            val tac = when (type) {
-                "LTE", "NR" -> area
-                else -> positiveCellInt(obj, "tac", default = 0)
+            val nearbyArr = wifiObj.optJSONArray("nearbyWifi")
+            if (nearbyArr != null) {
+                for (i in 0 until nearbyArr.length()) {
+                    val obj = nearbyArr.getJSONObject(i)
+                    val bssid = obj.optString("bssid")
+                    if (bssid.isEmpty()) continue
+                    environmentDao.insertWifiDevice(
+                        io.github.amahteru.locationspoofer.data.db.WifiDevice(
+                            bssid = bssid,
+                            ssid = obj.optString("ssid", ""),
+                            frequency = obj.optInt("frequency", 0),
+                            capabilities = obj.optString("capabilities", ""),
+                            vendor = obj.optString("vendor", "")
+                        )
+                    )
+                    environmentDao.insertLocationWifi(
+                        io.github.amahteru.locationspoofer.data.db.LocationWifi(
+                            locationId = locId,
+                            bssid = bssid,
+                            level = obj.optInt("level", 0)
+                        )
+                    )
+                }
             }
-            val lac = when (type) {
-                "GSM", "WCDMA" -> area
-                else -> positiveCellInt(obj, "lac", default = 0)
-            }
-            val ci = when (type) {
-                "LTE" -> identity
-                else -> positiveCellInt(obj, "ci", default = 0)
-            }
-            val cid = when (type) {
-                "GSM", "WCDMA" -> identity
-                else -> positiveCellInt(obj, "cid", default = 0)
-            }
-            val nci = if (type == "NR") {
-                obj.optLong("nci", identity.toLong()).takeIf { it > 0L } ?: identity.toLong()
-            } else {
-                obj.optLong("nci", 0L)
-            }
-            val basestationId = if (type == "CDMA") {
-                positiveCellInt(obj, "basestationId", "cellid", "cell", default = 0)
-            } else {
-                positiveCellInt(obj, "basestationId", default = 0)
-            }
-            if (area <= 0 && identity <= 0 && basestationId <= 0) continue
-            val cellKey = "${type}_${positiveCellInt(obj, "mcc", default = 460)}_${
-                positiveCellInt(
-                    obj,
-                    "mnc",
-                    "net",
-                    default = 0
-                )
-            }_${tac}_${ci}_${cid}_${basestationId}_${nci}"
-            val device = io.github.amahteru.locationspoofer.data.db.CellDevice(
-                cellKey = cellKey, type = type,
-                mcc = positiveCellInt(obj, "mcc", default = 460),
-                mnc = positiveCellInt(obj, "mnc", "net", default = 0),
-                tac = tac, ci = ci,
-                pci = positiveCellInt(
+        } catch (e: org.json.JSONException) {
+            e.printStackTrace()
+        }
+
+        try {
+            val cellArr = org.json.JSONArray(cellJson)
+            for (i in 0 until cellArr.length()) {
+                val obj = cellArr.getJSONObject(i)
+                val type =
+                    normalizeCellType(obj.optString("type", obj.optString("radio", "UNKNOWN")))
+                val area = cellArea(obj)
+                val identity = cellIdentity(obj)
+                val tac = when (type) {
+                    "LTE", "NR" -> area
+                    else -> positiveCellInt(obj, "tac", default = 0)
+                }
+                val lac = when (type) {
+                    "GSM", "WCDMA" -> area
+                    else -> positiveCellInt(obj, "lac", default = 0)
+                }
+                val ci = when (type) {
+                    "LTE" -> identity
+                    else -> positiveCellInt(obj, "ci", default = 0)
+                }
+                val cid = when (type) {
+                    "GSM", "WCDMA" -> identity
+                    else -> positiveCellInt(obj, "cid", default = 0)
+                }
+                val nci = if (type == "NR") {
+                    obj.optLong("nci", identity.toLong()).takeIf { it > 0L } ?: identity.toLong()
+                } else {
+                    obj.optLong("nci", 0L)
+                }
+                val basestationId = if (type == "CDMA") {
+                    positiveCellInt(obj, "basestationId", "cellid", "cell", default = 0)
+                } else {
+                    positiveCellInt(obj, "basestationId", default = 0)
+                }
+                if (area <= 0 && identity <= 0 && basestationId <= 0) continue
+                val pci = positiveCellInt(
                     obj,
                     "pci",
                     default = if (identity > 0) (identity % 504).coerceIn(0, 503) else 0
-                ),
-                lac = lac, cid = cid,
-                psc = positiveCellInt(obj, "psc", default = 0),
-                nci = nci,
-                networkId = positiveCellInt(obj, "networkId", default = 0),
-                systemId = positiveCellInt(obj, "systemId", default = 0),
-                basestationId = basestationId
-            )
-            environmentDao.insertCellDevice(device)
-            environmentDao.insertLocationCell(
-                io.github.amahteru.locationspoofer.data.db.LocationCell(
-                    locId,
-                    cellKey,
-                    cellSignalDbm(obj, i),
-                    obj.optBoolean("isRegistered", i == 0)
                 )
-            )
+                val cellKey = "${type}_${positiveCellInt(obj, "mcc", default = 460)}_${
+                    positiveCellInt(
+                        obj,
+                        "mnc",
+                        "net",
+                        default = 0
+                    )
+                }_${tac}_${ci}_${cid}_${basestationId}_${nci}_${pci}"
+                val device = io.github.amahteru.locationspoofer.data.db.CellDevice(
+                    cellKey = cellKey, type = type,
+                    mcc = positiveCellInt(obj, "mcc", default = 460),
+                    mnc = positiveCellInt(obj, "mnc", "net", default = 0),
+                    tac = tac, ci = ci,
+                    pci = pci,
+                    lac = lac, cid = cid,
+                    psc = positiveCellInt(obj, "psc", default = 0),
+                    nci = nci,
+                    networkId = positiveCellInt(obj, "networkId", default = 0),
+                    systemId = positiveCellInt(obj, "systemId", default = 0),
+                    basestationId = basestationId
+                )
+                environmentDao.insertCellDevice(device)
+                environmentDao.insertLocationCell(
+                    io.github.amahteru.locationspoofer.data.db.LocationCell(
+                        locId,
+                        cellKey,
+                        cellSignalDbm(obj, i),
+                        obj.optBoolean("isRegistered", i == 0)
+                    )
+                )
+            }
+        } catch (e: org.json.JSONException) {
         }
-    } catch (e: org.json.JSONException) {
-    }
 
-    try {
-        val btArr = org.json.JSONArray(bluetoothJson)
-        for (i in 0 until btArr.length()) {
-            val obj = btArr.getJSONObject(i)
-            val address = obj.optString("address")
-            if (address.isEmpty()) continue
-            environmentDao.insertBluetoothDevice(
-                io.github.amahteru.locationspoofer.data.db.BluetoothDevice(
-                    address,
-                    obj.optString("name", ""),
-                    obj.optString("scanRecordHex", "")
+        try {
+            val btArr = org.json.JSONArray(bluetoothJson)
+            for (i in 0 until btArr.length()) {
+                val obj = btArr.getJSONObject(i)
+                val address = obj.optString("address")
+                if (address.isEmpty()) continue
+                environmentDao.insertBluetoothDevice(
+                    io.github.amahteru.locationspoofer.data.db.BluetoothDevice(
+                        address,
+                        obj.optString("name", ""),
+                        obj.optString("scanRecordHex", "")
+                    )
                 )
-            )
-            environmentDao.insertLocationBluetooth(
-                io.github.amahteru.locationspoofer.data.db.LocationBluetooth(
-                    locId,
-                    address,
-                    obj.optInt("rssi", -60)
+                environmentDao.insertLocationBluetooth(
+                    io.github.amahteru.locationspoofer.data.db.LocationBluetooth(
+                        locId,
+                        address,
+                        obj.optInt("rssi", -60)
+                    )
                 )
-            )
+            }
+        } catch (e: org.json.JSONException) {
         }
-    } catch (e: org.json.JSONException) {
-    }
-    return locId
+    locId
 }
-
-internal fun MainViewModel.locationToJson(
-    records: List<io.github.amahteru.locationspoofer.data.db.CompleteLocation>,
-    targetLat: Double,
-    targetLng: Double
-): Triple<String, String, String> =
-    EnvironmentResolver.toJson(records, targetLat, targetLng, pinnedLocationRecordId)
 
 internal fun MainViewModel.collectExportCounts(onResult: (ImportExportCounts) -> Unit) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -336,14 +329,22 @@ internal fun MainViewModel.applyImportPackage(
     viewModelScope.launch(Dispatchers.IO) {
         try {
             if (selection.locations) {
-                pkg.locations.forEach { environmentDao.insertCompleteLocationData(it) }
-                pkg.collectionRoutes.forEach { environmentDao.insertCompleteCollectionRoute(it) }
+                val coordinates = environmentDao.getAllLocations()
+                    .filter { it.collectionRouteId == null }
+                    .mapTo(HashSet()) { it.lat to it.lng }
+                pkg.locations.forEach {
+                    if (coordinates.add(it.location.lat to it.location.lng)) environmentDao.insertCompleteLocationData(it)
+                }
+                val routes = environmentDao.getCollectionRoutes().mapTo(HashSet()) { it.route.pointsJson }
+                pkg.collectionRoutes.forEach {
+                    if (routes.add(it.route.pointsJson)) environmentDao.insertCompleteCollectionRoute(it)
+                }
             }
 
             if (selection.savedLocations && pkg.savedLocations.isNotEmpty()) {
                 val currentSaved = settingsRepository.getSavedLocations().toMutableList()
                 pkg.savedLocations.forEach { loc ->
-                    if (currentSaved.none { it.lat == loc.lat && it.lng == loc.lng }) {
+                    if (currentSaved.none { it.isAt(loc.lat, loc.lng) }) {
                         currentSaved.add(loc)
                     }
                 }
@@ -351,8 +352,11 @@ internal fun MainViewModel.applyImportPackage(
             }
 
             if (selection.savedRoutes && pkg.savedRoutes.isNotEmpty()) {
+                val routes = locationRepository.getAllSavedRoutesList().mapTo(HashSet()) { it.name to it.pointsJson }
                 pkg.savedRoutes.forEach { route ->
-                    locationRepository.insertSavedRouteEntity(route.copy(id = 0))
+                    if (routes.add(route.name to route.pointsJson)) {
+                        locationRepository.insertSavedRouteEntity(route.copy(id = 0))
+                    }
                 }
             }
 

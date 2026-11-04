@@ -136,7 +136,7 @@ fun ScannerMapScreen(
                         } else if (uiState.isContinuousScanning) {
                             stringResource(
                                 R.string.scanning_status_active,
-                                uiState.environmentRecordCount
+                                uiState.scannedPointCount
                             )
                         } else {
                             stringResource(R.string.scanning_status_inactive)
@@ -149,7 +149,7 @@ fun ScannerMapScreen(
         }
 
         AnimatedVisibility(
-            visible = uiState.isContinuousScanning || uiState.scannedWifiCount > 0 || uiState.scannedCellCount > 0 || uiState.scannedBluetoothCount > 0,
+            visible = uiState.isContinuousScanning,
             enter = fadeIn(AppMotion.defaultEffectsSpec()),
             exit = fadeOut(AppMotion.fastEffectsSpec()),
             modifier = Modifier

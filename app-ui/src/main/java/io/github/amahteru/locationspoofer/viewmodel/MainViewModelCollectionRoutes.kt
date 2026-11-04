@@ -80,7 +80,7 @@ internal fun MainViewModel.selectCollectedRoute(id: Long) {
 }
 
 internal fun MainViewModel.deleteCollectedRoute(id: Long) {
-    viewModelScope.launch(Dispatchers.IO) { environmentDao.deleteCollectionRoute(id) }
+    viewModelScope.launch(Dispatchers.IO) { environmentDao.deleteCollectionRouteWithDevices(id) }
     _uiState.update { if (it.selectedCollectionRouteId == id) it.copy(selectedCollectionRouteId = null) else it }
 }
 

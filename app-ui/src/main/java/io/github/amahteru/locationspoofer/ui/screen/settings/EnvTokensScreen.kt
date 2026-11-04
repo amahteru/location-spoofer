@@ -1,24 +1,17 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.ui.R
@@ -28,7 +21,6 @@ import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.setOpencellidApiToken
 import io.github.amahteru.locationspoofer.viewmodel.setWigleApiToken
 import io.github.amahteru.locationspoofer.ui.components.AppCard
-import io.github.amahteru.locationspoofer.ui.components.AppTopBar
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @Composable
@@ -57,14 +49,16 @@ fun EnvTokensScreen(
                     label = stringResource(R.string.custom_wigle_token),
                     value = localWigleToken,
                     onValueChange = { localWigleToken = it },
-                    placeholder = stringResource(R.string.custom_wigle_token_hint)
+                    placeholder = stringResource(R.string.custom_wigle_token_hint),
+                    visualTransformation = PasswordVisualTransformation()
                 )
 
                 ModernSettingsInput(
                     label = stringResource(R.string.custom_opencellid_token),
                     value = localOpencellidToken,
                     onValueChange = { localOpencellidToken = it },
-                    placeholder = stringResource(R.string.custom_opencellid_token_hint)
+                    placeholder = stringResource(R.string.custom_opencellid_token_hint),
+                    visualTransformation = PasswordVisualTransformation()
                 )
             }
         }

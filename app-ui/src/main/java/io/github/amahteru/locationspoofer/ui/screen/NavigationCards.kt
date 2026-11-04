@@ -57,7 +57,7 @@ fun ScannerMapCard(
     onClick: () -> Unit
 ) {
     val statusText = if (uiState.isContinuousScanning) {
-        stringResource(R.string.scanning_reference_points, uiState.environmentRecordCount)
+        stringResource(R.string.scanning_reference_points, uiState.scannedPointCount)
     } else {
         stringResource(R.string.view_heatmap_start_scan)
     }

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs.location
 
+import androidx.compose.material.icons.rounded.Edit
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
@@ -31,6 +32,7 @@ fun SavedLocationsCard(
     savedLocations: List<SavedLocation>,
     panelState: LocationPanelState,
     onSelect: (SavedLocation) -> Unit,
+    onRename: (SavedLocation) -> Unit,
     onDelete: (SavedLocation) -> Unit,
     onToggleExpand: () -> Unit,
     onOpenManageDialog: () -> Unit,
@@ -121,6 +123,7 @@ fun SavedLocationsCard(
                             SavedLocationItemRow(
                                 location = loc,
                                 onSelect = { onSelect(loc) },
+                                onRename = { onRename(loc) },
                                 onDelete = { onDelete(loc) }
                             )
                         }
@@ -135,18 +138,25 @@ fun SavedLocationsCard(
 fun SavedLocationItemRow(
     location: SavedLocation,
     onSelect: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val coordinates = String.format(Locale.US, "%.5f, %.5f", location.lat, location.lng)
     ListItem(
         modifier = Modifier.clickable(onClick = onSelect),
         leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
         headlineContent = { Text(location.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        supportingContent = {
-            Text("${String.format(Locale.US, "%.5f", location.lat)}, ${String.format(Locale.US, "%.5f", location.lng)}")
+        supportingContent = if (location.name == "($coordinates)") null else {
+            { Text(coordinates) }
         },
         trailingContent = {
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.delete_saved_location_short))
+            Row {
+                IconButton(onClick = onRename) {
+                    Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.rename))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.delete))
+                }
             }
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)

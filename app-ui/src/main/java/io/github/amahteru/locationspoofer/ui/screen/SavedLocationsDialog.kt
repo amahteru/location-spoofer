@@ -1,17 +1,15 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import io.github.amahteru.locationspoofer.ui.screen.tabs.location.SavedLocationItemRow
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.data.model.SavedLocation
 import io.github.amahteru.locationspoofer.ui.R
@@ -24,10 +22,8 @@ fun SavedLocationsDialog(
     onDismiss: () -> Unit,
     onSelect: (SavedLocation) -> Unit,
     onDelete: (SavedLocation) -> Unit,
-    onRename: (SavedLocation, String) -> Unit
+    onRename: (SavedLocation) -> Unit
 ) {
-    var renaming by remember { mutableStateOf<SavedLocation?>(null) }
-
     AppBottomSheet(
         title = stringResource(R.string.saved_locations),
         subtitle = if (savedLocations.isEmpty()) null else stringResource(R.string.saved_locations_count_format, savedLocations.size),
@@ -43,10 +39,10 @@ fun SavedLocationsDialog(
             LazyColumn {
                 items(savedLocations, key = { "${it.lat}_${it.lng}" }) { loc ->
                     Box(Modifier.animateListItem(this)) {
-                        SavedLocationRow(
-                            loc,
+                        SavedLocationItemRow(
+                            location = loc,
                             onSelect = { onSelect(loc) },
-                            onRename = { renaming = loc },
+                            onRename = { onRename(loc) },
                             onDelete = { onDelete(loc) }
                         )
                     }
@@ -54,64 +50,4 @@ fun SavedLocationsDialog(
             }
         }
     }
-
-    renaming?.let { target ->
-        SaveNameDialog(
-            title = stringResource(R.string.rename),
-            initialName = target.name,
-            icon = Icons.Rounded.Edit,
-            confirmLabel = stringResource(R.string.save),
-            onConfirm = { name ->
-                onRename(target, name)
-                renaming = null
-            },
-            onDismiss = { renaming = null }
-        )
-    }
-}
-
-@Composable
-private fun SavedLocationRow(
-    loc: SavedLocation,
-    onSelect: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit
-) {
-                val coordText = "${
-                    String.format(java.util.Locale.US, "%.6f", loc.lat)
-                }, ${
-                    String.format(java.util.Locale.US, "%.6f", loc.lng)
-                }"
-                val normalize = { text: String ->
-                    text.replace("(", "").replace(")", "")
-                        .replace("（", "").replace("）", "")
-                        .replace(" ", "")
-                }
-                val nameIsCoordinate =
-                    normalize(loc.name) == normalize(coordText) ||
-                            normalize(loc.name) == normalize(
-                        "${String.format(java.util.Locale.US, "%.5f", loc.lat)}, ${
-                            String.format(java.util.Locale.US, "%.5f", loc.lng)
-                        }"
-                    )
-
-    ListItem(
-        modifier = Modifier.clickable(onClick = onSelect),
-        leadingContent = { Icon(Icons.Rounded.Place, contentDescription = null) },
-        headlineContent = { Text(if (nameIsCoordinate) coordText else loc.name) },
-        supportingContent = if (!nameIsCoordinate) {
-            { Text(coordText) }
-        } else null,
-        trailingContent = {
-            Row {
-                IconButton(onClick = onRename) {
-                    Icon(Icons.Rounded.Edit, stringResource(R.string.rename))
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.delete))
-                }
-            }
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
 }

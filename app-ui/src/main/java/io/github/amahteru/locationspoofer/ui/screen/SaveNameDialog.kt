@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,7 +31,9 @@ fun SaveNameDialog(
     onDismiss: () -> Unit,
     initialName: String = "",
     icon: ImageVector = Icons.Rounded.Star,
-    confirmLabel: String = stringResource(R.string.bookmark)
+    confirmLabel: String = stringResource(R.string.bookmark),
+    label: String = stringResource(R.string.name),
+    supportingText: String? = null
 ) {
     var field by remember {
         mutableStateOf(TextFieldValue(initialName, TextRange(0, initialName.length)))
@@ -50,12 +53,13 @@ fun SaveNameDialog(
             OutlinedTextField(
                 value = field,
                 onValueChange = { field = it },
-                label = { Text(stringResource(R.string.name)) },
+                label = { Text(label) },
+                supportingText = supportingText?.let { { Text(it) } },
                 singleLine = true,
                 trailingIcon = if (field.text.isNotEmpty()) {
                     {
                         IconButton(onClick = { field = TextFieldValue() }) {
-                            Icon(Icons.Rounded.Cancel, contentDescription = null)
+                            Icon(Icons.Rounded.Cancel, contentDescription = stringResource(R.string.clear_text))
                         }
                     }
                 } else null,
@@ -78,5 +82,17 @@ fun SaveNameDialog(
                 Text(stringResource(R.string.cancel))
             }
         }
+    )
+}
+
+@Composable
+fun RenameDialog(initialName: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    SaveNameDialog(
+        title = stringResource(R.string.rename),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        initialName = initialName,
+        icon = Icons.Rounded.Edit,
+        confirmLabel = stringResource(R.string.save)
     )
 }

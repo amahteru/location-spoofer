@@ -66,8 +66,7 @@ internal fun MainViewModel.initialize() {
     observeMotionController()
 
     viewModelScope.launch {
-        combine(environmentLocations, collectionRoutes) { locations, routes -> locations to routes }.collect { (locations, routes) ->
-            _uiState.update { it.copy(environmentRecordCount = locations.count { point -> point.location.collectionRouteId == null } + routes.size) }
+        combine(environmentLocations, collectionRoutes) { locations, routes -> locations to routes }.collect {
             evaluateMockCapabilities()
         }
     }
@@ -282,6 +281,7 @@ internal fun MainViewModel.normalizeCellType(rawType: String): String {
         "GSM" -> "GSM"
         "UMTS", "WCDMA" -> "WCDMA"
         "NR", "NR5G", "5G" -> "NR"
+        "CDMA" -> "CDMA"
         else -> "LTE"
     }
 }
@@ -450,19 +450,6 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
         }
 
         is SpoofingIntent.SetStartSpoofingDialogVisible -> {
-            if (intent.visible && !_spoofingUiState.value.showStartSpoofingDialog) {
-                _uiState.update { state ->
-                    state.copy(
-                        mockWifi = state.canMockWifi || state.mockWifi,
-                        mockCell = state.canMockCell || state.mockCell,
-                        mockBluetooth = state.canMockBluetooth || state.mockBluetooth
-                    )
-                }
-                val state = _uiState.value
-                settingsRepository.mockWifi = state.mockWifi
-                settingsRepository.mockCell = state.mockCell
-                settingsRepository.mockBluetooth = state.mockBluetooth
-            }
             _spoofingUiState.update { it.copy(showStartSpoofingDialog = intent.visible) }
         }
 

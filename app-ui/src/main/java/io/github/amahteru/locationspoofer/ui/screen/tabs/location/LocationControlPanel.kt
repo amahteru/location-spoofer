@@ -9,7 +9,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -47,6 +46,7 @@ fun LocationControlPanel(
     onStartFixedSpoofing: () -> Unit,
     onStopSpoofing: () -> Unit,
     onSelectSavedLocation: (SavedLocation) -> Unit,
+    onRenameSavedLocation: (SavedLocation) -> Unit,
     onDeleteSavedLocation: (SavedLocation) -> Unit,
     onOpenManageSavedLocations: () -> Unit,
     searchBar: @Composable (Modifier) -> Unit
@@ -208,6 +208,7 @@ fun LocationControlPanel(
                 savedLocations = uiState.savedLocations,
                 panelState = panelState,
                 onSelect = onSelectSavedLocation,
+                onRename = onRenameSavedLocation,
                 onDelete = onDeleteSavedLocation,
                 onToggleExpand = {
                     val next = if (panelState == LocationPanelState.EXPANDED) {

@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.settings
 
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.activity.compose.BackHandler
@@ -87,6 +88,7 @@ fun MapEngineSettingsScreen(
                 }
                 ModernSettingsInput(
                     modifier = Modifier.padding(top = AppSpacing.lg),
+                    visualTransformation = PasswordVisualTransformation(),
                     label = stringResource(label),
                     value = when (keyEngine) {
                         MapEngine.BAIDU -> localBaiduApiKey

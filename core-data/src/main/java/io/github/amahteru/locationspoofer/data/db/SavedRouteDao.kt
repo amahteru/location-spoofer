@@ -14,6 +14,9 @@ interface SavedRouteDao {
     @Query("SELECT * FROM saved_routes ORDER BY timestamp DESC")
     suspend fun getAllSavedRoutesList(): List<SavedRouteEntity>
 
+    @Query("SELECT * FROM saved_routes WHERE id = :id")
+    suspend fun getSavedRoute(id: Long): SavedRouteEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSavedRoute(route: SavedRouteEntity)
 

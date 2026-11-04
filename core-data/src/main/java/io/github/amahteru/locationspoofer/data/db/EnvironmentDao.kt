@@ -50,6 +50,9 @@ interface EnvironmentDao {
     suspend fun getLocationsInBounds(minLat: Double, maxLat: Double, minLng: Double, maxLng: Double): List<LocationRecord>
 
     @Transaction
+    suspend fun runInTransaction(block: suspend () -> Long): Long = block()
+
+    @Transaction
     suspend fun findOrCreateCollectionLocation(lat: Double, lng: Double, collectionRouteId: Long? = null): Long {
         val radiusM = 20.0
         val latDelta = radiusM / 110_000.0
@@ -128,6 +131,33 @@ interface EnvironmentDao {
 
     @Query("DELETE FROM location_records WHERE id = :id")
     suspend fun deleteLocation(id: Long)
+
+    @Query("DELETE FROM wifi_devices WHERE bssid NOT IN (SELECT bssid FROM location_wifi)")
+    suspend fun deleteUnusedWifiDevices()
+
+    @Query("DELETE FROM cell_devices WHERE cellKey NOT IN (SELECT cellKey FROM location_cells)")
+    suspend fun deleteUnusedCellDevices()
+
+    @Query("DELETE FROM bluetooth_devices WHERE address NOT IN (SELECT address FROM location_bluetooth)")
+    suspend fun deleteUnusedBluetoothDevices()
+
+    @Transaction
+    suspend fun deleteLocationWithDevices(id: Long) {
+        deleteLocation(id)
+        deleteUnusedDevices()
+    }
+
+    @Transaction
+    suspend fun deleteCollectionRouteWithDevices(id: Long) {
+        deleteCollectionRoute(id)
+        deleteUnusedDevices()
+    }
+
+    private suspend fun deleteUnusedDevices() {
+        deleteUnusedWifiDevices()
+        deleteUnusedCellDevices()
+        deleteUnusedBluetoothDevices()
+    }
 
     @Query("DELETE FROM location_wifi WHERE locationId = :locationId AND bssid = :bssid")
     suspend fun deleteLocationWifi(locationId: Long, bssid: String)

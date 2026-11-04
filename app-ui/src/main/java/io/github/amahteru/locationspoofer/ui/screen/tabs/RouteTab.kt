@@ -1,5 +1,8 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs
 
+import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
+import io.github.amahteru.locationspoofer.viewmodel.saveRoute
+import io.github.amahteru.locationspoofer.ui.screen.SaveNameDialog
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -93,6 +96,7 @@ fun RouteTab(
 
     val density = LocalDensity.current
     val bottomActionHeightDp = with(density) { bottomActionHeightPx.toDp() }
+    AppSnackbar.BottomInset(bottomActionHeightDp)
 
     LaunchedEffect(mapController, uiState.mapType, isActive) {
         if (!isActive) return@LaunchedEffect
@@ -362,9 +366,14 @@ fun RouteTab(
     }
 
     if (showSaveRouteDialog) {
-        SaveRouteDialog(
-            routePoints = routePoints,
-            viewModel = viewModel,
+        SaveNameDialog(
+            title = stringResource(R.string.bookmark_current_route),
+            label = stringResource(R.string.route_name),
+            supportingText = stringResource(R.string.selected_waypoints_count, routePoints.size),
+            onConfirm = { name ->
+                viewModel.saveRoute(name, routePoints)
+                showSaveRouteDialog = false
+            },
             onDismiss = { showSaveRouteDialog = false }
         )
     }

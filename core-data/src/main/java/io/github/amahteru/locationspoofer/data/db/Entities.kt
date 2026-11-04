@@ -8,7 +8,9 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Embedded
 import androidx.room.Relation
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.model.SavedLocation
+import java.util.Locale
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,6 +41,12 @@ data class LocationRecord(
     val collectionRouteId: Long? = null
 )
 
+val LocationRecord.coordinateText: String
+    get() = String.format(Locale.US, "%.5f, %.5f", lat, lng)
+
+fun LocationRecord.displayName(fallback: String = "($coordinateText)"): String =
+    placeName.ifBlank { remark }.ifBlank { fallback }
+
 @Serializable
 @Entity(tableName = "collection_routes")
 data class CollectionRouteRecord(
@@ -46,7 +54,7 @@ data class CollectionRouteRecord(
     val name: String = "",
     val remark: String = "",
     val pointsJson: String = "[]",
-    val halfWidthM: Double = 50.0,
+    val halfWidthM: Double = EnvironmentResolver.COVERAGE_RADIUS_M,
     val timestamp: Long = System.currentTimeMillis()
 )
 

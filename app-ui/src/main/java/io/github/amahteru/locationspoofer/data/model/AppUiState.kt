@@ -86,7 +86,8 @@ data class AppState(
     val collectionRoutePoints: List<RoutePoint> = emptyList(),
     val pendingCollectionRoute: io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord? = null,
     val selectedCollectionRouteId: Long? = null,
-    val environmentRecordCount: Int = 0,
+    val scannedPointCount: Int = 0,
+    val collectionIssue: CollectionIssue? = null,
     val scannedWifiCount: Int = 0,
     val scannedCellCount: Int = 0,
     val scannedBluetoothCount: Int = 0,
@@ -95,7 +96,7 @@ data class AppState(
     val forceLocationEnabled: Boolean = false,
     val installedAppsForSystemHook: List<AppInfoItem> = emptyList(),
     val isLoadingInstalledApps: Boolean = false,
-    val collectedWifiJson: String = "[]",
+    val collectedWifiJson: String = "{}",
     val collectedCellJson: String = "[]",
     val collectedBluetoothJson: String = "[]",
     val mockWifi: Boolean = true,
@@ -113,3 +114,9 @@ data class AppState(
     val pinnedCollectedLocationId: Long? = null,
     val pinnedLocationName: String? = null
 )
+
+val AppState.simulatedWifi: Boolean get() = mockWifi && canMockWifi
+
+val AppState.simulatedBluetooth: Boolean get() = mockBluetooth && canMockBluetooth
+
+enum class CollectionIssue { NO_LOCATION, OFF_ROUTE }
