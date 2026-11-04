@@ -258,7 +258,11 @@ class LocationRepository(
         savedRouteDao.insertSavedRoute(route)
     }
 
-    suspend fun deleteSavedRoute(route: SavedRouteEntity) {
-        savedRouteDao.deleteSavedRoute(route)
+    suspend fun renameSavedRoute(id: Long, name: String) {
+        savedRouteDao.renameSavedRoute(id, name)
+    }
+
+    suspend fun deleteSavedRoute(id: Long) {
+        savedRouteDao.deleteSavedRoute(id)
     }
 }

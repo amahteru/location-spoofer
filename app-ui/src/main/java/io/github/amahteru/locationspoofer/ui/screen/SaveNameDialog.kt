@@ -17,16 +17,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import io.github.amahteru.locationspoofer.ui.R
 
 @Composable
 fun SaveNameDialog(
     title: String,
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialName: String = "",
+    confirmLabel: String = stringResource(R.string.bookmark),
+    validate: (String) -> String? = { null }
 ) {
-    var name by remember { mutableStateOf("") }
+    var field by remember {
+        mutableStateOf(TextFieldValue(initialName, TextRange(0, initialName.length)))
+    }
+    val name = field.text.trim()
+    val error = validate(name)
+    val canConfirm = name.isNotEmpty() && error == null
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -39,20 +49,22 @@ fun SaveNameDialog(
         title = { Text(text = title) },
         text = {
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
+                value = field,
+                onValueChange = { field = it },
                 label = { Text(stringResource(R.string.name)) },
                 singleLine = true,
-                trailingIcon = if (name.isNotEmpty()) {
+                isError = error != null,
+                supportingText = error?.let { message -> { Text(message) } },
+                trailingIcon = if (field.text.isNotEmpty()) {
                     {
-                        IconButton(onClick = { name = "" }) {
+                        IconButton(onClick = { field = TextFieldValue() }) {
                             Icon(Icons.Rounded.Cancel, contentDescription = null)
                         }
                     }
                 } else null,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
-                    onDone = { if (name.isNotBlank()) onConfirm(name) }
+                    onDone = { if (canConfirm) onConfirm(name) }
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -60,8 +72,8 @@ fun SaveNameDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.bookmark))
+            TextButton(onClick = { onConfirm(name) }, enabled = canConfirm) {
+                Text(confirmLabel)
             }
         },
         dismissButton = {

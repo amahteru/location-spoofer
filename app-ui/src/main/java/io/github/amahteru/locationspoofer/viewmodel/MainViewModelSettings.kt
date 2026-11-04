@@ -108,7 +108,7 @@ internal fun MainViewModel.initialize() {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                io.github.amahteru.locationspoofer.data.model.SavedRoute(entity.name, points)
+                io.github.amahteru.locationspoofer.data.model.SavedRoute(entity.name, points, entity.id)
             }
             _uiState.update { it.copy(savedRoutes = routes) }
         }

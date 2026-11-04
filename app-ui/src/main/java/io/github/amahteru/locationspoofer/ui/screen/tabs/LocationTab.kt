@@ -33,6 +33,7 @@ import io.github.amahteru.locationspoofer.viewmodel.handleSpoofingIntent
 import io.github.amahteru.locationspoofer.viewmodel.importEnvironmentData
 import io.github.amahteru.locationspoofer.viewmodel.loadSavedLocation
 import io.github.amahteru.locationspoofer.viewmodel.removeSavedLocation
+import io.github.amahteru.locationspoofer.viewmodel.renameSavedLocation
 import io.github.amahteru.locationspoofer.viewmodel.saveCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedRoute
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedLocation
@@ -213,7 +214,8 @@ fun LocationTab(
                 mapController?.animateCamera(location.lat, location.lng, STREET_ZOOM)
                 onIntent(SpoofingIntent.SetSavedLocationsVisible(false))
             },
-            onDelete = viewModel::removeSavedLocation
+            onDelete = viewModel::removeSavedLocation,
+            onRename = viewModel::renameSavedLocation
         )
     }
 

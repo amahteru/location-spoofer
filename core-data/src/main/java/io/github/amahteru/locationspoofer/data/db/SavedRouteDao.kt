@@ -1,7 +1,6 @@
 package io.github.amahteru.locationspoofer.data.db
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -18,6 +17,9 @@ interface SavedRouteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSavedRoute(route: SavedRouteEntity)
 
-    @Delete
-    suspend fun deleteSavedRoute(route: SavedRouteEntity)
+    @Query("UPDATE saved_routes SET name = :name WHERE id = :id")
+    suspend fun renameSavedRoute(id: Long, name: String)
+
+    @Query("DELETE FROM saved_routes WHERE id = :id")
+    suspend fun deleteSavedRoute(id: Long)
 }

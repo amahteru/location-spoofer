@@ -1,6 +1,7 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,7 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -22,8 +23,11 @@ fun SavedLocationsDialog(
     savedLocations: List<SavedLocation>,
     onDismiss: () -> Unit,
     onSelect: (SavedLocation) -> Unit,
-    onDelete: (SavedLocation) -> Unit
+    onDelete: (SavedLocation) -> Unit,
+    onRename: (SavedLocation, String) -> Unit
 ) {
+    var renaming by remember { mutableStateOf<SavedLocation?>(null) }
+
     AppBottomSheet(
         title = stringResource(R.string.saved_locations),
         subtitle = if (savedLocations.isEmpty()) null else stringResource(R.string.saved_locations_count_format, savedLocations.size),
@@ -39,16 +43,47 @@ fun SavedLocationsDialog(
             LazyColumn {
                 items(savedLocations, key = { "${it.name}_${it.lat}_${it.lng}" }) { loc ->
                     Box(Modifier.animateListItem(this)) {
-                        SavedLocationRow(loc, onSelect = { onSelect(loc) }, onDelete = { onDelete(loc) })
+                        SavedLocationRow(
+                            loc,
+                            onSelect = { onSelect(loc) },
+                            onRename = { renaming = loc },
+                            onDelete = { onDelete(loc) }
+                        )
                     }
                 }
             }
         }
     }
+
+    renaming?.let { target ->
+        val duplicateError = stringResource(R.string.saved_location_name_exists)
+        SaveNameDialog(
+            title = stringResource(R.string.rename),
+            initialName = target.name,
+            confirmLabel = stringResource(R.string.save),
+            validate = { name ->
+                duplicateError.takeIf {
+                    savedLocations.any {
+                        it != target && it.name == name && it.lat == target.lat && it.lng == target.lng
+                    }
+                }
+            },
+            onConfirm = { name ->
+                onRename(target, name)
+                renaming = null
+            },
+            onDismiss = { renaming = null }
+        )
+    }
 }
 
 @Composable
-private fun SavedLocationRow(loc: SavedLocation, onSelect: () -> Unit, onDelete: () -> Unit) {
+private fun SavedLocationRow(
+    loc: SavedLocation,
+    onSelect: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit
+) {
                 val coordText = "${
                     String.format(java.util.Locale.US, "%.6f", loc.lat)
                 }, ${
@@ -75,8 +110,13 @@ private fun SavedLocationRow(loc: SavedLocation, onSelect: () -> Unit, onDelete:
             { Text(coordText) }
         } else null,
         trailingContent = {
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.delete))
+            Row {
+                IconButton(onClick = onRename) {
+                    Icon(Icons.Rounded.Edit, stringResource(R.string.rename))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.delete))
+                }
             }
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)

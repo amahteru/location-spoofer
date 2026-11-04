@@ -14,7 +14,6 @@ import io.github.amahteru.locationspoofer.data.model.SimMode
 import io.github.amahteru.locationspoofer.data.state.SpoofingState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -57,11 +56,13 @@ internal fun MainViewModel.saveRoute(name: String, points: List<RoutePoint>) {
 
 internal fun MainViewModel.deleteSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {
     viewModelScope.launch(Dispatchers.IO) {
-        val routes = locationRepository.getSavedRoutes().first()
-        val entity = routes.find { it.name == route.name }
-        if (entity != null) {
-            locationRepository.deleteSavedRoute(entity)
-        }
+        locationRepository.deleteSavedRoute(route.id)
+    }
+}
+
+internal fun MainViewModel.renameSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute, name: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+        locationRepository.renameSavedRoute(route.id, name)
     }
 }
 
@@ -453,22 +454,11 @@ internal fun MainViewModel.removeSavedLocation(location: SavedLocation) {
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
 }
 
-internal fun MainViewModel.addSavedRoute(name: String) {
-    val points = _uiState.value.routePoints
-    if (points.size >= 2) {
-        settingsRepository.addSavedRoute(
-            io.github.amahteru.locationspoofer.data.model.SavedRoute(
-                name,
-                points
-            )
-        )
-        _uiState.update { it.copy(savedRoutes = settingsRepository.getSavedRoutes()) }
-    }
-}
-
-internal fun MainViewModel.removeSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {
-    settingsRepository.removeSavedRoute(route)
-    _uiState.update { it.copy(savedRoutes = settingsRepository.getSavedRoutes()) }
+internal fun MainViewModel.renameSavedLocation(location: SavedLocation, name: String) {
+    settingsRepository.setSavedLocations(
+        settingsRepository.getSavedLocations().map { if (it == location) it.copy(name = name) else it }
+    )
+    _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
 }
 
 internal fun MainViewModel.loadSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {

@@ -1,7 +1,6 @@
 package io.github.amahteru.locationspoofer.data.repository
 
 import io.github.amahteru.locationspoofer.data.model.SavedLocation
-import io.github.amahteru.locationspoofer.data.model.SavedRoute
 import io.github.amahteru.locationspoofer.utils.SettingsManager
 
 class SettingsRepository(private val settingsManager: SettingsManager) {
@@ -13,12 +12,6 @@ class SettingsRepository(private val settingsManager: SettingsManager) {
     fun addSavedLocation(location: SavedLocation) = settingsManager.addSavedLocation(location)
 
     fun removeSavedLocation(location: SavedLocation) = settingsManager.removeSavedLocation(location)
-
-    fun getSavedRoutes(): List<SavedRoute> = settingsManager.getSavedRoutes()
-
-    fun addSavedRoute(route: SavedRoute) = settingsManager.addSavedRoute(route)
-
-    fun removeSavedRoute(route: SavedRoute) = settingsManager.removeSavedRoute(route)
 
     fun isLanguageSet(): Boolean = settingsManager.isLanguageSet
 

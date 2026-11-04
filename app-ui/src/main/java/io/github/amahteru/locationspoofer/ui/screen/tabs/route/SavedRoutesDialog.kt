@@ -1,13 +1,15 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs.route
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -15,6 +17,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
+import io.github.amahteru.locationspoofer.data.model.SavedRoute
+import io.github.amahteru.locationspoofer.ui.screen.SaveNameDialog
 import io.github.amahteru.locationspoofer.ui.components.AppBottomSheet
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.EmptyState
@@ -22,6 +26,7 @@ import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.deleteSavedRoute
 import io.github.amahteru.locationspoofer.viewmodel.loadSavedRoute
+import io.github.amahteru.locationspoofer.viewmodel.renameSavedRoute
 
 @Composable
 fun SavedRoutesDialog(
@@ -33,6 +38,7 @@ fun SavedRoutesDialog(
     onDismiss: () -> Unit
 ) {
     val density = LocalDensity.current
+    var renaming by remember { mutableStateOf<SavedRoute?>(null) }
 
     AppBottomSheet(
         title = stringResource(R.string.route_library),
@@ -68,8 +74,13 @@ fun SavedRoutesDialog(
                         headlineContent = { Text(route.name) },
                         supportingContent = { Text(stringResource(R.string.route_nodes_count, route.points.size)) },
                         trailingContent = {
-                            IconButton(onClick = { viewModel.deleteSavedRoute(route) }) {
-                                Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.delete))
+                            Row {
+                                IconButton(onClick = { renaming = route }) {
+                                    Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.rename))
+                                }
+                                IconButton(onClick = { viewModel.deleteSavedRoute(route) }) {
+                                    Icon(Icons.Rounded.DeleteOutline, contentDescription = stringResource(R.string.delete))
+                                }
                             }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -77,5 +88,18 @@ fun SavedRoutesDialog(
                 }
             }
         }
+    }
+
+    renaming?.let { target ->
+        SaveNameDialog(
+            title = stringResource(R.string.rename),
+            initialName = target.name,
+            confirmLabel = stringResource(R.string.save),
+            onConfirm = { name ->
+                viewModel.renameSavedRoute(target, name)
+                renaming = null
+            },
+            onDismiss = { renaming = null }
+        )
     }
 }

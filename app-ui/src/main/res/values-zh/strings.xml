@@ -219,6 +219,8 @@
     <string name="delete_data_confirm_format">确定要删除「%s」吗？该位置附带的 Wi-Fi、基站与蓝牙数据将一并删除且无法恢复。</string>
     <string name="coord_record_title">坐标记录</string>
     <string name="edit">编辑</string>
+    <string name="rename">重命名</string>
+    <string name="saved_location_name_exists">这个坐标已有同名收藏</string>
     <string name="set_place_name_hint">设置位置名称（如：教学楼、宿舍等）</string>
     <string name="add_remark_hint">添加自定义备注说明…</string>
     <string name="save_changes">保存更改</string>

@@ -221,6 +221,8 @@
     <string name="delete_data_confirm_format">Delete “%s”? Its Wi-Fi, cell and Bluetooth data will also be removed and can’t be restored.</string>
     <string name="coord_record_title">Coordinate record</string>
     <string name="edit">Edit</string>
+    <string name="rename">Rename</string>
+    <string name="saved_location_name_exists">A favorite at this coordinate already uses this name</string>
     <string name="set_place_name_hint">e.g. Office, Home</string>
     <string name="add_remark_hint">Add a note…</string>
     <string name="save_changes">Save changes</string>
