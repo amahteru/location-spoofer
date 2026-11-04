@@ -26,12 +26,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import io.github.amahteru.locationspoofer.vendor.VendorScheme
 
-sealed interface FavoriteToggleResult {
-    data class Added(val name: String) : FavoriteToggleResult
-    data class Removed(val name: String) : FavoriteToggleResult
-    data object Failed : FavoriteToggleResult
-}
-
 class MainViewModel(
     internal val locationRepository: LocationRepository,
     internal val settingsRepository: SettingsRepository,

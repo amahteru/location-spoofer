@@ -11,6 +11,7 @@ import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
 import io.github.amahteru.locationspoofer.data.model.RouteRunMode
 import io.github.amahteru.locationspoofer.data.model.SavedLocation
 import io.github.amahteru.locationspoofer.data.model.SimMode
+import io.github.amahteru.locationspoofer.data.model.routePoints
 import io.github.amahteru.locationspoofer.data.state.SpoofingState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
@@ -52,11 +53,25 @@ internal fun MainViewModel.saveRoute(name: String, points: List<RoutePoint>) {
     viewModelScope.launch(Dispatchers.IO) {
         locationRepository.insertSavedRoute(name, points)
     }
+    AppSnackbar.show(context.getString(R.string.favorite_added, name))
+}
+
+internal fun MainViewModel.toggleCollectedRouteFavorite(route: io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord) {
+    val points = route.routePoints()
+    val existing = _uiState.value.savedRoutes.firstOrNull { it.points == points }
+    if (existing != null) deleteSavedRoute(existing)
+    else saveRoute(route.name.ifBlank { context.getString(R.string.collection_route_unnamed) }, points)
 }
 
 internal fun MainViewModel.deleteSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {
     viewModelScope.launch(Dispatchers.IO) {
+        val entity = locationRepository.getAllSavedRoutesList().firstOrNull { it.id == route.id } ?: return@launch
         locationRepository.deleteSavedRoute(route.id)
+        AppSnackbar.show(
+            context.getString(R.string.favorite_removed, route.name),
+            actionLabel = context.getString(R.string.undo),
+            onAction = { viewModelScope.launch(Dispatchers.IO) { locationRepository.insertSavedRouteEntity(entity) } }
+        )
     }
 }
 
@@ -64,6 +79,7 @@ internal fun MainViewModel.renameSavedRoute(route: io.github.amahteru.locationsp
     viewModelScope.launch(Dispatchers.IO) {
         locationRepository.renameSavedRoute(route.id, name)
     }
+    AppSnackbar.show(context.getString(R.string.save_success))
 }
 
 internal fun MainViewModel.setRouteSimMode(mode: SimMode) {
@@ -205,7 +221,7 @@ private fun MainViewModel.fetchRealRouteAndStart(points: List<RoutePoint>, state
             } else {
                 withContext(Dispatchers.Main) {
                     _uiState.update { it.copy(isFetchingRoute = false) }
-                    AppSnackbar.show(context.getString(R.string.route_plan_failed_fallback_straight))
+                    AppSnackbar.show(context.getString(R.string.route_plan_failed_fallback_straight), long = true)
                     startSimulationWithPoints(points, state)
                 }
             }
@@ -351,18 +367,9 @@ private fun MainViewModel.switchRouteToStatic(nextStage: RoutePlanStage, keepSta
 internal fun MainViewModel.saveCurrentLocation(name: String) {
     val lng = _uiState.value.longitudeInput.toDoubleOrNull() ?: return
     val lat = _uiState.value.latitudeInput.toDoubleOrNull() ?: return
-    val state = _uiState.value
-    settingsRepository.addSavedLocation(
-        SavedLocation(
-            name,
-            lat,
-            lng,
-            state.collectedWifiJson,
-            state.collectedCellJson,
-            state.collectedBluetoothJson
-        )
-    )
+    settingsRepository.addSavedLocation(SavedLocation(name, lat, lng))
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
+    AppSnackbar.show(context.getString(R.string.favorite_added, name))
 }
 
 private fun MainViewModel.resolveFavoriteName(record: io.github.amahteru.locationspoofer.data.db.CompleteLocation): String {
@@ -375,67 +382,39 @@ private fun MainViewModel.resolveFavoriteName(record: io.github.amahteru.locatio
     }
 }
 
-internal fun MainViewModel.toggleCollectedLocationFavorite(
-    locationId: Long,
-    onResult: (FavoriteToggleResult) -> Unit
-) {
+internal fun MainViewModel.toggleCollectedLocationFavorite(locationId: Long) {
     viewModelScope.launch {
         favoriteToggleMutex.withLock {
             val record = withContext(Dispatchers.IO) {
                 environmentDao.getCompleteLocationById(locationId)
             }
             if (record == null) {
-                onResult(FavoriteToggleResult.Failed)
+                AppSnackbar.show(context.getString(R.string.favorite_failed), long = true)
                 return@withLock
             }
 
             val lat = record.location.lat
             val lng = record.location.lng
-            val existing = settingsRepository.getSavedLocations().firstOrNull {
-                it.sourceLocationId == locationId ||
-                    (it.sourceLocationId == null && it.lat == lat && it.lng == lng)
-            }
-
+            val existing = settingsRepository.getSavedLocations().firstOrNull { it.lat == lat && it.lng == lng }
             if (existing != null) {
-                settingsRepository.removeSavedLocation(existing)
-                _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
-                onResult(FavoriteToggleResult.Removed(existing.name))
+                removeSavedLocation(existing)
             } else {
                 val name = resolveFavoriteName(record)
-                val (wifiJson, cellJson, btJson) = locationToJson(listOf(record), lat, lng)
-                settingsRepository.addSavedLocation(
-                    SavedLocation(name, lat, lng, wifiJson, cellJson, btJson, sourceLocationId = locationId)
-                )
+                settingsRepository.addSavedLocation(SavedLocation(name, lat, lng))
                 _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
-                onResult(FavoriteToggleResult.Added(name))
+                AppSnackbar.show(context.getString(R.string.favorite_added, name))
             }
         }
     }
 }
 
-internal fun MainViewModel.syncFavoriteCoordinateIfExists(locationId: Long, newLat: Double, newLng: Double) {
-    val existing = settingsRepository.getSavedLocations()
-        .firstOrNull { it.sourceLocationId == locationId } ?: return
-    if (existing.lat == newLat && existing.lng == newLng) return
-    settingsRepository.removeSavedLocation(existing)
-    settingsRepository.addSavedLocation(existing.copy(lat = newLat, lng = newLng))
+internal fun MainViewModel.syncFavoriteCoordinateIfExists(oldLat: Double, oldLng: Double, newLat: Double, newLng: Double) {
+    settingsRepository.setSavedLocations(
+        settingsRepository.getSavedLocations()
+            .map { if (it.lat == oldLat && it.lng == oldLng) it.copy(lat = newLat, lng = newLng) else it }
+            .distinctBy { it.lat to it.lng }
+    )
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
-}
-
-internal fun MainViewModel.parseWifiCount(wifiJson: String?): Int {
-    if (wifiJson.isNullOrBlank()) return 0
-    return try {
-        val obj = org.json.JSONObject(wifiJson)
-        val nearbyCount = obj.optJSONArray("nearbyWifi")?.length() ?: 0
-        val connectedCount = if (obj.optBoolean("isConnected", false) && !obj.isNull("connectedWifi")) 1 else 0
-        nearbyCount + connectedCount
-    } catch (e: Exception) {
-        try {
-            org.json.JSONArray(wifiJson).length()
-        } catch (e2: Exception) {
-            0
-        }
-    }
 }
 
 internal fun MainViewModel.loadSavedLocation(loc: SavedLocation) {
@@ -443,15 +422,27 @@ internal fun MainViewModel.loadSavedLocation(loc: SavedLocation) {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", loc.lat),
             longitudeInput = String.format(java.util.Locale.US, "%.6f", loc.lng),
-            collectedWifiJson = loc.wifiJson,
-            collectedCellJson = loc.cellJson,
         )
     }
+    evaluateMockCapabilities()
 }
 
 internal fun MainViewModel.removeSavedLocation(location: SavedLocation) {
+    val index = settingsRepository.getSavedLocations().indexOfFirst { it.lat == location.lat && it.lng == location.lng }
     settingsRepository.removeSavedLocation(location)
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
+    AppSnackbar.show(
+        context.getString(R.string.favorite_removed, location.name),
+        actionLabel = context.getString(R.string.undo),
+        onAction = {
+            val saved = settingsRepository.getSavedLocations().toMutableList()
+            if (saved.none { it.lat == location.lat && it.lng == location.lng }) {
+                saved.add(index.coerceIn(0, saved.size), location)
+                settingsRepository.setSavedLocations(saved)
+                _uiState.update { it.copy(savedLocations = saved) }
+            }
+        }
+    )
 }
 
 internal fun MainViewModel.renameSavedLocation(location: SavedLocation, name: String) {
@@ -459,6 +450,7 @@ internal fun MainViewModel.renameSavedLocation(location: SavedLocation, name: St
         settingsRepository.getSavedLocations().map { if (it == location) it.copy(name = name) else it }
     )
     _uiState.update { it.copy(savedLocations = settingsRepository.getSavedLocations()) }
+    AppSnackbar.show(context.getString(R.string.save_success))
 }
 
 internal fun MainViewModel.loadSavedRoute(route: io.github.amahteru.locationspoofer.data.model.SavedRoute) {

@@ -62,12 +62,6 @@ class SystemFilesInstrumentation : Instrumentation() {
             }
             check(JSONObject(payload).has("active"))
             val root = RootManager()
-            val noLegacyTmp = root.executeCommand("""
-                for name in locationspoofer_config.json locationspoofer_config_tmp.json .lsp_selinux_probe .lsp_sepolicy_apply.sh; do
-                    test ! -e /proc/1/root/data/local/tmp/${'$'}name || exit 1
-                done
-            """.trimIndent())
-            check(noLegacyTmp != "ERROR") { "Legacy tmp artifacts remain or root access is unavailable" }
             if (BuildConfig.GLOBAL_SCHEME) {
                 val reports = runBlocking {
                     val repository = HookStatusRepository(root)

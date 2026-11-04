@@ -94,6 +94,7 @@ fun SavedRoutesDialog(
         SaveNameDialog(
             title = stringResource(R.string.rename),
             initialName = target.name,
+            icon = Icons.Rounded.Edit,
             confirmLabel = stringResource(R.string.save),
             onConfirm = { name ->
                 viewModel.renameSavedRoute(target, name)

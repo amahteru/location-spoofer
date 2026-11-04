@@ -8,25 +8,16 @@ import androidx.compose.material3.Card
 import io.github.amahteru.locationspoofer.ui.components.SubPageScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryChargingFull
-import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
-import io.github.amahteru.locationspoofer.ui.components.AppCard
-import io.github.amahteru.locationspoofer.ui.components.AppTopBar
-import io.github.amahteru.locationspoofer.ui.theme.warningContainer
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @android.annotation.SuppressLint("BatteryLife")
@@ -66,8 +57,8 @@ fun BackgroundKeepAliveScreen(
                                 val intent =
                                     android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                 context.startActivity(intent)
-                            } catch (e: Exception) {
-                                AppSnackbar.show(resources.getString(R.string.open_battery_opt_failed, e.message ?: ""))
+                            } catch (_: Exception) {
+                                AppSnackbar.show(resources.getString(R.string.open_battery_opt_failed), long = true)
                             }
                         }
                     }
@@ -85,8 +76,8 @@ fun BackgroundKeepAliveScreen(
                                         "package:${context.packageName}".toUri()
                                 }
                         context.startActivity(intent)
-                    } catch (e: Exception) {
-                        AppSnackbar.show(resources.getString(R.string.open_app_info_failed, e.message ?: ""))
+                    } catch (_: Exception) {
+                        AppSnackbar.show(resources.getString(R.string.open_app_info_failed), long = true)
                     }
                     }
                 )

@@ -115,7 +115,7 @@ fun SavedLocationsCard(
                 ) {
                     items(
                         items = savedLocations,
-                        key = { "${it.name}_${it.lat}_${it.lng}" }
+                        key = { "${it.lat}_${it.lng}" }
                     ) { loc ->
                         Box(Modifier.animateListItem(this)) {
                             SavedLocationItemRow(

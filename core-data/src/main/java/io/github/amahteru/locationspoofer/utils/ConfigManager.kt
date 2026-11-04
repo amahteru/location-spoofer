@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.utils
 
-import androidx.core.content.edit
 import android.content.Context
 import android.location.Geocoder
 import io.github.amahteru.locationspoofer.data.BuildConfig
@@ -23,7 +22,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ConfigManager(private val context: Context, private val rootManager: RootManager) {
+class ConfigManager(private val context: Context) {
     private val settingsManager = SettingsManager(context)
 
     private var lastGeocodedLat = -999.0
@@ -220,7 +219,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
     @Volatile private var publicationPending = lastJson != null
 
     fun desiredConfig(): JSONObject? = lastJson?.let { JSONObject(it.toString()) }
-    private var nextCleanupAttemptAt = 0L
 
     init {
         scope.launch {
@@ -290,15 +288,6 @@ class ConfigManager(private val context: Context, private val rootManager: RootM
                 override fun deleteFile(name: String) { service.deleteRemoteFile(name) }
             })
             publicationPending = false
-            val now = System.currentTimeMillis()
-            if (!transportPrefs.getBoolean("legacy_files_removed", false) && now >= nextCleanupAttemptAt) {
-                nextCleanupAttemptAt = now + 60_000
-                scope.launch {
-                    if (rootManager.executeCommand(SystemFileCommands.removeLegacyConfigs()) != "ERROR") {
-                        transportPrefs.edit { putBoolean("legacy_files_removed", true) }
-                    }
-                }
-            }
             true
         } catch (error: Exception) {
             android.util.Log.e("LocationSpoofer", "Framework config publication failed", error)

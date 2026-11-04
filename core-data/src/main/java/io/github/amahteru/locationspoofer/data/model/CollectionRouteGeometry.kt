@@ -15,6 +15,8 @@ private val geometryCache = object : LinkedHashMap<String, List<LatLng>>(64, 0.7
     override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<LatLng>>): Boolean = size > 64
 }
 
+fun CollectionRouteRecord.routePoints(): List<RoutePoint> = geometry().map { RoutePoint(it.lat, it.lng) }
+
 fun CollectionRouteRecord.geometry(): List<LatLng> = synchronized(geometryCache) {
     geometryCache.getOrPut(pointsJson) {
         runCatching {

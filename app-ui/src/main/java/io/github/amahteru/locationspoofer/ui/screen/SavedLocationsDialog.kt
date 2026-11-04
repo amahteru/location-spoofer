@@ -41,7 +41,7 @@ fun SavedLocationsDialog(
             )
         } else {
             LazyColumn {
-                items(savedLocations, key = { "${it.name}_${it.lat}_${it.lng}" }) { loc ->
+                items(savedLocations, key = { "${it.lat}_${it.lng}" }) { loc ->
                     Box(Modifier.animateListItem(this)) {
                         SavedLocationRow(
                             loc,
@@ -56,18 +56,11 @@ fun SavedLocationsDialog(
     }
 
     renaming?.let { target ->
-        val duplicateError = stringResource(R.string.saved_location_name_exists)
         SaveNameDialog(
             title = stringResource(R.string.rename),
             initialName = target.name,
+            icon = Icons.Rounded.Edit,
             confirmLabel = stringResource(R.string.save),
-            validate = { name ->
-                duplicateError.takeIf {
-                    savedLocations.any {
-                        it != target && it.name == name && it.lat == target.lat && it.lng == target.lng
-                    }
-                }
-            },
             onConfirm = { name ->
                 onRename(target, name)
                 renaming = null

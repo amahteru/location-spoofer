@@ -46,12 +46,10 @@ class CollectionRouteMatcherTest {
 
     private val encodeDefaultsJson = Json { encodeDefaults = true }
 
-    @Test fun backupRetainsPathNameSamplesOwnershipAndOldDefaults() {
+    @Test fun backupRetainsPathNameSamplesAndOwnership() {
         val original = LocationSpooferDataPackage(collectionRoutes = listOf(route().copy(route = route().route.copy(remark = "Note"))))
         val restored = Json.decodeFromString<LocationSpooferDataPackage>(encodeDefaultsJson.encodeToString(original))
         assertEquals(original, restored)
         assertEquals(2, restored.collectionRoutes.single().route.geometry().size)
-        val old = Json.decodeFromString<LocationSpooferDataPackage>("{\"version\":3,\"locations\":[]}")
-        assertTrue(old.collectionRoutes.isEmpty())
     }
 }

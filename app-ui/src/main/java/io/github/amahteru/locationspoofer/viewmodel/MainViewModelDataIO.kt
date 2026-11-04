@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.data.db.LocationRecord
 import io.github.amahteru.locationspoofer.data.model.ImportExportCounts
 import io.github.amahteru.locationspoofer.data.model.ImportExportSelection
-import io.github.amahteru.locationspoofer.data.model.SavedLocation
 import io.github.amahteru.locationspoofer.data.model.AppMapType
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.model.MapEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
@@ -189,200 +189,8 @@ internal fun MainViewModel.locationToJson(
     records: List<io.github.amahteru.locationspoofer.data.db.CompleteLocation>,
     targetLat: Double,
     targetLng: Double
-): Triple<String, String, String> {
-    if (records.isEmpty()) return Triple("{}", "[]", "[]")
-
-    val weights = records.mapIndexed { i, it ->
-        if (i == 0 && (it.location.id == pinnedLocationRecordId || it.location.selectedWifiBssid != null)) {
-            1000.0
-        } else {
-            val rLat = Math.toRadians(it.location.lat - targetLat)
-            val rLng = Math.toRadians(it.location.lng - targetLng)
-            val rA = kotlin.math.sin(rLat / 2).let { v -> v * v } + kotlin.math.cos(
-                Math.toRadians(targetLat)
-            ) * kotlin.math.cos(Math.toRadians(it.location.lat)) * kotlin.math.sin(rLng / 2)
-                .let { v -> v * v }
-            val dist =
-                2 * 6378137.0 * kotlin.math.atan2(kotlin.math.sqrt(rA), kotlin.math.sqrt(1 - rA))
-            val safeDist = kotlin.math.max(dist, 1.0)
-            1.0 / (safeDist * safeDist)
-        }
-    }
-
-    val closestRecord = records.firstOrNull()
-    val explicitWifiBssid = closestRecord?.location?.selectedWifiBssid
-    val explicitWifi =
-        if (explicitWifiBssid != null && explicitWifiBssid != "__NONE__") {
-            closestRecord.wifis.find { it.device.bssid.equals(explicitWifiBssid, ignoreCase = true) }
-        } else null
-
-    val closestConnectedWifi = closestRecord?.connectedWifi
-    val connectedObj = if (explicitWifiBssid == "__NONE__") {
-        null
-    } else if (explicitWifi != null) {
-        org.json.JSONObject().apply {
-            put("ssid", explicitWifi.device.ssid)
-            put("bssid", explicitWifi.device.bssid)
-            put("vendor", explicitWifi.device.vendor)
-            put("macAddress", explicitWifi.device.bssid)
-            put("frequency", explicitWifi.device.frequency)
-            put(
-                "channel",
-                io.github.amahteru.locationspoofer.utils.MacVendorHelper.frequencyToChannel(
-                    explicitWifi.device.frequency
-                )
-            )
-            put("linkSpeed", 65)
-            put("level", explicitWifi.locationWifi.level)
-            put("capabilities", explicitWifi.device.capabilities)
-            put("networkId", 1)
-            put("wifiStandard", 6)
-        }
-    } else if (closestConnectedWifi != null && (explicitWifiBssid == null || explicitWifiBssid.equals(closestConnectedWifi.bssid, ignoreCase = true))) {
-        val cw = closestConnectedWifi
-        org.json.JSONObject().apply {
-            put("ssid", cw.ssid)
-            put("bssid", cw.bssid)
-            put("vendor", cw.vendor)
-            put("macAddress", cw.macAddress)
-            put("frequency", cw.frequency)
-            put(
-                "channel",
-                io.github.amahteru.locationspoofer.utils.MacVendorHelper.frequencyToChannel(cw.frequency)
-            )
-            put("linkSpeed", cw.linkSpeed)
-            put("level", cw.level)
-            put("capabilities", cw.capabilities)
-            put("networkId", cw.networkId)
-            put("wifiStandard", cw.wifiStandard)
-        }
-    } else {
-        null
-    }
-
-    val wifiMap = mutableMapOf<String, io.github.amahteru.locationspoofer.data.db.LocationWithWifi>()
-    val wifiLevels = mutableMapOf<String, Double>()
-    val wifiWeights = mutableMapOf<String, Double>()
-
-    records.forEachIndexed { i, rec ->
-        rec.wifis.forEach { rw ->
-            val bssid = rw.device.bssid
-            if (!wifiMap.containsKey(bssid)) wifiMap[bssid] = rw
-            wifiLevels[bssid] = (wifiLevels[bssid] ?: 0.0) + rw.locationWifi.level * weights[i]
-            wifiWeights[bssid] = (wifiWeights[bssid] ?: 0.0) + weights[i]
-        }
-    }
-
-    val nearbyArr = org.json.JSONArray()
-    wifiMap.forEach { (bssid, rw) ->
-        val w = wifiWeights[bssid]!!
-        val interpolatedLevel = (wifiLevels[bssid]!! / w).toInt()
-        val obj = org.json.JSONObject().apply {
-            put("bssid", bssid)
-            put("ssid", rw.device.ssid)
-            put("vendor", rw.device.vendor)
-            put("frequency", rw.device.frequency)
-            put(
-                "channel",
-                io.github.amahteru.locationspoofer.utils.MacVendorHelper.frequencyToChannel(rw.device.frequency)
-            )
-            put("capabilities", rw.device.capabilities)
-            put("level", interpolatedLevel)
-        }
-        nearbyArr.put(obj)
-    }
-
-    val hasConnected = connectedObj != null
-    val wifiResultObj = org.json.JSONObject().apply {
-        put("isConnected", hasConnected)
-        put("connectedWifi", connectedObj ?: org.json.JSONObject.NULL)
-        put("nearbyWifi", nearbyArr)
-    }
-    val wifiArr = wifiResultObj
-
-    val cellMap = mutableMapOf<String, io.github.amahteru.locationspoofer.data.db.LocationWithCell>()
-    val cellDbms = mutableMapOf<String, Double>()
-    val cellWeights = mutableMapOf<String, Double>()
-
-    records.forEachIndexed { i, rec ->
-        rec.cells.forEach { rc ->
-            val cellKey = rc.device.cellKey
-            if (!cellMap.containsKey(cellKey)) cellMap[cellKey] = rc
-            cellDbms[cellKey] = (cellDbms[cellKey] ?: 0.0) + rc.locationCell.dbm * weights[i]
-            cellWeights[cellKey] = (cellWeights[cellKey] ?: 0.0) + weights[i]
-        }
-    }
-
-    val explicitCellKey = closestRecord?.location?.selectedCellKey
-    val cellArr = org.json.JSONArray()
-    val cellList = mutableListOf<org.json.JSONObject>()
-    cellMap.forEach { (cellKey, rc) ->
-        val w = cellWeights[cellKey]!!
-        val interpolatedDbm = (cellDbms[cellKey]!! / w).toInt()
-        val obj = org.json.JSONObject()
-        obj.put("type", rc.device.type)
-        obj.put("mcc", rc.device.mcc)
-        obj.put("mnc", rc.device.mnc)
-        obj.put("tac", rc.device.tac)
-        obj.put("ci", rc.device.ci)
-        obj.put("pci", rc.device.pci)
-        obj.put("lac", rc.device.lac)
-        obj.put("cid", rc.device.cid)
-        obj.put("psc", rc.device.psc)
-        obj.put("nci", rc.device.nci)
-        obj.put("networkId", rc.device.networkId)
-        obj.put("systemId", rc.device.systemId)
-        obj.put("basestationId", rc.device.basestationId)
-        obj.put("dbm", interpolatedDbm)
-        val isReg =
-            if (explicitCellKey != null) cellKey.equals(explicitCellKey, ignoreCase = true) else rc.locationCell.isRegistered
-        obj.put("isRegistered", isReg)
-        if (isReg) {
-            cellList.add(0, obj)
-        } else {
-            cellList.add(obj)
-        }
-    }
-    cellList.forEach { cellArr.put(it) }
-
-    val btMap =
-        mutableMapOf<String, io.github.amahteru.locationspoofer.data.db.LocationWithBluetooth>()
-    val btRssis = mutableMapOf<String, Double>()
-    val btWeights = mutableMapOf<String, Double>()
-
-    records.forEachIndexed { i, rec ->
-        rec.bluetooths.forEach { rb ->
-            val address = rb.device.address
-            if (!btMap.containsKey(address)) btMap[address] = rb
-            btRssis[address] =
-                (btRssis[address] ?: 0.0) + rb.locationBluetooth.rssi * weights[i]
-            btWeights[address] = (btWeights[address] ?: 0.0) + weights[i]
-        }
-    }
-
-    val explicitBtAddress = closestRecord?.location?.selectedBluetoothAddress
-    val btArr = org.json.JSONArray()
-    val btList = mutableListOf<org.json.JSONObject>()
-    btMap.forEach { (address, rb) ->
-        val w = btWeights[address]!!
-        val interpolatedRssi = (btRssis[address]!! / w).toInt()
-        val obj = org.json.JSONObject()
-        obj.put("address", address)
-        obj.put("name", rb.device.name)
-        obj.put("scanRecordHex", rb.device.scanRecordHex)
-        obj.put("rssi", interpolatedRssi)
-        val isSelectedBt = explicitBtAddress != null && explicitBtAddress.equals(address, ignoreCase = true)
-        if (isSelectedBt) {
-            obj.put("isConnected", true)
-            btList.add(0, obj)
-        } else {
-            btList.add(obj)
-        }
-    }
-    btList.forEach { btArr.put(it) }
-
-    return Triple(wifiArr.toString(), cellArr.toString(), btArr.toString())
-}
+): Triple<String, String, String> =
+    EnvironmentResolver.toJson(records, targetLat, targetLng, pinnedLocationRecordId)
 
 internal fun MainViewModel.collectExportCounts(onResult: (ImportExportCounts) -> Unit) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -517,36 +325,7 @@ private fun MainViewModel.parseImportPackageInternal(
         encodeDefaults = true
     }
 
-    val pkg = try {
-        json.decodeFromString<io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage>(jsonStr)
-    } catch (e: Exception) {
-        null
-    }
-    val pkgHasContent = pkg != null && (
-            pkg.locations.isNotEmpty() || pkg.collectionRoutes.isNotEmpty() || pkg.savedLocations.isNotEmpty() ||
-                    pkg.savedRoutes.isNotEmpty() ||
-                    pkg.settings != null || pkg.apiKeys != null
-            )
-    if (pkgHasContent) return pkg
-
-    try {
-        val legacyLocations =
-            json.decodeFromString<List<io.github.amahteru.locationspoofer.data.db.CompleteLocation>>(jsonStr)
-        if (legacyLocations.isNotEmpty()) {
-            return io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage(locations = legacyLocations)
-        }
-    } catch (e: Exception) {
-        try {
-            val legacySaved = json.decodeFromString<List<SavedLocation>>(jsonStr)
-            if (legacySaved.isNotEmpty()) {
-                return io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage(savedLocations = legacySaved)
-            }
-        } catch (e2: Exception) {
-            e2.printStackTrace()
-        }
-    }
-
-    return pkg
+    return json.decodeFromString<io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage>(jsonStr)
 }
 
 internal fun MainViewModel.applyImportPackage(
@@ -564,7 +343,7 @@ internal fun MainViewModel.applyImportPackage(
             if (selection.savedLocations && pkg.savedLocations.isNotEmpty()) {
                 val currentSaved = settingsRepository.getSavedLocations().toMutableList()
                 pkg.savedLocations.forEach { loc ->
-                    if (currentSaved.none { it.name == loc.name && it.lat == loc.lat && it.lng == loc.lng }) {
+                    if (currentSaved.none { it.lat == loc.lat && it.lng == loc.lng }) {
                         currentSaved.add(loc)
                     }
                 }

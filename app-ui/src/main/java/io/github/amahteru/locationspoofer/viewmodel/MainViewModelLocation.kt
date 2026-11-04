@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import android.content.Context
 import java.util.Locale
@@ -69,11 +70,11 @@ private fun MainViewModel.fallbackToNativeLocation(
 
         locationManager.getCurrentLocation(provider, null, ctx.mainExecutor) { location ->
             if (location != null) applyNativeLocation(ctx, location, forceCallback, convertToGcj)
-            else if (forceCallback != null) AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_unavailable))
+            else if (forceCallback != null) AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_unavailable), long = true)
         }
     } catch (e: SecurityException) {
         if (forceCallback != null) {
-            AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_permission_denied))
+            AppSnackbar.show(ctx.getString(io.github.amahteru.locationspoofer.ui.R.string.location_permission_denied), long = true)
         }
     } catch (e: Exception) {
         e.printStackTrace()
@@ -239,17 +240,15 @@ internal fun MainViewModel.evaluateMockCapabilities() {
     }
 }
 
-internal fun MainViewModel.selectCollectedLocation(locationId: Long) {
+internal fun MainViewModel.selectCollectedLocation(locationId: Long, announce: Boolean = false) {
     viewModelScope.launch {
         val record = withContext(Dispatchers.IO) {
             environmentDao.getCompleteLocationById(locationId)
         }
         if (record != null) {
             pinnedLocationRecordId = locationId
-            val name = when {
-                record.location.remark.isNotBlank() -> record.location.remark
-                record.location.placeName.isNotBlank() -> record.location.placeName
-                else -> String.format(Locale.US, "(%.5f, %.5f)", record.location.lat, record.location.lng)
+            val name = record.location.placeName.ifBlank { record.location.remark }.ifBlank {
+                String.format(Locale.US, "(%.5f, %.5f)", record.location.lat, record.location.lng)
             }
             _uiState.update {
                 it.copy(
@@ -261,6 +260,7 @@ internal fun MainViewModel.selectCollectedLocation(locationId: Long) {
                 )
             }
             evaluateMockCapabilitiesSuspend(record.location.lat, record.location.lng)
+            if (announce) AppSnackbar.show(context.getString(R.string.pinned_collected_location_toast, name))
         }
     }
 }
@@ -334,59 +334,25 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
         if (current.latitudeInput.toDoubleOrNull() != lat || current.longitudeInput.toDoubleOrNull() != lng) {
             return@withContext
         }
-        if (validRecords.isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    canMockWifi = false,
-                    canMockCell = false,
-                    canMockBluetooth = false,
-                    collectedWifiJson = "[]",
-                    collectedCellJson = "[]",
-                    collectedBluetoothJson = "[]",
-                )
-            }
-        } else {
-            val (wifiJson, cellJson, btJson) = locationToJson(validRecords, lat, lng)
-            val hasW = try {
-                val obj = org.json.JSONObject(wifiJson)
-                val nearby = obj.optJSONArray("nearbyWifi")
-                val connected = obj.opt("connectedWifi")
-                (nearby != null && nearby.length() > 0) || (connected != null && !obj.isNull("connectedWifi"))
-            } catch (e: Exception) {
-                false
-            }
-            val hasC = try {
-                val arr = org.json.JSONArray(cellJson)
-                arr.length() > 0
-            } catch (e: Exception) {
-                false
-            }
-            val hasB = try {
-                val arr = org.json.JSONArray(btJson)
-                arr.length() > 0
-            } catch (e: Exception) {
-                false
-            }
-
-            _uiState.update {
-                it.copy(
-                    canMockWifi = hasW,
-                    canMockCell = hasC,
-                    canMockBluetooth = hasB,
-                    collectedWifiJson = wifiJson,
-                    collectedCellJson = cellJson,
-                    collectedBluetoothJson = btJson,
-                )
-            }
+        val (wifiJson, cellJson, btJson) = locationToJson(validRecords, lat, lng)
+        _uiState.update {
+            it.copy(
+                canMockWifi = EnvironmentResolver.hasWifi(validRecords),
+                canMockCell = EnvironmentResolver.hasCell(validRecords),
+                canMockBluetooth = EnvironmentResolver.hasBluetooth(validRecords),
+                collectedWifiJson = wifiJson,
+                collectedCellJson = cellJson,
+                collectedBluetoothJson = btJson,
+            )
         }
     }
 }
 
-internal suspend fun MainViewModel.hasLocalWifiWithin50m(lat: Double, lng: Double): Boolean =
-    environmentRecordsAt(lat, lng).any { it.wifis.isNotEmpty() || it.connectedWifi != null }
+internal fun MainViewModel.hasLocalWifiWithin50m(lat: Double, lng: Double): Boolean =
+    EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng))
 
-internal suspend fun MainViewModel.hasLocalCellsWithin50m(lat: Double, lng: Double): Boolean =
-    environmentRecordsAt(lat, lng).any { it.cells.isNotEmpty() }
+internal fun MainViewModel.hasLocalCellsWithin50m(lat: Double, lng: Double): Boolean =
+    EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng))
 
 internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double) {
     val settingsToken = settingsRepository.getWigleApiToken()

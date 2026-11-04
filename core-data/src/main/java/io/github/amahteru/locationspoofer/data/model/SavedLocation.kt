@@ -6,9 +6,5 @@ import kotlinx.serialization.Serializable
 data class SavedLocation(
     val name: String,
     val lat: Double,
-    val lng: Double,
-    val wifiJson: String = "[]",
-    val cellJson: String = "[]",
-    val bluetoothJson: String = "[]",
-    val sourceLocationId: Long? = null
+    val lng: Double
 )

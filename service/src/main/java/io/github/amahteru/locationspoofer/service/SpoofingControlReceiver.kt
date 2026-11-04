@@ -3,6 +3,8 @@ package io.github.amahteru.locationspoofer.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import io.github.amahteru.locationspoofer.data.db.EnvironmentDao
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.motion.MotionController
 import io.github.amahteru.locationspoofer.data.repository.LocationRepository
 import io.github.amahteru.locationspoofer.data.repository.SettingsRepository
@@ -16,6 +18,7 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
     private val locationRepository: LocationRepository by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val motionController: MotionController by inject()
+    private val environmentDao: EnvironmentDao by inject()
 
     companion object {
         const val ACTION_START = "io.github.amahteru.locationspoofer.START"
@@ -44,13 +47,22 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
         settingsRepository.isSpoofingActive = true
         settingsRepository.lastSpoofedLat = loc.lat.toString()
         settingsRepository.lastSpoofedLng = loc.lng.toString()
+        val records = EnvironmentResolver.recordsAt(
+            environmentDao.getAllCompleteLocations(),
+            environmentDao.getCollectionRoutes(),
+            loc.lat,
+            loc.lng
+        )
+        val (wifiJson, cellJson, bluetoothJson) = EnvironmentResolver.toJson(records, loc.lat, loc.lng)
         val now = System.currentTimeMillis()
         locationRepository.startSpoofing(
             context, loc.lat, loc.lng,
             "STILL", 0f, now,
             emptyList(), false,
-            loc.wifiJson, loc.cellJson, loc.bluetoothJson,
-            settingsRepository.mockWifi, settingsRepository.mockCell, settingsRepository.mockBluetooth,
+            wifiJson, cellJson, bluetoothJson,
+            settingsRepository.mockWifi && EnvironmentResolver.hasWifi(records),
+            settingsRepository.mockCell,
+            settingsRepository.mockBluetooth && EnvironmentResolver.hasBluetooth(records),
             settingsRepository.enableJitter
         )
     }

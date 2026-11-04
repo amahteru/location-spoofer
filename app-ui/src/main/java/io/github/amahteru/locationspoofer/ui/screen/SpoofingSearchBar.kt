@@ -3,28 +3,19 @@ package io.github.amahteru.locationspoofer.ui.screen
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.amap.api.maps.model.LatLng
 import com.amap.api.services.core.PoiItem
@@ -154,7 +145,7 @@ private fun performPoiSearch(
                 override fun onGetPoiResult(result: com.baidu.mapapi.search.poi.PoiResult?) {
                     if (result == null || result.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.NO_ERROR) {
                         if (result?.error != com.baidu.mapapi.search.core.SearchResult.ERRORNO.RESULT_NOT_FOUND) {
-                            AppSnackbar.show(context.getString(R.string.baidu_search_failed_format, result?.error?.name ?: ""), long = true)
+                            AppSnackbar.show(context.getString(R.string.search_failed), long = true)
                         }
                         onResult(emptyList())
                         mPoiSearch.destroy()
@@ -183,7 +174,8 @@ private fun performPoiSearch(
                 .pageCapacity(20)
             mPoiSearch.searchInCity(option)
         } catch (e: Exception) {
-            AppSnackbar.show(context.getString(R.string.baidu_search_failed_format, e.message ?: ""), long = true)
+            e.printStackTrace()
+            AppSnackbar.show(context.getString(R.string.search_failed), long = true)
             onResult(emptyList())
         }
     } else if (mapEngine == MapEngine.GOOGLE) {
@@ -252,11 +244,13 @@ private fun performPoiSearch(
                     }
                 }
                 .addOnFailureListener { exception ->
-                    AppSnackbar.show(context.getString(R.string.google_search_failed_format, exception.message ?: ""), long = true)
+                    exception.printStackTrace()
+                    AppSnackbar.show(context.getString(R.string.search_failed), long = true)
                     onResult(emptyList())
                 }
         } catch (e: Exception) {
-            AppSnackbar.show(context.getString(R.string.google_search_failed_format, e.message ?: ""), long = true)
+            e.printStackTrace()
+            AppSnackbar.show(context.getString(R.string.search_failed), long = true)
             onResult(emptyList())
         }
     } else {
@@ -283,7 +277,7 @@ private fun performPoiSearch(
                         if (rCode == 10003 || rCode == 10012 || rCode == 10013 || rCode == 10014 || rCode == 1800 || rCode == 18000) {
                             AppSnackbar.show(context.getString(R.string.amap_search_failed_quota), long = true)
                         } else if (rCode != 1000) {
-                            AppSnackbar.show(context.getString(R.string.amap_search_failed_code_format, rCode))
+                            AppSnackbar.show(context.getString(R.string.amap_search_failed_code_format, rCode), long = true)
                         }
                         onResult(emptyList())
                     }
@@ -293,7 +287,8 @@ private fun performPoiSearch(
             })
             search.searchPOIAsyn()
         } catch (e: Exception) {
-            AppSnackbar.show(context.getString(R.string.amap_search_exception_format, e.message ?: ""), long = true)
+            e.printStackTrace()
+            AppSnackbar.show(context.getString(R.string.search_failed), long = true)
             onResult(emptyList())
         }
     }

@@ -24,31 +24,34 @@ fun AppBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(bottom = AppSpacing.lg)
-        ) {
-            Row(
+        Box {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = AppSpacing.screenMargin, end = AppSpacing.md, bottom = AppSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically
+                    .navigationBarsPadding()
+                    .padding(bottom = AppSpacing.lg)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = title, style = MaterialTheme.typography.titleLarge)
-                    if (subtitle != null) {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = AppSpacing.screenMargin, end = AppSpacing.md, bottom = AppSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = title, style = MaterialTheme.typography.titleLarge)
+                        if (subtitle != null) {
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
+                    actions()
                 }
-                actions()
+                content()
             }
-            content()
+            AppSnackbar.Host(Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
         }
     }
 }

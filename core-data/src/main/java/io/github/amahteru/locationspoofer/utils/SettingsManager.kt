@@ -11,17 +11,6 @@ class SettingsManager(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
-    init {
-        if (!prefs.getBoolean("mock_switches_migrated_v3", false)) {
-            prefs.edit {
-                putBoolean("mock_wifi", true)
-                putBoolean("mock_cell", true)
-                putBoolean("mock_bluetooth", true)
-                putBoolean("mock_switches_migrated_v3", true)
-            }
-        }
-    }
-
     var language: String
         get() = LocaleUtils.normalizeLanguage(prefs.getString("language", "") ?: "")
         set(value) = prefs.edit { putString("language", value) }
@@ -161,11 +150,7 @@ class SettingsManager(context: Context) {
                     SavedLocation(
                         name = obj.optString("name", ""),
                         lat = obj.optDouble("lat", 0.0),
-                        lng = obj.optDouble("lng", 0.0),
-                        wifiJson = obj.optString("wifiJson", "[]"),
-                        cellJson = obj.optString("cellJson", "[]"),
-                        bluetoothJson = obj.optString("bluetoothJson", "[]"),
-                        sourceLocationId = if (obj.has("sourceLocationId")) obj.optLong("sourceLocationId") else null
+                        lng = obj.optDouble("lng", 0.0)
                     )
                 )
             }
@@ -175,23 +160,16 @@ class SettingsManager(context: Context) {
         return list
     }
 
-    private fun isSameSavedLocation(a: SavedLocation, b: SavedLocation): Boolean {
-        if (a.sourceLocationId != null && b.sourceLocationId != null) {
-            return a.sourceLocationId == b.sourceLocationId
-        }
-        return a.name == b.name && a.lat == b.lat && a.lng == b.lng
-    }
-
     fun addSavedLocation(location: SavedLocation) {
         val list = getSavedLocations().toMutableList()
-        list.removeAll { isSameSavedLocation(it, location) }
+        list.removeAll { it.lat == location.lat && it.lng == location.lng }
         list.add(location)
         saveLocationList(list)
     }
 
     fun removeSavedLocation(location: SavedLocation) {
         val list = getSavedLocations().toMutableList()
-        list.removeAll { isSameSavedLocation(it, location) }
+        list.removeAll { it.lat == location.lat && it.lng == location.lng }
         saveLocationList(list)
     }
 
@@ -202,12 +180,6 @@ class SettingsManager(context: Context) {
             obj.put("name", it.name)
             obj.put("lat", it.lat)
             obj.put("lng", it.lng)
-            obj.put("wifiJson", it.wifiJson)
-            obj.put("cellJson", it.cellJson)
-            obj.put("bluetoothJson", it.bluetoothJson)
-            if (it.sourceLocationId != null) {
-                obj.put("sourceLocationId", it.sourceLocationId)
-            }
             jsonArray.put(obj)
         }
         prefs.edit { putString("saved_locations", jsonArray.toString()) }

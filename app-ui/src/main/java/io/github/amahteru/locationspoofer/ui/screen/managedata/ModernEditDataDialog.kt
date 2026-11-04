@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.ui.screen.managedata
 
+import io.github.amahteru.locationspoofer.ui.components.StatusLabel
 import io.github.amahteru.locationspoofer.ui.theme.AppMotion
 import androidx.compose.animation.AnimatedContent
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
@@ -255,9 +256,9 @@ fun ModernEditDataDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                    SignalChip(Icons.Rounded.Wifi, "${wifiList.size} Wi-Fi", LabelTone.Primary)
-                    SignalChip(Icons.Rounded.CellTower, "${cellList.size} ${stringResource(R.string.tag_cell)}", LabelTone.Warning)
-                    SignalChip(Icons.Rounded.Bluetooth, "${btList.size} ${stringResource(R.string.tag_bluetooth)}", LabelTone.Tertiary)
+                    StatusLabel(text = "${wifiList.size} Wi-Fi", icon = Icons.Rounded.Wifi, tone = LabelTone.Primary)
+                    StatusLabel(text = "${cellList.size} ${stringResource(R.string.tag_cell)}", icon = Icons.Rounded.CellTower, tone = LabelTone.Warning)
+                    StatusLabel(text = "${btList.size} ${stringResource(R.string.tag_bluetooth)}", icon = Icons.Rounded.Bluetooth, tone = LabelTone.Tertiary)
                 }
 
                 OutlinedTextField(

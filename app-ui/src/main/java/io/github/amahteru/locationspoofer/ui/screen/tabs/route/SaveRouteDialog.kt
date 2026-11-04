@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen.tabs.route
 
-import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import io.github.amahteru.locationspoofer.ui.R
@@ -31,7 +29,6 @@ fun SaveRouteDialog(
     viewModel: MainViewModel,
     onDismiss: () -> Unit
 ) {
-    val resources = LocalResources.current
     var routeName by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
@@ -42,7 +39,6 @@ fun SaveRouteDialog(
     val save = {
         if (routeName.isNotBlank()) {
             viewModel.saveRoute(routeName, routePoints)
-            AppSnackbar.show(resources.getString(R.string.save_success))
             onDismiss()
         }
     }

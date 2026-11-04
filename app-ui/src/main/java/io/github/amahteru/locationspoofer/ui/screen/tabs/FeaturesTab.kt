@@ -57,7 +57,7 @@ fun FeaturesTab(
     ) { uri ->
         uri?.let {
             viewModel.exportEnvironmentData(it, exportSelection) { success ->
-                AppSnackbar.show(resources.getString(if (success) R.string.export_success else R.string.export_failed))
+                AppSnackbar.show(resources.getString(if (success) R.string.export_success else R.string.export_failed), long = !success)
             }
         }
     }
@@ -67,7 +67,7 @@ fun FeaturesTab(
         uri?.let {
             viewModel.parseImportPackage(it) { pkg ->
                 if (pkg == null) {
-                    AppSnackbar.show(resources.getString(R.string.import_parse_failed))
+                    AppSnackbar.show(resources.getString(R.string.import_parse_failed), long = true)
                 } else {
                     pendingImportPackage = pkg
                 }

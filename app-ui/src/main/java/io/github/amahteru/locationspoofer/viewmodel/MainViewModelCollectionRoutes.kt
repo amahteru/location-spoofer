@@ -3,7 +3,7 @@ package io.github.amahteru.locationspoofer.viewmodel
 import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.data.db.CompleteLocation
-import io.github.amahteru.locationspoofer.data.model.CollectionRouteMatcher
+import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.model.RoutePoint
 import io.github.amahteru.locationspoofer.data.model.geometry
 import io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng
@@ -84,17 +84,14 @@ internal fun MainViewModel.deleteCollectedRoute(id: Long) {
     _uiState.update { if (it.selectedCollectionRouteId == id) it.copy(selectedCollectionRouteId = null) else it }
 }
 
-internal suspend fun MainViewModel.environmentRecordsAt(lat: Double, lng: Double): List<CompleteLocation> {
-    val position = LatLng(lat, lng)
-    val routes = collectionRoutes.value
-    val selected = _uiState.value.selectedCollectionRouteId
-    val route = CollectionRouteMatcher.routeAt(routes, position, selected)
-    if (route != null) return CollectionRouteMatcher.samplesAt(route, position)
-    return environmentLocations.value
-        .filter { it.location.collectionRouteId == null && GeoMath.distance(position, LatLng(it.location.lat, it.location.lng)) <= 50.0 }
-        .sortedBy { GeoMath.distance(position, LatLng(it.location.lat, it.location.lng)) }
-
-}
+internal fun MainViewModel.environmentRecordsAt(lat: Double, lng: Double): List<CompleteLocation> =
+    EnvironmentResolver.recordsAt(
+        environmentLocations.value,
+        collectionRoutes.value,
+        lat,
+        lng,
+        _uiState.value.selectedCollectionRouteId
+    )
 
 internal fun MainViewModel.prepareRouteSimulationOptions(onReady: () -> Unit) {
     val point = _uiState.value.routePoints.firstOrNull() ?: return
@@ -102,14 +99,6 @@ internal fun MainViewModel.prepareRouteSimulationOptions(onReady: () -> Unit) {
     viewModelScope.launch {
         _uiState.update { it.copy(latitudeInput = point.lat.toString(), longitudeInput = point.lng.toString()) }
         evaluateMockCapabilitiesSuspend(point.lat, point.lng)
-        _uiState.update { state -> state.copy(
-            mockWifi = state.mockWifi || state.canMockWifi,
-            mockCell = state.mockCell || state.canMockCell,
-            mockBluetooth = state.mockBluetooth || state.canMockBluetooth
-        ) }
-        settingsRepository.mockWifi = _uiState.value.mockWifi
-        settingsRepository.mockCell = _uiState.value.mockCell
-        settingsRepository.mockBluetooth = _uiState.value.mockBluetooth
         onReady()
     }
 }

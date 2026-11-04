@@ -25,7 +25,6 @@ import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.LocalEnvironmentDataDialog
 import io.github.amahteru.locationspoofer.ui.screen.*
 import io.github.amahteru.locationspoofer.ui.screen.spoofing.SpoofingIntent
-import io.github.amahteru.locationspoofer.viewmodel.FavoriteToggleResult
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
 import io.github.amahteru.locationspoofer.viewmodel.fetchCurrentLocation
@@ -34,6 +33,7 @@ import io.github.amahteru.locationspoofer.viewmodel.importEnvironmentData
 import io.github.amahteru.locationspoofer.viewmodel.loadSavedLocation
 import io.github.amahteru.locationspoofer.viewmodel.removeSavedLocation
 import io.github.amahteru.locationspoofer.viewmodel.renameSavedLocation
+import io.github.amahteru.locationspoofer.viewmodel.toggleCollectedRouteFavorite
 import io.github.amahteru.locationspoofer.viewmodel.saveCurrentLocation
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedRoute
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedLocation
@@ -57,8 +57,6 @@ import io.github.amahteru.locationspoofer.ui.screen.tabs.location.*
 import io.github.amahteru.locationspoofer.ui.components.MapControlButton
 import io.github.amahteru.locationspoofer.ui.components.MapControlColumn
 import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
-import java.util.Locale
-import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
 
 @Composable
 fun LocationTab(
@@ -161,6 +159,13 @@ fun LocationTab(
         )
     }
 
+    LaunchedEffect(mapController, uiState.pinnedCollectedLocationId) {
+        if (uiState.pinnedCollectedLocationId == null) return@LaunchedEffect
+        val lat = uiState.latitudeInput.toDoubleOrNull() ?: return@LaunchedEffect
+        val lng = uiState.longitudeInput.toDoubleOrNull() ?: return@LaunchedEffect
+        mapController?.animateCamera(lat, lng, STREET_ZOOM)
+    }
+
     if (showLocalDataDialog) {
         val manageDataUiState by manageDataViewModel.uiState.collectAsState()
         LocalEnvironmentDataDialog(
@@ -174,30 +179,12 @@ fun LocationTab(
             isLoading = manageDataUiState.isLoading,
             savedLocations = uiState.savedLocations,
             onSelectPoint = { item ->
-                val lat = item.location.lat
-                val lng = item.location.lng
-                viewModel.selectCollectedLocation(item.location.id)
-                mapController?.animateCamera(lat, lng, STREET_ZOOM)
-                val label = when {
-                    item.location.remark.isNotBlank() -> item.location.remark
-                    item.location.placeName.isNotBlank() -> item.location.placeName
-                    else -> "(${String.format(Locale.US, "%.5f", lat)}, ${
-                        String.format(
-                            Locale.US,
-                            "%.5f",
-                            lng
-                        )
-                    })"
-                }
-                AppSnackbar.show(resources.getString(R.string.pinned_collected_location_toast, label))
+                viewModel.selectCollectedLocation(item.location.id, announce = true)
+                mapController?.animateCamera(item.location.lat, item.location.lng, STREET_ZOOM)
             },
-            onFavorite = { item ->
-                viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                    if (result == FavoriteToggleResult.Failed) {
-                        AppSnackbar.show(resources.getString(R.string.favorite_failed))
-                    }
-                }
-            },
+            onFavorite = { item -> viewModel.toggleCollectedLocationFavorite(item.location.id) },
+            savedRoutes = uiState.savedRoutes,
+            onFavoriteRoute = { route -> viewModel.toggleCollectedRouteFavorite(route.route) },
             onImportClick = {
                 importLauncher.launch(arrayOf("application/json", "*/*"))
             },

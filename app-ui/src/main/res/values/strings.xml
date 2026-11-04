@@ -222,7 +222,6 @@
     <string name="coord_record_title">Coordinate record</string>
     <string name="edit">Edit</string>
     <string name="rename">Rename</string>
-    <string name="saved_location_name_exists">A favorite at this coordinate already uses this name</string>
     <string name="set_place_name_hint">e.g. Office, Home</string>
     <string name="add_remark_hint">Add a note…</string>
     <string name="save_changes">Save changes</string>
@@ -278,11 +277,10 @@
     <string name="route_request_exception">Route request failed: %s. Using straight-line simulation</string>
     <string name="amap_api_exception_format">AMap API error (%1$d): %2$s. Using straight-line simulation</string>
     <string name="amap_quota_exhausted_fallback_format">AMap quota may be used up. Using straight-line simulation</string>
-    <string name="open_battery_opt_failed">Couldn’t open battery optimization: %s</string>
-    <string name="open_app_info_failed">Couldn’t open app info: %s</string>
+    <string name="open_battery_opt_failed">Couldn’t open battery optimization</string>
+    <string name="open_app_info_failed">Couldn’t open app info</string>
     <string name="amap_search_failed_quota">AMap search failed. Check your API key or quota</string>
     <string name="amap_search_failed_code_format">AMap search failed (error code: %d)</string>
-    <string name="amap_search_exception_format">AMap search failed: %s</string>
 
     <string name="no_saved_locations_card_hint">No favorites yet. Tap “Favorite” above to add one</string>
     <string name="saved_locations_card_title">Favorite locations</string>
@@ -373,6 +371,9 @@
     <string name="import_parse_failed">Couldn’t read this file. Pick a valid backup</string>
     <string name="add_to_favorites">Favorite</string>
     <string name="favorite_failed">Operation failed. The record may have been deleted</string>
+    <string name="favorite_added">Added “%1$s” to favorites</string>
+    <string name="favorite_removed">Removed “%1$s” from favorites</string>
+    <string name="search_failed">Search failed. Check your network and try again</string>
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="env_simulation_section">Environment simulation</string>
     <string name="enable_slight_jitter_desc">Adds natural GPS drift</string>
@@ -409,7 +410,6 @@
     <string name="collection_route_summary">Samples: %1$d · Width each side: %2$d m</string>
     <string name="collection_route_details">Route information</string>
     <string name="collection_route_name">Route name</string>
-    <string name="collection_route_save_description">Save a name and notes for this route and its collected samples</string>
     <string name="collection_route_delete_title">Delete collected route</string>
     <string name="collection_route_delete_message">Delete “%1$s” and all its collected samples?</string>
     <string name="local_collection_records_count">Points: %1$d · Routes: %2$d</string>
@@ -515,8 +515,6 @@
     <string name="vendor_scheme_oneui">Samsung One UI</string>
     <string name="vendor_scheme_reboot_notice">Takes effect after a device reboot</string>
     <string name="vendor_scheme_title">Vendor adaptation</string>
-    <string name="google_search_failed_format">Google search failed: %s</string>
     <string name="import_failed">Couldn’t import. Please try again</string>
-    <string name="baidu_search_failed_format">Baidu search failed: %s</string>
     <string name="location_unavailable">Couldn’t get current location</string>
 </resources>

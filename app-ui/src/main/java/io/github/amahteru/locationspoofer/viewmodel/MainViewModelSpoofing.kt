@@ -216,14 +216,14 @@ internal fun MainViewModel.toggleContinuousScanning() {
                         val bluetoothJson = environmentScanner.scanBluetooth()
                         val id = saveEnvironmentData(lat, lng, wifiJson, cellJson, bluetoothJson, mergeNearby = true, collectionRouteId = routeId)
                         savedIds += id
-                        val wCount = parseWifiCount(wifiJson)
-                        val cCount = org.json.JSONArray(cellJson).length()
-                        val bCount = org.json.JSONArray(bluetoothJson).length()
+                        val counts = io.github.amahteru.locationspoofer.data.model.EnvironmentResolver.signalCounts(
+                            savedIds.mapNotNull { environmentDao.getCompleteLocationById(it) }
+                        )
                         _uiState.update {
                             it.copy(
-                                scannedWifiCount = it.scannedWifiCount + wCount,
-                                scannedCellCount = it.scannedCellCount + cCount,
-                                scannedBluetoothCount = it.scannedBluetoothCount + bCount
+                                scannedWifiCount = counts.wifi,
+                                scannedCellCount = counts.cell,
+                                scannedBluetoothCount = counts.bluetooth
                             )
                         }
                     }
@@ -290,7 +290,7 @@ internal fun MainViewModel.saveCollectionInfo(locationId: Long, placeName: Strin
                     isSavingCollectionInfo = false,
                     pendingCollectionLocations = it.pendingCollectionLocations.drop(1),
                     pinnedLocationName = if (it.pinnedCollectedLocationId == locationId) {
-                        remark.trim().ifBlank { placeName.trim() }.ifBlank { it.pinnedLocationName }
+                        placeName.trim().ifBlank { remark.trim() }.ifBlank { it.pinnedLocationName }
                     } else it.pinnedLocationName
                 )
             }

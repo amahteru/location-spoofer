@@ -3,7 +3,6 @@ package io.github.amahteru.locationspoofer.data.db
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -50,32 +49,6 @@ class LocationSpooferDataPackageTest {
         val text = exportJson.encodeToString(pkg)
         assertTrue(text.contains("amapApiKey"))
         assertTrue(text.contains("test-amap-key"))
-    }
-
-    @Test
-    fun `旧的 version 2 文件仍然可以解析，settings 与 apiKeys 落到 null`() {
-        val legacyV2 = """
-            {
-              "version": 2,
-              "exportTimestamp": 1700000000000,
-              "appVersion": "2.0.0",
-              "locations": [],
-              "savedLocations": [
-                {"name": "公司", "lat": 31.5, "lng": 121.5}
-              ],
-              "savedRoutes": [],
-              "appCoordinateSystems": {"com.tencent.mm": "GCJ-02"},
-              "unknownFutureField": true
-            }
-        """.trimIndent()
-
-        val pkg = importJson.decodeFromString<LocationSpooferDataPackage>(legacyV2)
-
-        assertEquals(2, pkg.version)
-        assertEquals(1, pkg.savedLocations.size)
-        assertEquals("公司", pkg.savedLocations[0].name)
-        assertNull("旧文件没有这两个分类，应当为 null", pkg.settings)
-        assertNull("旧文件没有这两个分类，应当为 null", pkg.apiKeys)
     }
 
     @Test

@@ -222,7 +222,7 @@ fun PermissionSetupScreen(viewModel: MainViewModel, uiState: AppState) {
                     viewModel.recheckRootAccess { root ->
                         checkingRoot = false
                         if (!root) {
-                            AppSnackbar.show(resources.getString(R.string.env_root_denied))
+                            AppSnackbar.show(resources.getString(R.string.env_root_denied), long = true)
                         }
                     }
                 },

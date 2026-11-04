@@ -1,6 +1,5 @@
 package io.github.amahteru.locationspoofer.ui.screen
 
-import io.github.amahteru.locationspoofer.ui.components.AppSnackbar
 import io.github.amahteru.locationspoofer.ui.theme.animateListItem
 import io.github.amahteru.locationspoofer.ui.components.LabelTone
 import io.github.amahteru.locationspoofer.ui.components.StatusLabel
@@ -16,20 +15,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.db.CompleteLocation
 import io.github.amahteru.locationspoofer.ui.components.AppMapController
 import io.github.amahteru.locationspoofer.ui.components.AppMapView
+import io.github.amahteru.locationspoofer.ui.components.CollectedDataMenu
+import io.github.amahteru.locationspoofer.ui.components.CollectedLocationCard
+import io.github.amahteru.locationspoofer.ui.components.CollectedRouteCard
 import io.github.amahteru.locationspoofer.ui.screen.managedata.ModernEditDataDialog
-import io.github.amahteru.locationspoofer.ui.screen.managedata.DataListItem
 import io.github.amahteru.locationspoofer.ui.screen.managedata.ManageDeleteConfirmDialog
 import io.github.amahteru.locationspoofer.ui.components.MapCoverageHelper
 import io.github.amahteru.locationspoofer.ui.components.rememberMapPalette
 import io.github.amahteru.locationspoofer.ui.components.STREET_ZOOM
-import io.github.amahteru.locationspoofer.viewmodel.FavoriteToggleResult
 import io.github.amahteru.locationspoofer.viewmodel.MainViewModel
 import io.github.amahteru.locationspoofer.viewmodel.ManageDataViewModel
 import io.github.amahteru.locationspoofer.data.model.geometry
@@ -39,6 +38,9 @@ import io.github.amahteru.locationspoofer.viewmodel.deleteCollectedRoute
 import io.github.amahteru.locationspoofer.viewmodel.selectCollectedLocation
 import io.github.amahteru.locationspoofer.viewmodel.syncFavoriteCoordinateIfExists
 import io.github.amahteru.locationspoofer.viewmodel.toggleCollectedLocationFavorite
+import io.github.amahteru.locationspoofer.viewmodel.toggleCollectedRouteFavorite
+import io.github.amahteru.locationspoofer.data.model.routePoints
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 import io.github.amahteru.locationspoofer.ui.theme.AppSpacing
@@ -50,7 +52,6 @@ fun ManageDataScreen(
     onClose: () -> Unit,
     manageDataViewModel: ManageDataViewModel = koinViewModel()
 ) {
-    val resources = LocalResources.current
     var mapController by remember { mutableStateOf<AppMapController?>(null) }
     var editingItem by remember { mutableStateOf<CompleteLocation?>(null) }
     var itemToDelete by remember { mutableStateOf<CompleteLocation?>(null) }
@@ -61,13 +62,11 @@ fun ManageDataScreen(
     var editingRoute by remember { mutableStateOf<io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord?>(null) }
     var deletingRoute by remember { mutableStateOf<io.github.amahteru.locationspoofer.data.db.CollectionRouteRecord?>(null) }
 
-    val favoritedLocationIds = remember(uiState.savedLocations) {
-        uiState.savedLocations.mapNotNullTo(HashSet()) { it.sourceLocationId }
+    val favoritedCoords = remember(uiState.savedLocations) {
+        uiState.savedLocations.mapTo(HashSet()) { it.lat to it.lng }
     }
-    val favoritedCoordsFallback = remember(uiState.savedLocations) {
-        uiState.savedLocations.filter { it.sourceLocationId == null }
-            .mapTo(HashSet()) { it.lat to it.lng }
-    }
+
+    val favoritedRoutes = remember(uiState.savedRoutes) { uiState.savedRoutes.mapTo(HashSet()) { it.points } }
 
     BackHandler(onBack = onClose)
 
@@ -87,7 +86,9 @@ fun ManageDataScreen(
         }
         if (collectionRoutes.isNotEmpty()) {
             val geometry = collectionRoutes.first().route.geometry()
-            if (geometry.isNotEmpty()) controller.fitBounds(geometry.map { it.lat to it.lng }, 80)
+            geometry.firstOrNull()?.let { controller.moveCamera(it.lat, it.lng, STREET_ZOOM) }
+            delay(300)
+            controller.fitBounds(geometry.map { it.lat to it.lng }, 80, 200, 80, 80)
         } else if (last != null) {
             controller.moveCamera(last.lat, last.lng, STREET_ZOOM)
         }
@@ -195,41 +196,42 @@ fun ManageDataScreen(
                 ) {
                     items(collectionRoutes, key = { "collection-route-${it.route.id}" }) { route ->
                         Box(Modifier.animateListItem(this)) {
-                            io.github.amahteru.locationspoofer.ui.components.CollectionRouteListItem(
+                            CollectedRouteCard(
                                 route,
                                 onClick = {
                                     viewModel.selectCollectedRoute(route.route.id)
                                     mapController?.let { io.github.amahteru.locationspoofer.ui.components.CollectionRouteMapHelper.show(it, route.route, palette, 120) }
-                                },
-                                onEdit = { editingRoute = route.route },
-                                onDelete = { deletingRoute = route.route }
-                            )
+                                }
+                            ) {
+                                CollectedDataMenu(
+                                    onEdit = { editingRoute = route.route },
+                                    onDelete = { deletingRoute = route.route },
+                                    favorited = route.route.routePoints() in favoritedRoutes,
+                                    onFavorite = { viewModel.toggleCollectedRouteFavorite(route.route) }
+                                )
+                            }
                         }
                     }
                     items(dataList, key = { it.location.id }) { item ->
                         Box(Modifier.animateListItem(this)) {
-                            DataListItem(
-                                item = item,
-                                isFavorited = favoritedLocationIds.contains(item.location.id) ||
-                                    favoritedCoordsFallback.contains(item.location.lat to item.location.lng),
+                            CollectedLocationCard(
+                                item,
                                 onClick = {
-                                    viewModel.selectCollectedLocation(item.location.id)
+                                    viewModel.selectCollectedLocation(item.location.id, announce = true)
                                     mapController?.animateCamera(
                                         item.location.lat,
                                         item.location.lng,
                                         STREET_ZOOM
                                     )
-                                },
-                                onEdit = { editingItem = item },
-                                onDelete = { itemToDelete = item },
-                                onFavorite = {
-                                    viewModel.toggleCollectedLocationFavorite(item.location.id) { result ->
-                                        if (result == FavoriteToggleResult.Failed) {
-                                            AppSnackbar.show(resources.getString(R.string.favorite_failed))
-                                        }
-                                    }
                                 }
-                            )
+                            ) {
+                                CollectedDataMenu(
+                                    onEdit = { editingItem = item },
+                                    onDelete = { itemToDelete = item },
+                                    favorited = (item.location.lat to item.location.lng) in favoritedCoords,
+                                    onFavorite = { viewModel.toggleCollectedLocationFavorite(item.location.id) }
+                                )
+                            }
                         }
                     }
                 }
@@ -254,7 +256,7 @@ fun ManageDataScreen(
                     selectedBluetoothAddress,
                     selectedCellKey
                 )
-                viewModel.syncFavoriteCoordinateIfExists(currentItem.location.id, lat, lng)
+                viewModel.syncFavoriteCoordinateIfExists(currentItem.location.lat, currentItem.location.lng, lat, lng)
                 viewModel.selectCollectedLocation(currentItem.location.id)
                 editingItem = null
             },

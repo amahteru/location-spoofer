@@ -35,7 +35,6 @@ internal fun MainViewModel.initialize() {
         }
     }
     viewModelScope.launch(Dispatchers.IO) {
-        mergeLegacyRecords()
         val root = locationRepository.recoverAfterBoot(context)
         motionController.syncFromSpoofingStateIfIdle()
 
@@ -111,40 +110,6 @@ internal fun MainViewModel.initialize() {
                 io.github.amahteru.locationspoofer.data.model.SavedRoute(entity.name, points, entity.id)
             }
             _uiState.update { it.copy(savedRoutes = routes) }
-        }
-    }
-}
-
-private suspend fun MainViewModel.mergeLegacyRecords() {
-    val allComplete = environmentDao.getAllCompleteLocations().filter { it.location.collectionRouteId == null }
-    if (allComplete.isEmpty()) return
-
-    val grouped = allComplete.groupBy {
-        Pair(
-            String.format(java.util.Locale.US, "%.4f", it.location.lat),
-            String.format(java.util.Locale.US, "%.4f", it.location.lng)
-        )
-    }.filter { it.value.size > 1 }
-
-    for ((_, group) in grouped) {
-        val primary = group.maxByOrNull { it.location.timestamp } ?: continue
-        val others = group.filter { it.location.id != primary.location.id }
-
-        for (other in others) {
-            other.connectedWifi?.let {
-                environmentDao.insertConnectedWifi(it.copy(locationId = primary.location.id))
-            }
-            other.wifis.forEach { lw ->
-                environmentDao.insertLocationWifi(lw.locationWifi.copy(locationId = primary.location.id))
-            }
-            other.bluetooths.forEach { lb ->
-                environmentDao.insertLocationBluetooth(lb.locationBluetooth.copy(locationId = primary.location.id))
-            }
-            other.cells.forEach { lc ->
-                environmentDao.insertLocationCell(lc.locationCell.copy(locationId = primary.location.id))
-            }
-
-            environmentDao.deleteLocation(other.location.id)
         }
     }
 }
