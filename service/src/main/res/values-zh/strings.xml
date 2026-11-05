@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="collection_notification_title">正在采集本地数据</string>
+    <string name="collection_service_channel_name">数据采集服务</string>
     <string name="spoofing_notification_point">定点模拟中</string>
     <string name="spoofing_notification_route">路线模拟中</string>
     <string name="spoofing_notification_joystick">摇杆模拟中</string>

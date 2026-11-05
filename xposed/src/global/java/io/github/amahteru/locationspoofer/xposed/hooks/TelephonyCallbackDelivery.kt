@@ -59,7 +59,7 @@ internal class TelephonyCallbackDelivery(
                         if (recipient != null && config != null && SystemHookUtils.isTargetCaller(
                                 recipient.registry, recipient.pkg, config, recipient.uid)) {
                             val cells = if (config.optBoolean("mock_cell", true)) {
-                                module.buildFakeCellInfoList(loader, config.optDouble("lat"), config.optDouble("lng"), config)
+                                module.buildFakeCellInfoList(loader, config)
                             } else arrayListOf()
                             if (name == "onCellInfoChanged") args[0] = cells
                             else {

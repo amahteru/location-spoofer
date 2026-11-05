@@ -62,11 +62,9 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                 return@hookAllMethods java.util.ArrayList<Any>()
             }
 
-            val lat = config.optDouble("lat", 0.0)
-            val lng = config.optDouble("lng", 0.0)
 
             try {
-                val fakeCellList = buildFakeCellInfoList(classLoader, lat, lng, config)
+                val fakeCellList = buildFakeCellInfoList(classLoader, config)
                 sysLog("[SysCell] Dispatched ${fakeCellList.size} fake CellInfo items to ${explicitPkg ?: "caller"}"
                 )
                 return@hookAllMethods fakeCellList
@@ -123,8 +121,6 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
 
             val mockCell = config.optBoolean("mock_cell", true)
 
-            val lat = config.optDouble("lat", 0.0)
-            val lng = config.optDouble("lng", 0.0)
 
             try {
                 val callback = chain.args.firstOrNull { arg ->
@@ -134,7 +130,7 @@ internal fun LocationHooker.hookSystemTelephonyService(classLoader: ClassLoader)
                     )
                 }
                 if (callback != null) {
-                    val fakeCellList = if (mockCell) buildFakeCellInfoList(classLoader, lat, lng, config) else java.util.ArrayList<Any>()
+                    val fakeCellList = if (mockCell) buildFakeCellInfoList(classLoader, config) else java.util.ArrayList<Any>()
                     val onCellInfoMethod = callback.javaClass.methods.firstOrNull { it.name == "onCellInfo" }
                     if (onCellInfoMethod != null) {
                         onCellInfoMethod.invoke(callback, fakeCellList)
@@ -165,7 +161,7 @@ internal fun LocationHooker.hookSystemTelephonyRegistry(classLoader: ClassLoader
 }
 
 private fun LocationHooker.registeredCellIdentity(classLoader: ClassLoader, config: org.json.JSONObject): Any? {
-    val cells = buildFakeCellInfoList(classLoader, config.optDouble("lat", 0.0), config.optDouble("lng", 0.0), config)
+    val cells = buildFakeCellInfoList(classLoader, config)
     val registered = cells.firstOrNull { runCatching { XposedHelpers.callMethod(it, "isRegistered") == true }.getOrDefault(false) }
         ?: cells.firstOrNull()
     return registered?.let { XposedHelpers.callMethod(it, "getCellIdentity") }

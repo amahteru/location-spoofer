@@ -117,6 +117,8 @@ data class AppState(
 
 val AppState.simulatedWifi: Boolean get() = mockWifi && canMockWifi
 
+val AppState.simulatedCell: Boolean get() = mockCell && canMockCell
+
 val AppState.simulatedBluetooth: Boolean get() = mockBluetooth && canMockBluetooth
 
 enum class CollectionIssue { NO_LOCATION, OFF_ROUTE }

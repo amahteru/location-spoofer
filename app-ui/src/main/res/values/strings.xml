@@ -270,6 +270,9 @@
     <string name="tag_bluetooth">Bluetooth</string>
     <string name="tag_cell">Cell</string>
 
+    <string name="collection_paused_by_system">Collection was paused by the system. Data from that period is missing</string>
+    <string name="opencellid_fetch_failed">OpenCellID query failed. No cell data was added</string>
+    <string name="wigle_fetch_failed">WiGLE query failed. No Wi-Fi data was added</string>
     <string name="wigle_import">WiGLE import</string>
     <string name="opencellid_import">OpenCellID import</string>
     <string name="lat_lng_format_prefix">Coordinates:</string>

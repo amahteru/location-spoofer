@@ -50,7 +50,7 @@ internal fun LocationHooker.hookCellEnvironment(
                         "android.telephony.gsm.GsmCellLocation", classLoader
                     )
                     val fakeLocation = XposedHelpers.newInstance(gsmCellLocationClass)
-                    val (lac, cid) = registeredCellCodes(config, lat, lng)
+                    val (lac, cid) = registeredCellCodes(config) ?: return null
                     XposedHelpers.callMethod(fakeLocation, "setLacAndCid", lac, cid)
                     XposedBridge.logOpenCellId("getCellLocation returning GsmCellLocation lac=$lac cid=$cid")
                     return fakeLocation
@@ -62,7 +62,7 @@ internal fun LocationHooker.hookCellEnvironment(
 
             "getAllCellInfo" -> {
                 try {
-                    val fakeCells = buildFakeCellInfoList(classLoader, lat, lng, config)
+                    val fakeCells = buildFakeCellInfoList(classLoader, config)
                     XposedBridge.logOpenCellIdEvery(
                         "getAllCellInfo:return:${fakeCells.size}",
                         "getAllCellInfo returning fakeCells=${fakeCells.size}"
@@ -253,8 +253,6 @@ internal fun LocationHooker.hookCellEnvironment(
             val listener =
                 chain.args[0] ?: return@hookMethod chain.proceed(chain.args.toTypedArray())
             val originalEvents = chain.args[1] as Int
-            val lat = config.optDouble("lat", 0.0)
-            val lng = config.optDouble("lng", 0.0)
             val mockCell = config.optBoolean("mock_cell", true)
             val cellJsonCount = config.optJSONArray("cell_json")?.length() ?: 0
             val needsCellInfo = (originalEvents and 0x400) != 0
@@ -274,20 +272,21 @@ internal fun LocationHooker.hookCellEnvironment(
             )
             val fakeCells by lazy {
                 if (mockCell) {
-                    buildFakeCellInfoList(classLoader, lat, lng, config)
+                    buildFakeCellInfoList(classLoader, config)
                 } else {
                     java.util.ArrayList<Any>()
                 }
             }
             if ((originalEvents and 0x10) != 0) {
                 try {
-                    if (mockCell) {
+                    val cellCodes = if (mockCell) registeredCellCodes(config) else null
+                    if (cellCodes != null) {
                         val gsmCellLocationClass = XposedHelpers.findClass(
                             "android.telephony.gsm.GsmCellLocation", classLoader
                         )
                         val fakeLocation =
                             XposedHelpers.newInstance(gsmCellLocationClass)
-                        val (lac, cid) = registeredCellCodes(config, lat, lng)
+                        val (lac, cid) = cellCodes
                         XposedHelpers.callMethod(
                             fakeLocation,
                             "setLacAndCid",
@@ -407,11 +406,9 @@ internal fun LocationHooker.hookCellEnvironment(
             )
 
             val mockCell = config.optBoolean("mock_cell", true)
-            val lat = config.optDouble("lat", 0.0)
-            val lng = config.optDouble("lng", 0.0)
 
             val fakeCells = if (mockCell) {
-                buildFakeCellInfoList(classLoader, lat, lng, config)
+                buildFakeCellInfoList(classLoader, config)
             } else {
                 java.util.ArrayList<Any>()
             }
@@ -496,13 +493,7 @@ internal fun LocationHooker.hookCellEnvironment(
                             false
                         )
                     ) return@hookAllMethods innerChain.proceed(innerChain.args.toTypedArray())
-                    val lat = freshConfig.optDouble("lat", 0.0)
-                    val lng = freshConfig.optDouble("lng", 0.0)
-                    val fakeCells = buildFakeCellInfoList(
-                        classLoader,
-                        lat,
-                        lng,
-                        freshConfig
+                    val fakeCells = buildFakeCellInfoList(classLoader, freshConfig
                     )
                     val newArgs = innerChain.args.toTypedArray().clone()
                     if (newArgs.isNotEmpty()) {

@@ -40,6 +40,7 @@ class MainViewModel(
     internal val context: Context get() = getApplication()
     internal var lastMapMoveTime = 0L
     internal var mapMoveJob: Job? = null
+    internal var mapDragPending = false
     internal var mockCapabilitiesJob: Job? = null
     internal var environmentUpdateJob: Job? = null
 

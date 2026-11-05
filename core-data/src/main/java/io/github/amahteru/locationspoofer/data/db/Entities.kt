@@ -275,9 +275,7 @@ data class ExportedApiKeys(
 
 @Serializable
 data class LocationSpooferDataPackage(
-    val version: Int = 4,
     val exportTimestamp: Long = System.currentTimeMillis(),
-    val appVersion: String = "2.0.0",
     val locations: List<CompleteLocation> = emptyList(),
     val collectionRoutes: List<CompleteCollectionRoute> = emptyList(),
     val savedLocations: List<SavedLocation> = emptyList(),

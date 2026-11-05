@@ -329,7 +329,6 @@ class LocationHooker : XposedModule() {
     }
 
     internal fun normalizeConfig(config: JSONObject): JSONObject {
-        if (!config.has("wifi_json")) config.put("wifi_json", org.json.JSONArray())
         val gcj02Lat = config.optDouble("lat", 0.0)
         val gcj02Lng = config.optDouble("lng", 0.0)
 

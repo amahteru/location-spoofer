@@ -1,5 +1,6 @@
 package io.github.amahteru.locationspoofer.utils
 
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,40 +14,23 @@ class OpenCellIdClient {
 
     suspend fun fetchCellData(lat: Double, lng: Double, token: String): String =
         withContext(Dispatchers.IO) {
-            if (token.isBlank()) {
-                return@withContext "[]"
-            }
+            for (box in buildSearchBoxes(lat, lng)) {
+                val url =
+                    "https://opencellid.org/cell/getInArea?key=$token&BBOX=${box.latMin},${box.lonMin},${box.latMax},${box.lonMax}&format=json&limit=20"
+                val request = Request.Builder()
+                    .url(url)
+                    .build()
 
-            val searchBoxes = buildSearchBoxes(lat, lng)
-
-            try {
-                for (box in searchBoxes) {
-                    val url =
-                        "https://opencellid.org/cell/getInArea?key=$token&BBOX=${box.latMin},${box.lonMin},${box.latMax},${box.lonMax}&format=json&limit=20"
-                    val request = Request.Builder()
-                        .url(url)
-                        .build()
-
-                    val response = client.newCall(request).execute()
-                    val code = response.code
-                    if (response.isSuccessful) {
-                        val body = response.body.string()
-                        val jsonObject = JSONObject(body)
-                        val cells = jsonObject.optJSONArray("cells")
-                        if (cells == null || cells.length() == 0) {
-                            continue
-                        }
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("OpenCellID ${response.code}")
+                    val cells = JSONObject(response.body.string()).optJSONArray("cells")
+                    if (cells != null && cells.length() > 0) {
                         val normalizedCells = normalizeOpenCellIdCells(cells)
-                        if (normalizedCells.length() == 0) {
-                            continue
-                        }
-                        return@withContext normalizedCells.toString()
+                        if (normalizedCells.length() > 0) return@withContext normalizedCells.toString()
                     }
                 }
-                return@withContext "[]"
-            } catch (e: Exception) {
-                return@withContext "[]"
             }
+            "[]"
         }
 
     private data class BBox(

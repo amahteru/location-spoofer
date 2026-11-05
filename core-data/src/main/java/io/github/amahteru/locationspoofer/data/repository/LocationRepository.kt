@@ -155,6 +155,10 @@ class LocationRepository(
         rootManager.clearMockLocationApp()
     }
 
+    fun startCollectionService(context: Context) = spoofingServiceController.startCollection(context)
+
+    fun stopCollectionService(context: Context) = spoofingServiceController.stopCollection(context)
+
     val isFloatingJoystickShowing: Boolean get() = spoofingServiceController.isFloatingJoystickShowing
 
     fun setFloatingJoystickVisible(context: Context, visible: Boolean) =
@@ -169,6 +173,7 @@ class LocationRepository(
         cellJson: String,
         bluetoothJson: String,
         mockWifi: Boolean,
+        mockCell: Boolean,
         mockBluetooth: Boolean
     ) {
         SpoofingState.wifiJson = wifiJson
@@ -177,6 +182,7 @@ class LocationRepository(
         configManager.patchConfig {
             configManager.putEnvironment(it, wifiJson, cellJson, bluetoothJson)
             it.put("mock_wifi", mockWifi)
+            it.put("mock_cell", mockCell)
             it.put("mock_bluetooth", mockBluetooth)
         }
     }

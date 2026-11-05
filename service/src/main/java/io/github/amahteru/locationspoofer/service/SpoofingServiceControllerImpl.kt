@@ -31,6 +31,14 @@ class SpoofingServiceControllerImpl : SpoofingServiceController {
         }
     }
 
+    override fun startCollection(context: Context) {
+        context.startForegroundService(Intent(context, CollectionService::class.java))
+    }
+
+    override fun stopCollection(context: Context) {
+        context.stopService(Intent(context, CollectionService::class.java))
+    }
+
     override val isFloatingJoystickShowing: Boolean
         get() = FloatingJoystickService.isShowing
 

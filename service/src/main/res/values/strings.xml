@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="collection_notification_title">Collecting local data</string>
+    <string name="collection_service_channel_name">Data collection service</string>
     <string name="spoofing_notification_point">Simulating location</string>
     <string name="spoofing_notification_route">Simulating route</string>
     <string name="spoofing_notification_joystick">Joystick control</string>

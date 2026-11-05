@@ -61,7 +61,7 @@ class SpoofingControlReceiver : BroadcastReceiver(), KoinComponent {
             emptyList(), false,
             wifiJson, cellJson, bluetoothJson,
             settingsRepository.mockWifi && EnvironmentResolver.hasWifi(records),
-            settingsRepository.mockCell,
+            settingsRepository.mockCell && EnvironmentResolver.hasCell(records),
             settingsRepository.mockBluetooth && EnvironmentResolver.hasBluetooth(records),
             settingsRepository.enableJitter
         )

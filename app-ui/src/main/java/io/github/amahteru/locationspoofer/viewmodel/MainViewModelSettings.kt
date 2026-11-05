@@ -454,10 +454,10 @@ internal fun MainViewModel.handleSpoofingIntent(intent: SpoofingIntent) {
         }
 
 
-        is SpoofingIntent.ConfirmMapPoint -> confirmMapPoint(
-            intent.lat,
-            intent.lng
-        )
+        is SpoofingIntent.ConfirmMapPoint -> {
+            mapMoveJob?.cancel()
+            confirmMapPoint(intent.lat, intent.lng)
+        }
 
         is SpoofingIntent.MapPointMoved -> {
             val now = System.currentTimeMillis()

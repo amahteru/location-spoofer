@@ -12,6 +12,7 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.SystemClock
+import java.util.concurrent.atomic.AtomicBoolean
 import android.telephony.CellInfo
 import android.telephony.CellInfoCdma
 import android.telephony.CellInfoGsm
@@ -70,9 +71,11 @@ class EnvironmentScanner(private val context: Context) {
         try {
             withTimeoutOrNull(WIFI_SCAN_TIMEOUT_MS) {
                 suspendCancellableCoroutine { continuation ->
+                    val finished = AtomicBoolean(false)
+                    val finish = { if (finished.compareAndSet(false, true)) continuation.resume(Unit) }
                     val scanReceiver = object : BroadcastReceiver() {
                         override fun onReceive(context: Context, intent: Intent) {
-                            if (continuation.isActive) continuation.resume(Unit)
+                            finish()
                         }
                     }
                     context.applicationContext.registerReceiver(
@@ -81,7 +84,7 @@ class EnvironmentScanner(private val context: Context) {
                         Context.RECEIVER_NOT_EXPORTED
                     )
                     receiver = scanReceiver
-                    if (!wifiManager.startScan() && continuation.isActive) continuation.resume(Unit)
+                    if (!wifiManager.startScan()) finish()
                 }
             }
         } finally {

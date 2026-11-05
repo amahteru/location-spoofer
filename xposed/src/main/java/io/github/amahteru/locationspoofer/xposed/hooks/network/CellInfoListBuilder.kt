@@ -8,7 +8,7 @@ import kotlin.math.*
 import io.github.libxposed.api.*
 
 internal fun LocationHooker.buildFakeCellInfoList(
-    classLoader: ClassLoader, lat: Double, lng: Double, config: org.json.JSONObject?
+    classLoader: ClassLoader, config: org.json.JSONObject?
 ): java.util.ArrayList<Any> {
     val result = java.util.ArrayList<Any>()
 
@@ -18,7 +18,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
         "buildFakeCellInfoList called cellJsonCount=${cellArray?.length() ?: 0}"
     )
     if (cellArray != null && cellArray.length() > 0) {
-        var hasLteOrNr = false
         var gsmCount = 0
         var wcdmaCount = 0
         var lteCount = 0
@@ -30,9 +29,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 val type =
                     normalizeCellType(obj.optString("type", obj.optString("radio", "LTE")))
                 val isRegistered = obj.optBoolean("isRegistered", i == 0)
-                if (type == "LTE" || type == "NR") {
-                    hasLteOrNr = true
-                }
                 when (type) {
                     "GSM" -> gsmCount++
                     "WCDMA", "UMTS" -> wcdmaCount++
@@ -312,30 +308,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
                 )
             }
         }
-        if (result.isNotEmpty() && !hasLteOrNr) {
-            try {
-                val seed = org.json.JSONObject(cellArray.getJSONObject(0).toString()).apply {
-                    put("type", "LTE")
-                    put("radio", "LTE")
-                    put("isRegistered", true)
-                }
-                val syntheticConfig = org.json.JSONObject().put(
-                    "cell_json",
-                    org.json.JSONArray().put(seed)
-                )
-                val syntheticLte = buildFakeCellInfoList(classLoader, lat, lng, syntheticConfig)
-                if (syntheticLte.isNotEmpty()) {
-                    result.add(0, syntheticLte[0])
-                    XposedBridge.logOpenCellIdEvery(
-                        "buildFakeCellInfoList:synthetic-lte",
-                        "OpenCellID data has no LTE/NR cells; prepended synthetic LTE primary cell for 4G-only readers",
-                        60_000L
-                    )
-                }
-            } catch (e: Throwable) {
-                XposedBridge.logOpenCellId("Failed to prepend synthetic LTE primary cell", e)
-            }
-        }
         XposedBridge.logOpenCellIdEvery(
             "buildFakeCellInfoList:return:$lteCount:$nrCount:$wcdmaCount:$gsmCount:${result.size}:$firstSummary",
             "buildFakeCellInfoList returning ${result.size} cells from cell_json types=LTE:$lteCount NR:$nrCount WCDMA:$wcdmaCount GSM:$gsmCount first=$firstSummary"
@@ -343,104 +315,6 @@ internal fun LocationHooker.buildFakeCellInfoList(
         return result
     }
 
-    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
-    XposedBridge.logOpenCellIdEvery(
-        "buildFakeCellInfoList:fallback:$coordSeed",
-        "buildFakeCellInfoList has no cell_json; generating deterministic LTE fallback cells seed=$coordSeed",
-        60_000L
-    )
-
-    val operators = listOf(
-        Pair(460, 0),
-        Pair(460, 1),
-        Pair(460, 11)
-    )
-
-    val cellCount = 2 + (coordSeed and 1).toInt()
-    for (i in 0 until cellCount) {
-        try {
-            val mcc = operators[i % operators.size].first
-            val mnc = operators[i % operators.size].second
-            val tac = (10000 + ((coordSeed + i * 7919) and 0xFFFF).toInt() % 50000)
-                .coerceIn(1, 65534)
-            val ci = (100000 + (((coordSeed shr 8) + i * 104729) and 0xFFFFFF).toInt() % 900000)
-                .coerceIn(1, 268435455)
-            val pci = (coordSeed + i * 31).toInt() and 0x1FF
-
-            val cellIdentityLteClass = XposedHelpers.findClass(
-                "android.telephony.CellIdentityLte", classLoader
-            )
-            val cellInfoLteClass = XposedHelpers.findClass(
-                "android.telephony.CellInfoLte", classLoader
-            )
-
-            val cellInfo = XposedHelpers.newInstance(cellInfoLteClass)
-
-            try {
-                XposedHelpers.setBooleanField(cellInfo, "mRegistered", i == 0)
-            } catch (e: Throwable) {
-                try {
-                    XposedHelpers.callMethod(cellInfo, "setRegistered", i == 0)
-                } catch (e2: Throwable) {
-                }
-            }
-
-            try {
-                XposedHelpers.setLongField(
-                    cellInfo, "mTimeStamp",
-                    android.os.SystemClock.elapsedRealtimeNanos()
-                )
-            } catch (e: Throwable) {
-            }
-
-            val mccStr = mcc.toString()
-            val mncStr = if (mnc < 10) "0$mnc" else mnc.toString()
-            val cellIdentity = constructCellIdentityByType(
-                "LTE", cellIdentityLteClass, mcc, mccStr, mnc, mncStr, tac, ci, pci
-            )
-
-            try {
-                XposedHelpers.setObjectField(cellInfo, "mCellIdentityLte", cellIdentity)
-            } catch (e: Throwable) {
-            }
-
-            try {
-                val cssClass = XposedHelpers.findClass(
-                    "android.telephony.CellSignalStrengthLte", classLoader
-                )
-                val css = XposedHelpers.newInstance(cssClass)
-                val rsrp = -80 - rng.nextInt(20)
-                val rsrq = -10 - rng.nextInt(7)
-                val rssi = -70 - rng.nextInt(20)
-                try {
-                    XposedHelpers.setIntField(css, "mRsrp", rsrp)
-                } catch (e2: Throwable) {
-                }
-                try {
-                    XposedHelpers.setIntField(css, "mRsrq", rsrq)
-                } catch (e2: Throwable) {
-                }
-                try {
-                    XposedHelpers.setIntField(css, "mSignalStrength", rssi)
-                } catch (e2: Throwable) {
-                }
-                XposedHelpers.setObjectField(cellInfo, "mCellSignalStrengthLte", css)
-            } catch (e: Throwable) {
-            }
-
-            result.add(cellInfo)
-            if (LocationHooker.VERBOSE_CELL_BUILD_LOGS) {
-                XposedBridge.logOpenCellId("Fallback LTE cell[$i] built mcc=$mcc mnc=$mnc tac=$tac ci=$ci pci=$pci registered=${i == 0}")
-            }
-        } catch (e: Throwable) {
-            XposedBridge.logOpenCellId("Fallback LTE cell[$i] build failed", e)
-        }
-    }
-    XposedBridge.logOpenCellIdEvery(
-        "buildFakeCellInfoList:fallback-return:${result.size}",
-        "buildFakeCellInfoList returning ${result.size} fallback LTE cells",
-        60_000L
-    )
     return result
 }
 
@@ -468,21 +342,9 @@ internal fun registeredCellJson(cellArray: org.json.JSONArray?): org.json.JSONOb
     return cellArray.optJSONObject(0)
 }
 
-internal fun LocationHooker.registeredCellCodes(config: org.json.JSONObject, lat: Double, lng: Double): Pair<Int, Int> {
-    val cell = registeredCellJson(config.optJSONArray("cell_json"))
-        ?: return fallbackAreaCode(lat, lng) to fallbackCellIdentity(lat, lng)
+internal fun LocationHooker.registeredCellCodes(config: org.json.JSONObject): Pair<Int, Int>? {
+    val cell = registeredCellJson(config.optJSONArray("cell_json")) ?: return null
     return cellAreaCode(cell, 10000) to cellIdentityCode(cell, 100000)
-}
-
-internal fun LocationHooker.fallbackAreaCode(lat: Double, lng: Double): Int {
-    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
-    return (10000 + (coordSeed and 0xFFFF).toInt() % 50000).coerceIn(1, 65534)
-}
-
-internal fun LocationHooker.fallbackCellIdentity(lat: Double, lng: Double): Int {
-    val coordSeed = ((lat * 1e5).toLong() xor (lng * 1e5).toLong())
-    return (100000 + ((coordSeed shr 8) and 0xFFFFFF).toInt() % 900000)
-        .coerceIn(1, 268435455)
 }
 
 internal fun LocationHooker.positiveJsonInt(

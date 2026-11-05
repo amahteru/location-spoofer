@@ -126,9 +126,6 @@ interface EnvironmentDao {
     @Query("SELECT * FROM location_records")
     fun observeAllCompleteLocations(): Flow<List<CompleteLocation>>
 
-    @Query("SELECT (SELECT COUNT(*) FROM location_records WHERE collectionRouteId IS NULL) + (SELECT COUNT(*) FROM collection_routes)")
-    suspend fun getRecordCount(): Int
-
     @Query("DELETE FROM location_records WHERE id = :id")
     suspend fun deleteLocation(id: Long)
 

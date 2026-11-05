@@ -269,6 +269,9 @@
     <string name="tag_cell">基站</string>
     <string name="app_description">位置模拟器模块</string>
 
+    <string name="collection_paused_by_system">采集曾被系统暂停，这段时间没有数据</string>
+    <string name="opencellid_fetch_failed">OpenCellID 查询失败，未添加基站数据</string>
+    <string name="wigle_fetch_failed">WiGLE 查询失败，未添加 Wi-Fi 数据</string>
     <string name="wigle_import">WiGLE 导入</string>
     <string name="opencellid_import">OpenCellID 导入</string>
     <string name="lat_lng_format_prefix">坐标：</string>

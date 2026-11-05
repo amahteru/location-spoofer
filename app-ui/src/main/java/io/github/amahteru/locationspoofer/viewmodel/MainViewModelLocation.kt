@@ -277,7 +277,7 @@ internal fun MainViewModel.clearPinnedCollectedLocation() {
     evaluateMockCapabilities()
 }
 
-internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, lng: Double) {
+internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, lng: Double, fromDatabase: Boolean = false) {
     val currentPinnedId = pinnedLocationRecordId
     var pinnedRecord: CompleteLocation? = null
 
@@ -313,7 +313,20 @@ internal suspend fun MainViewModel.evaluateMockCapabilitiesSuspend(lat: Double, 
         }
     }
 
-    val validRecords = environmentRecordsAt(lat, lng).toMutableList()
+    val records = if (fromDatabase) {
+        withContext(Dispatchers.IO) {
+            EnvironmentResolver.recordsAt(
+                environmentDao.getAllCompleteLocations(),
+                environmentDao.getCollectionRoutes(),
+                lat,
+                lng,
+                _uiState.value.selectedCollectionRouteId
+            )
+        }
+    } else {
+        environmentRecordsAt(lat, lng)
+    }
+    val validRecords = records.toMutableList()
 
     if (pinnedRecord != null) {
         validRecords.removeAll { it.location.id == pinnedRecord.location.id }
@@ -343,166 +356,85 @@ internal fun MainViewModel.applyEnvironment(records: List<CompleteLocation>, lat
     }
 }
 
-internal suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double) {
-    val settingsToken = settingsRepository.getWigleApiToken()
-    if (settingsToken.isBlank()) {
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.copy(
-                    canMockWifi = false
-                )
-            }
-        }
-        return
-    }
+internal suspend fun MainViewModel.fetchMissingEnvironment(lat: Double, lng: Double, mockWifi: Boolean, mockCell: Boolean): Boolean {
+    val records = environmentRecordsAt(lat, lng)
+    val wifiSaved = mockWifi && !EnvironmentResolver.hasWifi(records) && fetchWifiFromWigleSync(lat, lng)
+    val cellSaved = mockCell && !EnvironmentResolver.hasCell(records) && fetchCellFromOpenCellIdSync(lat, lng)
+    return wifiSaved || cellSaved
+}
+
+private fun MainViewModel.importRemark(lat: Double, lng: Double): String =
+    String.format(java.util.Locale.US, "%s (%.6f, %.6f)", context.getString(R.string.lat_lng_format_prefix), lat, lng)
+
+private fun wifiChannelFrequency(channel: Int): Int =
+    if (channel <= 14) 2407 + channel * 5 else 5000 + channel * 5
+
+private suspend fun MainViewModel.fetchWifiFromWigleSync(lat: Double, lng: Double): Boolean {
+    val token = settingsRepository.getWigleApiToken()
+    if (token.isBlank()) return false
 
     val wgs84 = io.github.amahteru.locationspoofer.utils.CoordinateUtils.gcj02ToWgs84(lat, lng)
-    val wgsLat = wgs84.lat
-    val wgsLng = wgs84.lng
+    return try {
+        val nearbyArr = org.json.JSONArray(wifiRepository.fetchWifiData(wgs84.lat, wgs84.lng, token))
+        if (nearbyArr.length() == 0) return false
 
-    try {
-        val rawJsonArrayString = wifiRepository.fetchWifiData(wgsLat, wgsLng, settingsToken)
-        val nearbyArr = org.json.JSONArray(rawJsonArrayString)
-        if (nearbyArr.length() > 0) {
-            val wifiObj = org.json.JSONObject()
-            wifiObj.put("isConnected", true)
-
-            val firstAp = nearbyArr.getJSONObject(0)
-            val firstBssid = firstAp.optString("bssid")
-            val firstSsid = firstAp.optString("ssid")
-
-            val connObj = org.json.JSONObject().apply {
-                put("bssid", firstBssid)
-                put("ssid", firstSsid)
-                put(
-                    "vendor",
-                    io.github.amahteru.locationspoofer.utils.MacVendorHelper.getVendor(firstBssid)
-                )
-                put("level", -45)
-                put("frequency", 2412)
-                put("channel", 1)
+        val formattedNearby = org.json.JSONArray()
+        for (i in 0 until nearbyArr.length()) {
+            val ap = nearbyArr.getJSONObject(i)
+            val bssid = ap.getString("bssid")
+            val channel = ap.getInt("channel")
+            formattedNearby.put(org.json.JSONObject().apply {
+                put("bssid", bssid)
+                put("ssid", ap.getString("ssid"))
+                put("vendor", io.github.amahteru.locationspoofer.utils.MacVendorHelper.getVendor(bssid))
+                put("level", -50 - (i * 2))
                 put("capabilities", "[WPA2-PSK-CCMP][ESS]")
-                put("macAddress", "02:00:00:00:00:00")
-                put("linkSpeed", 150)
-                put("networkId", 1)
-                put("wifiStandard", 4)
-            }
-            wifiObj.put("connectedWifi", connObj)
-
-            val formattedNearby = org.json.JSONArray()
-            for (i in 0 until nearbyArr.length()) {
-                val ap = nearbyArr.getJSONObject(i)
-                val bssid = ap.optString("bssid")
-                val ssid = ap.optString("ssid")
-                val level = -50 - (i * 2)
-                val freq = if (i % 2 == 0) 2412 else 5180
-
-                val itemObj = org.json.JSONObject().apply {
-                    put("bssid", bssid)
-                    put("ssid", ssid)
-                    put(
-                        "vendor",
-                        io.github.amahteru.locationspoofer.utils.MacVendorHelper.getVendor(bssid)
-                    )
-                    put("level", level)
-                    put("capabilities", "[WPA2-PSK-CCMP][ESS]")
-                    put("frequency", freq)
-                    put(
-                        "channel",
-                        io.github.amahteru.locationspoofer.utils.MacVendorHelper.frequencyToChannel(
-                            freq
-                        )
-                    )
-                }
-                formattedNearby.put(itemObj)
-            }
-            wifiObj.put("nearbyWifi", formattedNearby)
-
-            val formattedWifiJson = wifiObj.toString()
-
-            withContext(Dispatchers.IO) {
-                val id = saveEnvironmentData(lat, lng, formattedWifiJson, "[]", "{}")
-                val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
-                environmentDao.updateMetadata(
-                    id,
-                    lat,
-                    lng,
-                    context.getString(R.string.wigle_import),
-                    "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
-                        String.format(
-                            java.util.Locale.US, "%.6f",
-                            lng
-                        )
-                    })",
-                    null, null, null
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                evaluateMockCapabilities()
-            }
-        } else {
-            withContext(Dispatchers.Main) {
-                _uiState.update {
-                    it.copy(
-                        canMockWifi = false
-                    )
-                }
-            }
+                put("frequency", wifiChannelFrequency(channel))
+                put("channel", channel)
+            })
         }
+        val wifiJson = org.json.JSONObject()
+            .put("isConnected", false)
+            .put("connectedWifi", org.json.JSONObject.NULL)
+            .put("nearbyWifi", formattedNearby)
+            .toString()
+
+        withContext(Dispatchers.IO) {
+            saveEnvironmentData(
+                lat, lng, wifiJson, "[]", "[]",
+                placeName = context.getString(R.string.wigle_import),
+                remark = importRemark(lat, lng)
+            )
+        }
+        true
     } catch (e: Exception) {
         e.printStackTrace()
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.copy(
-                    canMockWifi = false
-                )
-            }
-        }
+        AppSnackbar.show(context.getString(R.string.wigle_fetch_failed), long = true)
+        false
     }
 }
 
-internal suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng: Double) {
-    val tokenToUse = settingsRepository.getOpencellidApiToken()
-    if (tokenToUse.isBlank()) {
-        return
-    }
+private suspend fun MainViewModel.fetchCellFromOpenCellIdSync(lat: Double, lng: Double): Boolean {
+    val token = settingsRepository.getOpencellidApiToken()
+    if (token.isBlank()) return false
+
     val wgs84 = io.github.amahteru.locationspoofer.utils.CoordinateUtils.gcj02ToWgs84(lat, lng)
-    val wgsLat = wgs84.lat
-    val wgsLng = wgs84.lng
+    return try {
+        val cellsArray = org.json.JSONArray(opencellidClient.fetchCellData(wgs84.lat, wgs84.lng, token))
+        val formattedCells = normalizeCellArrayForStorage(cellsArray)
+        if (formattedCells.length() == 0) return false
 
-    try {
-        val rawJsonArrayString = opencellidClient.fetchCellData(wgsLat, wgsLng, tokenToUse)
-        val cellsArray = org.json.JSONArray(rawJsonArrayString)
-        if (cellsArray.length() > 0) {
-            val formattedCells = normalizeCellArrayForStorage(cellsArray)
-            if (formattedCells.length() == 0) {
-                return
-            }
-
-            withContext(Dispatchers.IO) {
-                val id = saveEnvironmentData(lat, lng, "{}", formattedCells.toString(), "[]")
-                val latLngPrefix = context.getString(R.string.lat_lng_format_prefix)
-                environmentDao.updateMetadata(
-                    id,
-                    lat,
-                    lng,
-                    context.getString(R.string.opencellid_import),
-                    "$latLngPrefix (${String.format(java.util.Locale.US, "%.6f", lat)}, ${
-                        String.format(
-                            java.util.Locale.US, "%.6f",
-                            lng
-                        )
-                    })",
-                    null, null, null
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                evaluateMockCapabilities()
-            }
+        withContext(Dispatchers.IO) {
+            saveEnvironmentData(
+                lat, lng, "{}", formattedCells.toString(), "[]",
+                placeName = context.getString(R.string.opencellid_import),
+                remark = importRemark(lat, lng)
+            )
         }
+        true
     } catch (e: Exception) {
         e.printStackTrace()
+        AppSnackbar.show(context.getString(R.string.opencellid_fetch_failed), long = true)
+        false
     }
 }

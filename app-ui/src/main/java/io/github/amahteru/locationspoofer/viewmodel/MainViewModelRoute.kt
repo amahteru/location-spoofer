@@ -1,6 +1,7 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
 import io.github.amahteru.locationspoofer.data.model.simulatedWifi
+import io.github.amahteru.locationspoofer.data.model.simulatedCell
 import io.github.amahteru.locationspoofer.data.model.simulatedBluetooth
 import io.github.amahteru.locationspoofer.data.model.isAt
 import io.github.amahteru.locationspoofer.data.db.displayName
@@ -10,7 +11,6 @@ import java.util.Locale
 import androidx.lifecycle.viewModelScope
 import io.github.amahteru.locationspoofer.ui.R
 import io.github.amahteru.locationspoofer.data.model.AppState
-import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
 import io.github.amahteru.locationspoofer.data.model.RoutePoint
 import io.github.amahteru.locationspoofer.data.model.RoutePlanStage
 import io.github.amahteru.locationspoofer.data.model.RouteRunMode
@@ -106,10 +106,13 @@ internal fun MainViewModel.joystickMaxSpeedMs(): Float =
 
 internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging: Boolean = false) {
     if (motionController.state.value.hasRoute) return
-    val currentLat = _uiState.value.latitudeInput.toDoubleOrNull()
-    val currentLng = _uiState.value.longitudeInput.toDoubleOrNull()
-    if (currentLat != null && currentLng != null &&
-        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(currentLat, currentLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0) return
+    val before = _uiState.value
+    val currentLat = (if (before.isSpoofingActive) settingsRepository.lastSpoofedLat else before.latitudeInput).toDoubleOrNull()
+    val currentLng = (if (before.isSpoofingActive) settingsRepository.lastSpoofedLng else before.longitudeInput).toDoubleOrNull()
+    val unchanged = currentLat != null && currentLng != null &&
+        io.github.amahteru.locationspoofer.utils.GeoMath.distance(io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(currentLat, currentLng), io.github.amahteru.locationspoofer.utils.CoordinateUtils.LatLng(lat, lng)) < 1.0
+    if (unchanged && (isDragging || !mapDragPending)) return
+    mapDragPending = isDragging
     _uiState.update {
         it.copy(
             latitudeInput = String.format(java.util.Locale.US, "%.6f", lat),
@@ -123,13 +126,8 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
         settingsRepository.lastSpoofedLat = lat.toString()
         settingsRepository.lastSpoofedLng = lng.toString()
         viewModelScope.launch {
-            if (state.mockWifi && !EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng)) && !isDragging) {
-                fetchWifiFromWigleSync(lat, lng)
-            }
-            if (state.mockCell && !EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng)) && !isDragging) {
-                fetchCellFromOpenCellIdSync(lat, lng)
-            }
-            evaluateMockCapabilitiesSuspend(lat, lng)
+            val fetched = !isDragging && fetchMissingEnvironment(lat, lng, state.mockWifi, state.mockCell)
+            evaluateMockCapabilitiesSuspend(state.latitudeInput.toDouble(), state.longitudeInput.toDouble(), fetched)
             val updatedState = _uiState.value
             locationRepository.updateConfig(
                 lat = lat,
@@ -143,7 +141,7 @@ internal fun MainViewModel.confirmMapPoint(lat: Double, lng: Double, isDragging:
                 cellJson = updatedState.collectedCellJson,
                 bluetoothJson = updatedState.collectedBluetoothJson,
                 mockWifi = updatedState.simulatedWifi,
-                mockCell = updatedState.mockCell,
+                mockCell = updatedState.simulatedCell,
                 mockBluetooth = updatedState.simulatedBluetooth,
                 enableJitter = updatedState.enableJitter
             )
@@ -288,7 +286,7 @@ private fun MainViewModel.startSimulationWithPoints(pointsToRun: List<RoutePoint
             _uiState.value.collectedCellJson,
             _uiState.value.collectedBluetoothJson,
             _uiState.value.simulatedWifi,
-            _uiState.value.mockCell,
+            _uiState.value.simulatedCell,
             _uiState.value.simulatedBluetooth,
             _uiState.value.enableJitter,
             speedMs = speed,
@@ -360,7 +358,7 @@ private fun MainViewModel.switchRouteToStatic(nextStage: RoutePlanStage, keepSta
             routePoints = emptyList(),
             isRouteMode = false,
             mockWifi = state.simulatedWifi,
-            mockCell = state.mockCell,
+            mockCell = state.simulatedCell,
             mockBluetooth = state.simulatedBluetooth,
             enableJitter = state.enableJitter
         )
@@ -516,6 +514,7 @@ private fun MainViewModel.updatePosition(lat: Double, lng: Double, bearing: Floa
                 state.collectedCellJson,
                 state.collectedBluetoothJson,
                 state.simulatedWifi,
+                state.simulatedCell,
                 state.simulatedBluetooth
             )
         }

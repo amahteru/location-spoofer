@@ -1,6 +1,7 @@
 package io.github.amahteru.locationspoofer.viewmodel
 
 import io.github.amahteru.locationspoofer.data.model.simulatedWifi
+import io.github.amahteru.locationspoofer.data.model.simulatedCell
 import io.github.amahteru.locationspoofer.data.model.simulatedBluetooth
 import io.github.amahteru.locationspoofer.data.model.CollectionIssue
 import io.github.amahteru.locationspoofer.data.model.EnvironmentResolver
@@ -40,14 +41,8 @@ internal fun MainViewModel.startSpoofing() {
     viewModelScope.launch {
         _uiState.update { it.copy(isSavingConfig = true) }
 
-        if (state.mockWifi && !EnvironmentResolver.hasWifi(environmentRecordsAt(lat, lng))) {
-            fetchWifiFromWigleSync(lat, lng)
-        }
-        if (state.mockCell && !EnvironmentResolver.hasCell(environmentRecordsAt(lat, lng))) {
-            fetchCellFromOpenCellIdSync(lat, lng)
-        }
-
-        evaluateMockCapabilitiesSuspend(lat, lng)
+        val fetched = fetchMissingEnvironment(lat, lng, state.mockWifi, state.mockCell)
+        evaluateMockCapabilitiesSuspend(lat, lng, fetched)
 
         val updatedState = _uiState.value
         val now = System.currentTimeMillis()
@@ -59,7 +54,7 @@ internal fun MainViewModel.startSpoofing() {
             updatedState.collectedCellJson,
             updatedState.collectedBluetoothJson,
             updatedState.simulatedWifi,
-            updatedState.mockCell,
+            updatedState.simulatedCell,
             updatedState.simulatedBluetooth,
             updatedState.enableJitter
         )
@@ -158,12 +153,14 @@ private fun MainViewModel.syncMockSettings() {
     viewModelScope.launch {
         locationRepository.patchConfig { json ->
             json.put("mock_wifi", state.simulatedWifi)
-            json.put("mock_cell", state.mockCell)
+            json.put("mock_cell", state.simulatedCell)
             json.put("mock_bluetooth", state.simulatedBluetooth)
             json.put("enable_jitter", state.enableJitter)
         }
     }
 }
+
+private const val COLLECTION_PAUSE_MS = 90_000L
 
 internal fun MainViewModel.toggleContinuousScanning() {
     val state = _uiState.value
@@ -191,11 +188,18 @@ internal fun MainViewModel.toggleContinuousScanning() {
             scannedBluetoothCount = 0
         )
     }
+    locationRepository.startCollectionService(context)
     continuousScanJob = viewModelScope.launch(Dispatchers.IO) {
         val saved = linkedMapOf<Long, io.github.amahteru.locationspoofer.data.db.CompleteLocation>()
         var routeId: Long? = null
+        var cycleStart = android.os.SystemClock.elapsedRealtime()
         try {
             while (isActive) {
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (now - cycleStart > COLLECTION_PAUSE_MS) {
+                    AppSnackbar.show(context.getString(R.string.collection_paused_by_system), long = true)
+                }
+                cycleStart = now
                 val realLoc = fetchRealLocationSilent(context)
                 val insideRoute = !state.isRouteCollection || (realLoc != null &&
                     io.github.amahteru.locationspoofer.utils.PolylineCoverage.distanceMeters(
@@ -252,6 +256,7 @@ internal fun MainViewModel.toggleContinuousScanning() {
             }
         } finally {
             withContext(NonCancellable) {
+                locationRepository.stopCollectionService(context)
                 val savedRoute = routeId?.let { id ->
                     if (saved.isEmpty()) {
                         environmentDao.deleteCollectionRoute(id)

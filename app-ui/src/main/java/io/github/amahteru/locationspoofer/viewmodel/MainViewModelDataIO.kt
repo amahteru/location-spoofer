@@ -20,7 +20,9 @@ internal suspend fun MainViewModel.saveEnvironmentData(
     cellJson: String,
     bluetoothJson: String,
     mergeNearby: Boolean = false,
-    collectionRouteId: Long? = null
+    collectionRouteId: Long? = null,
+    placeName: String = "",
+    remark: String = ""
 ): Long = environmentDao.runInTransaction {
         val existingLocation = if (mergeNearby) null else environmentDao.findLocationByCoordinates(lat, lng)
         val locId = if (mergeNearby) {
@@ -32,7 +34,9 @@ internal suspend fun MainViewModel.saveEnvironmentData(
             environmentDao.insertLocation(
                 io.github.amahteru.locationspoofer.data.db.LocationRecord(
                     lat = lat,
-                    lng = lng
+                    lng = lng,
+                    placeName = placeName,
+                    remark = remark
                 )
             )
         }
@@ -244,9 +248,7 @@ internal fun MainViewModel.exportEnvironmentData(
             } else null
 
             val dataPackage = io.github.amahteru.locationspoofer.data.db.LocationSpooferDataPackage(
-                version = 4,
                 exportTimestamp = System.currentTimeMillis(),
-                appVersion = "2.0.0",
                 locations = locations,
                 collectionRoutes = collectionRoutes,
                 savedLocations = savedLocations,
